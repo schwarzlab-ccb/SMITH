@@ -35,7 +35,7 @@ public struct ResultSummary
         => ToString(this);
 
     private static string ToString(ResultSummary rs)
-        => Join(",", rs.GetType().GetFields().Select(f => f.GetValue(rs).ToString()));
+        => Join(",", rs.GetType().GetFields().Select(f => f.GetValue(rs)?.ToString()));
 
     public static string Header()
         => Join(",", typeof(ResultSummary).GetFields().Select(f => f.Name));
