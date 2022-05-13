@@ -48,19 +48,33 @@ Use `dotnet run -- [options]` to specify any of the following:
 ## Output
 
 
-#### `ccf.csv`         
+#### `ccf.csv`       
+
+Cancer cell fraction data in the format [subclone, population size, fraction].
 
 #### `parent_tree.csv` 
 
+Describes the parent-child relationship between subclones. Used for plotting of Fish Plots. For details see [PyFish repository](https://bitbucket.org/schwarzlab/pyfish/).
+
 #### `populations.csv`
+
+Lists population sizes at individual timepoints for each subclone.  Used for plotting of Fish Plots.  For details see [PyFish repository](https://bitbucket.org/schwarzlab/pyfish/).
 
 #### `summary.csv`     
 
+Statistical / analytical eveluation of the simulation at individual stops. If checkpoints are used, log2 sizes are considered as stops, starting from the minimum size. Otherwise only one output at the end of the simulation is printed.
+
 #### `parent_graph.dot`
+
+An evolutionary tree with mutation distances and population sizes between the individual subclones. The graph is written in the [DOT language](https://graphviz.org/doc/info/lang.html).
 
 #### `sim_params.json` 
 
+Stores configuration parameters used for this simulation, including the random seed. If this file is provided on input, the exact same simulation will be executed.
+
 #### `subclones.out`  
+
+Information about the individual subclones at the end of the simulation.
 
 ***
 
@@ -83,7 +97,7 @@ The parameters for the simulation can be provided using the `-C config.json` run
   "Seed": -1,
   "StartMut": 1,
   "StartPop": 1,
-  "Reps": 1,
+  "Reps": 10,
   "MaxPop": 1048576000,
   "MaxSteps": 1000000,
   "CutOff": 0.001,
