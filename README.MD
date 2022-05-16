@@ -10,7 +10,7 @@ The tool runs large-scale simulations (typically $10^{9}$, but larger orders are
 
 ### TL;DR; 
 
-The program can be run on a platform of your choice in a provided *Conda* environment. Inside of the repo run `conda env create --file SMITH.yml`. 
+The program can be run on a platform of your choice in the provided *Conda* environment. Inside of the repo run `conda env create --file SMITH.yml`. 
 
 ### Tested platforms
 
@@ -97,6 +97,7 @@ Information about the individual subclones at the end of the simulation.
 
 #### `CCF.png` 
 How big a portion of a population a subclone captures.
+
 ![CCF](./doc/img/CCF.png)
 
 #### `fish.png`, `fish_abs.png`  
@@ -113,6 +114,7 @@ TODO
 
 #### `parent_graph.png` 
 An evolutionary tree describing the individual sampled clones and their total population (labelled nodes), together with their evolutionary distance from the parent (labelled edges).
+
 ![CCF](./doc/img/parent_graph.png)
 
 ## Contact
