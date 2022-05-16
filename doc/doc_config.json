@@ -1,0 +1,18 @@
+{
+  "Seed": 42,
+  "StartMut": 1,
+  "StartPop": 1,
+  "Reps": 10,
+  "MaxPop": 16384000,
+  "MaxSteps": 1000000,
+  "CutOff": 0.001,
+  "MinPop": 1000,
+  "Turnover": 0.01,
+  "Confinement": 0.25,
+  "MutationProb": 0.0001,
+  "FitnessMean": 0.25,
+  "FitnessAcc": 0,
+  "FitnessDist": 0,
+  "FitnessEffect": 0,
+  "Checkpoints": true
+}
