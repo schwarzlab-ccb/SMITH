@@ -8,6 +8,18 @@ The tool runs large-scale simulations (typically $10^{9}$, but larger orders are
 
 ## Requirements
 
+### TL;DR; 
+
+The program can be run on a platform of your choice in a provided *Conda* environment. Inside of the repo run `conda env create --file SMITH.yml`. 
+
+### Tested platforms
+
+The program has been tested on:
+* Windows 10 - PowerShell
+* Windows 10 - WSL2 Ubuntu
+* Ubuntu 20
+* MacOS X 10 
+
 ### Simulation
 
 The simulation code is written in **C# 8**. **.NET 5.0** or newer is requred. We recommend installation using *Conda*:
@@ -47,6 +59,11 @@ Use `dotnet run -- [options]` to specify any of the following:
 
 ## Output
 
+The following output was generated using the [demo configuration](./doc/doc_config.json). 
+
+To reproduce the results run `dotnet run -- -C ./doc/doc_config.json`.
+
+The text files are primariliy used as source for plots shown below.
 
 #### `ccf.csv`       
 
@@ -79,40 +96,24 @@ Information about the individual subclones at the end of the simulation.
 ***
 
 #### `CCF.png` 
+How big a portion of a population a subclone captures.
+![CCF](./doc/img/CCF.png)
 
-#### `fish.png`  
+#### `fish.png`, `fish_abs.png`  
+Fish plots generated using the [PyFish package](https://bitbucket.org/schwarzlab/pyfish): 
 
-#### `fish_abs.png`   
+relative plot (population sizes compared to each other) | absolute plot (population sizes compared to the final sample)
+--- | ----
+![CCF](./doc/img/fish.png) | ![CCF](./doc/img/fish_abs.png)
 
 #### `metrics_relationships.png`
+TODO
 
-#### `parent_tree.png`          
+![CCF](./doc/img/metrics_relationships.png)
 
-## Configuration
-
-The parameters for the simulation can be provided using the `-C config.json` run option. The following are the default parameters:
-
-```
-{
-  "Seed": -1,
-  "StartMut": 1,
-  "StartPop": 1,
-  "Reps": 10,
-  "MaxPop": 1048576000,
-  "MaxSteps": 1000000,
-  "CutOff": 0.001,
-  "MinPop": 1000,
-  "Turnover": 0.01,
-  "Confinement": 0.1,
-  "MutationProb": 0.0001,
-  "FitnessMean": 0.125,
-  "FitnessAcc": 0,
-  "FitnessDist": 0,
-  "FitnessEffect": 0,
-  "Checkpoints": true
-}
-```
-
+#### `parent_graph.png` 
+An evolutionary tree describing the individual sampled clones and their total population (labelled nodes), together with their evolutionary distance from the parent (labelled edges).
+![CCF](./doc/img/parent_graph.png)
 
 ## Contact
 Email questions, feature requests and bug reports to Adam Streck, adam.streck@mdc-berlin.de.
