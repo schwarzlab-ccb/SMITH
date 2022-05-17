@@ -108,7 +108,7 @@ relative plot (population sizes compared to each other) | absolute plot (populat
 ![CCF](./doc/img/fish.png) | ![CCF](./doc/img/fish_abs.png)
 
 #### `metrics_relationships.png`
-TODO
+Plot the pairwise relationship between every pair of metrics present in `summary.csv` as well as their indiviudal distributions. This is usually used in the initial assesment of the simulation as a quick overview of the values produced.
 
 ![CCF](./doc/img/metrics_relationships.png)
 
