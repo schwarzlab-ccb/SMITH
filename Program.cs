@@ -105,8 +105,8 @@ try
                 // Analysis
                 double cutOff = popSizes.Last().Alive * simParams.CutOff;
                 var aboveCutOff = simulator.Clones.Where(sc => sc.AliveCount > cutOff).ToList();
-                var lcaTree = LCATreeBuilder.Builtree(simulator.Clones, aboveCutOff);
-                var connectedTree = ConnectedTreeBuilder.BuildTree(simulator.Clones, aboveCutOff);
+                var lcaTree = TreeBuilder.BuildLCAT(simulator.Clones, aboveCutOff);
+                var connectedTree = TreeBuilder.BuildTree(simulator.Clones, aboveCutOff);
                 var treeNodes = lcaTree.Nodes.Select(n => n.Id).ToList();
                 var sample = simulator.Clones.Where(sc => treeNodes.Contains(sc.CloneId)).ToList();
                 
@@ -130,7 +130,7 @@ try
                     var mullerPops = simulator.Clones.Where(sc =>
                         sc.FirstGen <= firstPop || Enumerable.Range(firstPop, popSizes.Count)
                             .Any(g => mullerSelect[g] <= sc.AliveAtGen(g))).ToList();
-                    var mullerTree = ConnectedTreeBuilder.BuildTree(simulator.Clones, mullerPops);
+                    var mullerTree = TreeBuilder.BuildTree(simulator.Clones, mullerPops);
                     files.WriteMullerDataFrames(mullerPops, mullerTree);
                     
                     files.StoreCopy(repeatId);
