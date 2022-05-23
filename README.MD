@@ -4,7 +4,7 @@ SMITH is a tool for fast stochastic simulation of evolution of subclones within 
 
 We use a confined, well-mixed, branching model of cell populations.
 
-The tool runs large-scale simulations (typically $10^{9}$, but larger orders are also possible) and allows for fast evaluation across multiple executions.
+The tool runs large-scale simulations (typically ~billion, but larger orders are also possible) and allows for fast evaluation across multiple executions.
 
 ## Requirements
 

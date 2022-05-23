@@ -24,17 +24,30 @@ public static class ConnectedTreeBuilder
     }
 
     // Construct a parent tree with each child being either parent of a present predecessor, or -1 if none exists.
-    public static ParentTree BuildTree(IEnumerable<SubClone> allSubClones, List<SubClone> selection)
+    public static ParentTree BuildTree(List<SubClone> allSubClones, List<SubClone> selection, bool keepEmpty = false)
     {
         var parentMap = CreateParentMap(allSubClones);
         List<TreeNode> nodes = new();
         List<TreeEdge> edges = new();
         int rootId = -1;
 
-        foreach (var subClone in selection)
+        if (keepEmpty)
         {
-            nodes.Add(new TreeNode { Id = subClone.CloneId, Size = subClone.AliveCount });
-            edges.Add(FindEdgeToParent(parentMap, selection, subClone.CloneId));
+            foreach (var subClone in allSubClones)
+            {
+                int id = selection.FindIndex(sc => sc.CloneId == subClone.CloneId);
+                long size = id > 0 ? selection[id].AliveCount : 0;
+                nodes.Add(new TreeNode { Id = subClone.CloneId, Size = size });
+                edges.Add(FindEdgeToParent(parentMap, selection, subClone.CloneId));
+            }
+        }
+        else
+        {
+            foreach (var subClone in selection)
+            {
+                nodes.Add(new TreeNode { Id = subClone.CloneId, Size = subClone.AliveCount });
+                edges.Add(FindEdgeToParent(parentMap, selection, subClone.CloneId));
+            }
         }
 
         if (edges.Count(e => e.SourceId == -1) > 1)

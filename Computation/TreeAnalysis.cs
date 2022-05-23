@@ -2,20 +2,35 @@
 
 namespace SimChA.Computation;
 
-public class TreeAnalysis
+public static class TreeAnalysis
 {
-    private static long SubtreeCellCount(ParentTree parentTree, TreeNode subtreeRoot)
+    private static long SubtreeCellCount(ParentTree parentTree, Dictionary<int, long> knownSizes, TreeNode subtreeRoot)
     {
-        return subtreeRoot.Size + parentTree.Edges
+        if (knownSizes.ContainsKey(subtreeRoot.Id))
+        {
+            return knownSizes[subtreeRoot.Id];
+        }
+        long size = subtreeRoot.Size + parentTree.Edges
             .Where(e => e.SourceId == subtreeRoot.Id)
-            .Select(e => SubtreeCellCount(parentTree, parentTree.Nodes
-                .Find(n => n.Id == e.TargetId)))
+            .Select(e => SubtreeCellCount(parentTree, knownSizes, parentTree.Nodes.Find(n => n.Id == e.TargetId)))
             .Sum();
+        knownSizes[subtreeRoot.Id] = size; 
+        return size;
     }
 
-    public static Dictionary<int, long> ComputeVAF(ParentTree parentTree)
+    public static Dictionary<int, long> ComputeCCF(ParentTree parentTree)
     {
-        return parentTree.Nodes.ToDictionary(node => node.Id, node => SubtreeCellCount(parentTree, node));
+        var knownSizes = new Dictionary<int, long>();
+        var CCF = new Dictionary<int, long>();
+        foreach (var node in parentTree.Nodes)
+        {
+            long size = SubtreeCellCount(parentTree, knownSizes, node);
+            if (size > 0)
+            {
+                CCF[node.Id] = size;
+            }
+        }
+        return CCF;
     }
 
     private static int CountNodes(Dictionary<int, List<int>> branches, TreeSizeData data, int id, int depth)
@@ -57,7 +72,7 @@ public class TreeAnalysis
 
         float treeBalance = 0;
         long Sdash_i_sum = 0;
-        var subtreeCount = ComputeVAF(parentTree);
+        var subtreeCount = ComputeCCF(parentTree);
         var branches = TreeToBranches(parentTree);
 
         foreach (var node in parentTree.Nodes.Where(n => branches[n.Id].Count >= 2))

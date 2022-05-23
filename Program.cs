@@ -39,7 +39,7 @@ else
         Turnover = 0.01,
         MutationProb = 0.0001,
 
-        FitnessMean = .125,
+        FitnessMean = .2,
         Confinement = .1,
 
         // Initialization
@@ -119,10 +119,12 @@ try
                 // Result
                 if (EndCondFunc())
                 {
-                    var vaf = TreeAnalysis.ComputeVAF(connectedTree);
                     files.WriteSubClones(sample);
                     files.WriteParentTree(lcaTree);
-                    files.WriteCCF(vaf, popSizes.Last().Tumor);
+                    
+                    var ccf = TreeAnalysis.ComputeCCF(connectedTree);
+                    files.WriteCCF(ccf, popSizes.Last().Alive);
+                    
                     var mullerSelect = popSizes.Select(pair => pair.Alive * 0.01).ToList();
                     int firstPop = mullerSelect.FindIndex(minPop => minPop > 0);
                     var mullerPops = simulator.Clones.Where(sc =>
@@ -130,6 +132,7 @@ try
                             .Any(g => mullerSelect[g] <= sc.AliveAtGen(g))).ToList();
                     var mullerTree = ConnectedTreeBuilder.BuildTree(simulator.Clones, mullerPops);
                     files.WriteMullerDataFrames(mullerPops, mullerTree);
+                    
                     files.StoreCopy(repeatId);
                     Console.WriteLine($"Sim: {repeatId + 1}.{tryNo}/{simParams.Reps} result:".PadRight(160));
                     Console.WriteLine(result.ToText());
