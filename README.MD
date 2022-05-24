@@ -65,10 +65,6 @@ To reproduce the results run `dotnet run -- -C ./doc/doc_config.json`.
 
 The text files are primariliy used as source for plots shown below.
 
-#### `ccf.csv`       
-
-Cancer cell fraction data in the format [subclone, population size, fraction].
-
 #### `parent_tree.csv` 
 
 Describes the parent-child relationship between subclones. Used for plotting of Fish Plots. For details see [PyFish repository](https://bitbucket.org/schwarzlab/pyfish/).
@@ -95,17 +91,14 @@ Information about the individual subclones at the end of the simulation.
 
 ***
 
-#### `CCF.png` 
-How big a portion of a population a subclone captures.
-
-![CCF](./doc/img/CCF.png)
+### Created by ./plots.sh
 
 #### `fish.png`, `fish_abs.png`  
 Fish plots generated using the [PyFish package](https://bitbucket.org/schwarzlab/pyfish): 
 
-relative plot (population sizes compared to each other) | absolute plot (population sizes compared to the final sample)
---- | ----
-![CCF](./doc/img/fish.png) | ![CCF](./doc/img/fish_abs.png)
+| relative plot (population sizes compared to each other) | absolute plot (population sizes compared to the final sample) |
+|---------------------------------------------------------|---------------------------------------------------------------|
+| ![CCF](./doc/img/fish.png)                              | ![CCF](./doc/img/fish_abs.png)                                |
 
 #### `metrics_relationships.png`
 Plot the pairwise relationship between every pair of metrics present in `summary.csv` as well as their indiviudal distributions. This is usually used in the initial assesment of the simulation as a quick overview of the values produced.

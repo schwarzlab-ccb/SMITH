@@ -32,7 +32,7 @@ else
         MinPop = 1000,
         MaxPop = 1_048_576_000,
         MaxSteps = 1_000_000,
-        CutOff = 0.001f,
+        CutOff = 0.0001f,
         Reps = 1,
 
         // Model
