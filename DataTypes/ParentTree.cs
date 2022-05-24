@@ -2,6 +2,7 @@
 
 namespace SimChA.DataTypes;
 
+// Should be refactored into a recursive form
 public struct ParentTree
 {
     public int RootId;
