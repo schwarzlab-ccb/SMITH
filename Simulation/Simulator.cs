@@ -97,8 +97,8 @@ public class Simulator
 
             // Create new cells
             double birthFit = GetBirth(subClone.Fitness, SimParams.FitnessEffect);
-            double birthProb = Math.Clamp(birthFit * divFraction * SimParams.Turnover, 0.0, 1.0);
-            int newCellsCount = ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, birthProb);
+            double birthProb = Math.Clamp(birthFit * SimParams.Turnover, 0.0, 1.0);
+            int newCellsCount = (int) Math.Round(ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, birthProb) * divFraction);
 
             // Mutate some of the cells
             int newMutantCount =

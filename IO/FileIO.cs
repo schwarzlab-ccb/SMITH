@@ -71,7 +71,7 @@ public class FileIO
         string outPath = Path.Combine(Path.GetFullPath(RootFolder), DOT_FILENAME);
         using var outputFile = new StreamWriter(outPath);
 
-        outputFile.WriteLine("Digraph SimChA {");
+        outputFile.WriteLine("Digraph SMITH {");
         foreach (var node in tree.Nodes)
         {
             double size = Math.Round(.25 * (1 + Math.Log(1 + node.Size)), 2);
