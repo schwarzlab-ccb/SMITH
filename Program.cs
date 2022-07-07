@@ -32,7 +32,7 @@ else
         MinPop = 1000,
         MaxPop = 1_048_576_000,
         MaxSteps = 1_000_000,
-        CutOff = 0.001f,
+        CutOff = 0.0001f,
         Reps = 1,
 
         // Model
@@ -105,8 +105,8 @@ try
                 // Analysis
                 double cutOff = popSizes.Last().Alive * simParams.CutOff;
                 var aboveCutOff = simulator.Clones.Where(sc => sc.AliveCount > cutOff).ToList();
-                var lcaTree = LCATreeBuilder.Builtree(simulator.Clones, aboveCutOff);
-                var connectedTree = ConnectedTreeBuilder.BuildTree(simulator.Clones, aboveCutOff);
+                var lcaTree = TreeBuilder.BuildLCAT(simulator.Clones, aboveCutOff);
+                var connectedTree = TreeBuilder.BuildCTree(simulator.Clones, aboveCutOff);
                 var treeNodes = lcaTree.Nodes.Select(n => n.Id).ToList();
                 var sample = simulator.Clones.Where(sc => treeNodes.Contains(sc.CloneId)).ToList();
                 
@@ -122,15 +122,12 @@ try
                     files.WriteSubClones(sample);
                     files.WriteParentTree(lcaTree);
                     
-                    var ccf = TreeAnalysis.ComputeCCF(connectedTree);
-                    files.WriteCCF(ccf, popSizes.Last().Alive);
-                    
                     var mullerSelect = popSizes.Select(pair => pair.Alive * 0.01).ToList();
                     int firstPop = mullerSelect.FindIndex(minPop => minPop > 0);
                     var mullerPops = simulator.Clones.Where(sc =>
                         sc.FirstGen <= firstPop || Enumerable.Range(firstPop, popSizes.Count)
                             .Any(g => mullerSelect[g] <= sc.AliveAtGen(g))).ToList();
-                    var mullerTree = ConnectedTreeBuilder.BuildTree(simulator.Clones, mullerPops);
+                    var mullerTree = TreeBuilder.BuildCTree(simulator.Clones, mullerPops);
                     files.WriteMullerDataFrames(mullerPops, mullerTree);
                     
                     files.StoreCopy(repeatId);
