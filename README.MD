@@ -1,4 +1,4 @@
-# Stochastic Model of Intra-Tumor Heterogeneity
+# SMITH 2022: Stochastic Model of Intra-Tumor Heterogeneity (Submission version)
 
 SMITH is a tool for fast stochastic simulation of evolution of subclones within a solid tumor. 
 

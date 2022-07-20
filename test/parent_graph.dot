@@ -1,0 +1,11 @@
+Digraph SMITH {
+	0 [label="0:206511", width=3.31, height=1.986];
+	1 [label="1:675157", width=3.61, height=2.166];
+	2 [label="2:29227", width=2.82, height=1.692];
+	3 [label="3:56457", width=2.99, height=1.794];
+	4 [label="4:30415", width=2.83, height=1.698];
+	0 -> 1 [label="1"];
+	0 -> 2 [label="1"];
+	0 -> 3 [label="1"];
+	0 -> 4 [label="1"];
+}
