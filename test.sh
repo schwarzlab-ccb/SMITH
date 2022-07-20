@@ -1,10 +1,15 @@
 dotnet run -- -C test/sim_params.json
+echo "$(tput setaf 7)"
 echo "------------------------------------------------------"
 echo "- COMPARE FILES --------------------------------------"
 echo "------------------------------------------------------"
-diff out/parent_graph.dot test/parent_graph.dot
-diff out/parent_tree.csv test/parent_tree.csv
-diff out/populations.csv test/populations.csv
-diff out/sim_params.json test/sim_params.json
-diff out/subclones.out test/subclones.out
-diff out/summary.csv test/summary.csv  -I "[0-9][0-9].[0-9]*" # Ignore time differences
+diff out/parent_graph.dot test/parent_graph.dot || echo "parent_graph not matching"
+diff out/parent_tree.csv test/parent_tree.csv || echo -e "$(tput setaf 1) \n - parent_tree not matching"
+diff out/populations.csv test/populations.csv || echo -e "$(tput setaf 1) \n - populations not matching"
+diff out/sim_params.json test/sim_params.json || echo -e "$(tput setaf 1) \n - sim_params not matching"
+diff out/subclones.out test/subclones.out || echo -e "$(tput setaf 1) \n - subclones not matching"
+diff out/summary.csv test/summary.csv -I "[0-9][0-9].[0-9]*" || echo -e "$(tput setaf 1) \n - summary not matching" # Ignore time differences  
+echo "$(tput setaf 7)"
+echo "------------------------------------------------------"
+echo "- COMPARISON FINISHED --------------------------------"
+echo "------------------------------------------------------"

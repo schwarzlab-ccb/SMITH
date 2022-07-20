@@ -1,4 +1,4 @@
-# SMITH 2022: Stochastic Model of Intra-Tumor Heterogeneity (Submission version)
+# SMITH 2022: Stochastic Model of Intra-Tumor Heterogeneity (Article Version)
 
 SMITH is a tool for fast stochastic simulation of evolution of subclones within a solid tumor. 
 
@@ -42,7 +42,7 @@ The default execution is:
 git clone git@bitbucket.org:schwarzlab/smith.git
 cd smith
 dotnet run
-bash ./plots.sh
+./plots.sh
 ```
 
 The results will be written to the folder `./out`
@@ -56,6 +56,15 @@ Use `dotnet run -- [options]` to specify any of the following:
   -C, --config    (Default: ) A json file with configuration of the experiment.
   -N              (Default: false) Use newline in logs (useful for batch execution)
 ```
+
+#### Test
+
+A test set with minimum simulation is provided. The test is conducted by output comparison. Run:
+
+```
+./plots.sh
+```
+
 
 ## Output
 
