@@ -99,7 +99,7 @@ try
                        $"C_lost: {popSizes.Last().Lost:N0}";
             Console.Write(lastLine.PadRight(lastSize) + (options.Value.Newline ? "\n" : "\r"));
 
-            if ((EndCondFunc() && popSizes.Last().Tumor >= simParams.MinPop)
+            if ((EndCondFunc() && (popSizes.Last().Tumor >= simParams.MinPop || simulator.StepNo >= simParams.MaxSteps))
                 || (checkpoints.Any() && popSizes.Last().Tumor > checkpoints[checkpointId]))
             {
                 // Analysis
@@ -139,7 +139,7 @@ try
         } while (!EndCondFunc());
 
         // Skip on failure
-        if (popSizes.Last().Tumor < simParams.MinPop)
+        if (popSizes.Last().Tumor < simParams.MinPop && simulator.StepNo < simParams.MaxSteps)
         {
             tryNo++;
             repeatId--;
