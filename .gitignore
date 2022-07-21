@@ -4,10 +4,8 @@ out*
 # Input files
 sim_params.json
 
-# Data and figures from notebooks (except the README file)
-notebooks/data/*
+# Figures from notebooks
 notebooks/figures
-!notebooks/data/README.md
 
 # Jupyter Notebooks
 .ipynb_checkpoints
