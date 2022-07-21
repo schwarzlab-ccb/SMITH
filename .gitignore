@@ -4,8 +4,9 @@ out*
 # Input files
 sim_params.json
 
-# Data for notebooks (except the README file)
+# Data and figures from notebooks (except the README file)
 notebooks/data/*
+notebooks/figures
 !notebooks/data/README.md
 
 # Jupyter Notebooks
