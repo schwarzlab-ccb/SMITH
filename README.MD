@@ -119,6 +119,12 @@ An evolutionary tree describing the individual sampled clones and their total po
 
 ![CCF](./doc/img/parent_graph.png)
 
+## Figures
+
+This branch is accompanying an article.
+
+For plots of the figures in the article, see the notebooks in the `notebooks` subfolder.
+
 ## Contact
 Email questions, feature requests and bug reports to Adam Streck, adam.streck@mdc-berlin.de.
 
