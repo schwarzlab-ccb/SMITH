@@ -47,7 +47,7 @@ dotnet run
 
 The results will be written to the folder `./out`
 
-#### Options
+### Options
 
 Use `dotnet run -- [options]` to specify any of the following:
 
@@ -57,7 +57,38 @@ Use `dotnet run -- [options]` to specify any of the following:
   -N              (Default: false) Use newline in logs (useful for batch execution)
 ```
 
+<<<<<<< HEAD
 #### Test
+=======
+## Parameters
+
+The following parameter values can be set in the configuration file:
+
+### Simulation options
+ * `FitnessAcc: [0,1,2]` The fitness accumulation across all mutations. Either multiplicative (0), additive (1), or limited multiplicative (2).
+ * `FitnessDist: [0,1,2,3]` The fitness of a mutation is sampled from a distribution. Either constant (0), normal (1), exponential (2), or uniform (3).
+ * `FitnessEffect: [0,1,2]` The effect of mutation on the fitness of the clone. Either birth (0), death (1), , or both (2).
+ * `Seed: int` The random seed for the simulation.
+
+### Control variables
+* `MinPop: uint` The simulation resets if the population dies out before reaching this number.
+* `MaxPop: uint` The simulation stops at (or after) this population.
+* `MaxSteps: uint` The simulation stops at this step.
+* `CutOff: [0.0-1.0]` Only clones with the following fraction are considered in analysis (ignores microclones).
+* `Reps: uint` How many times the simulation runs.
+
+### Model
+* `Turnover: [0.0-1.0]`  The fraction of cells dividing per step (should be considerably smaller than 1).
+* `MutationProb: [0.0-1.0]` The probability of a mutation per cell division.
+* `FitnessMean: [0.0-1.0]` The mean fitness increase per mutation.
+* `Confinement: [0.0-1.0]` The higher the confinement the stronger the competition between clones.
+
+### Initialization
+* `StartMut: uint` The number of mutation of the cells in the first clone at the start.
+* `StartPop: uint` The number of cells in the the first clone at the start.
+
+## Test
+>>>>>>> master
 
 A test set with minimum simulation is provided. The test is conducted by output comparison. Run:
 
@@ -65,7 +96,10 @@ A test set with minimum simulation is provided. The test is conducted by output 
 ./plots.sh
 ```
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
 ## Output
 
 The following output was generated using the [demo configuration](./doc/doc_config.json). 
@@ -98,9 +132,7 @@ Stores configuration parameters used for this simulation, including the random s
 
 Information about the individual subclones at the end of the simulation.
 
-***
-
-### Created by ./plots.sh
+### Plots (created by `./plots.sh`)
 
 #### `fish.png`, `fish_abs.png`  
 Fish plots generated using the [PyFish package](https://bitbucket.org/schwarzlab/pyfish): 
