@@ -57,9 +57,6 @@ Use `dotnet run -- [options]` to specify any of the following:
   -N              (Default: false) Use newline in logs (useful for batch execution)
 ```
 
-<<<<<<< HEAD
-#### Test
-=======
 ## Parameters
 
 The following parameter values can be set in the configuration file:
@@ -88,7 +85,6 @@ The following parameter values can be set in the configuration file:
 * `StartPop: uint` The number of cells in the the first clone at the start.
 
 ## Test
->>>>>>> master
 
 A test set with minimum simulation is provided. The test is conducted by output comparison. Run:
 
@@ -96,10 +92,6 @@ A test set with minimum simulation is provided. The test is conducted by output 
 ./plots.sh
 ```
 
-<<<<<<< HEAD
-
-=======
->>>>>>> master
 ## Output
 
 The following output was generated using the [demo configuration](./doc/doc_config.json). 
