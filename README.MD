@@ -10,7 +10,11 @@ The tool runs large-scale simulations (typically ~billion, but larger orders are
 
 ### TL;DR; 
 
-The program can be run on a platform of your choice in the provided *Conda* environment. Inside of the repo run `conda env create --file SMITH.yml`. 
+The program can be run on a platform of your choice in the provided *Conda* environment. Inside of the repo run 
+```
+conda env create --file SMITH.yml
+conda activate smith
+```
 
 ### Tested platforms
 
