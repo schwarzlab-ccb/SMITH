@@ -30,9 +30,9 @@ else
         Seed = new Random().Next(),
         // Experiment
         MinPop = 100,
-        MaxPop = 10000,
+        MaxPop = 1000000,
         MaxSteps = 1_000_000,
-        MaxClones = 10,
+        MaxClones = 10000,
         Reps = 1,
 
         CloneSample = 100,
@@ -127,7 +127,7 @@ try
                 double cutOff = popSizes.Last().Alive * simParams.CutOff;
                 var aboveCutOff = simulator.Clones.Where(sc => sc.AliveCount > cutOff).ToList();
                 var cloneSample = (simParams.CloneSample > 0 && simParams.CloneSample < aboveCutOff.Count
-                    ? aboveCutOff.Take(simParams.CloneSample)
+                    ? aboveCutOff.OrderByDescending(c => c.AliveCount).Take(simParams.CloneSample)
                     : aboveCutOff).ToList();
                 var lcaTreeList = TreeBuilder.BuildLCAT(simulator.Clones, cloneSample);
                 var treeNodes = lcaTreeList.Nodes.Select(n => n.Id).ToList();

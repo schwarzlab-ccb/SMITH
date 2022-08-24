@@ -71,8 +71,12 @@ The following parameter values can be set in the configuration file:
 * `MinPop: uint` The simulation resets if the population dies out before reaching this number.
 * `MaxPop: uint` The simulation stops at (or after) this population.
 * `MaxSteps: uint` The simulation stops at this step.
-* `CutOff: [0.0-1.0]` Only clones with the following fraction are considered in analysis (ignores microclones).
+* `MaxClones: uint` The simulation stops at this number of clones.
 * `Reps: uint` How many times the simulation runs.
+
+### Output
+* `CutOff: [0.0-1.0]` Only clones with the following fraction are considered in analysis (ignores microclones).
+* `CloneSample: int` The number of clones to sample from the population, the clones are sorted by size in descending order, then first `CloneSample` clones are selected. This is ingored if the value is negative.
 
 ### Model
 * `Turnover: [0.0-1.0]`  The fraction of cells dividing per step (should be considerably smaller than 1).
