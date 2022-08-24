@@ -21,6 +21,7 @@ public struct SimParams
     public double Turnover;
     public double Confinement;
     public double MutationProb;
+    public double DriverProb;
     public double FitnessMean;
 
 

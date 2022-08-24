@@ -30,21 +30,22 @@ else
         Seed = new Random().Next(),
         // Experiment
         MinPop = 1000,
-        MaxPop = 1_048_576_000,
+        MaxPop = 1000*2^30,
         MaxSteps = 1_000_000,
         CutOff = 0.0001f,
         Reps = 1,
 
         // Model
         Turnover = 0.01,
-        MutationProb = 0.0001,
+        MutationProb = 0.01,
+        DriverProb = 0.01,
 
-        FitnessMean = .2,
-        Confinement = .1,
+        FitnessMean = .1,
+        Confinement = 0,
 
         // Initialization
         StartMut = 1,
-        StartPop = 1
+        StartPop = 100
     };
 }
 
