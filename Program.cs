@@ -32,7 +32,7 @@ else
         MinPop = 100,
         MaxPop = 10000,
         MaxSteps = 1_000_000,
-        MaxClones = 10000,
+        MaxClones = 10,
         Reps = 1,
 
         CloneSample = 100,
@@ -129,14 +129,13 @@ try
                 var cloneSample = (simParams.CloneSample > 0 && simParams.CloneSample < aboveCutOff.Count
                     ? aboveCutOff.Take(simParams.CloneSample)
                     : aboveCutOff).ToList();
-                var lcaTree = TreeBuilder.BuildLCAT(simulator.Clones, cloneSample);
-                var connectedTree = TreeBuilder.BuildCTree(simulator.Clones, cloneSample);
-                var treeNodes = lcaTree.Nodes.Select(n => n.Id).ToList();
+                var lcaTreeList = TreeBuilder.BuildLCAT(simulator.Clones, cloneSample);
+                var treeNodes = lcaTreeList.Nodes.Select(n => n.Id).ToList();
                 var sample = simulator.Clones.Where(sc => treeNodes.Contains(sc.CloneId)).ToList();
-
+                
                 string time = TimeSpan.FromMilliseconds(watch.ElapsedMilliseconds).ToString();
                 var result = new ResultSummary(repeatId, checkpointId, simulator.StepNo, time,
-                    connectedTree, cloneSample, simulator.Clones, popSizes.Last());
+                    lcaTreeList, cloneSample, simulator.Clones, popSizes.Last());
                 files.AddToSummary(result);
                 checkpointId++;
 
@@ -144,7 +143,7 @@ try
                 if (GetCompState(popSizes.Last(), simulator) == ComputeState.Finished)
                 {
                     files.WriteSubClones(sample);
-                    files.WriteParentTree(lcaTree);
+                    files.WriteParentTree(lcaTreeList);
 
                     var mullerSelect = popSizes.Select(pair => pair.Alive * 0.01).ToList();
                     int firstPop = mullerSelect.FindIndex(minPop => minPop > 0);
@@ -163,7 +162,7 @@ try
         } while (GetCompState(popSizes.Last(), simulator) == ComputeState.Running);
 
         // Skip on failure
-        if (popSizes.Last().Tumor < simParams.MinPop && simulator.StepNo < simParams.MaxSteps)
+        if (GetCompState(popSizes.Last(), simulator) == ComputeState.Reset)
         {
             tryNo++;
             repeatId--;

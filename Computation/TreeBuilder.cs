@@ -8,7 +8,7 @@ public static class TreeBuilder
     public static Dictionary<int, int> CreateParentMap(IEnumerable<SubClone> subClones)
         => subClones.ToDictionary(sc => sc.CloneId, sc => sc.ParentId);
 
-    private static TreeEdge FindEdgeToParent(Dictionary<int, int> parentMap, List<SubClone> selection, int id)
+    private static ListEdge FindEdgeToParent(Dictionary<int, int> parentMap, List<SubClone> selection, int id)
     {
         int dist = 0;
         int source = id;
@@ -19,7 +19,7 @@ public static class TreeBuilder
             source = parentMap[source];
         } while (selection.All(sc => sc.CloneId != source) && source != -1);
 
-        return new TreeEdge { Distance = dist, SourceId = source, TargetId = id };
+        return new ListEdge { Distance = dist, SourceId = source, TargetId = id };
     }
 
     private static List<int> FindInternalNodes(Dictionary<int, int> parentMap, List<SubClone> selection)
@@ -46,22 +46,22 @@ public static class TreeBuilder
     }
     
     // Construct a parent tree with each child being either parent of a present predecessor, or -1 if none exists.
-    public static ParentTree BuildCTree(List<SubClone> allSubClones, List<SubClone> selection)
+    public static ListTree BuildCTree(List<SubClone> allSubClones, List<SubClone> selection)
     {
         var parentMap = CreateParentMap(allSubClones);
-        List<TreeNode> nodes = new();
-        List<TreeEdge> edges = new();
+        List<ListNode> nodes = new();
+        List<ListEdge> edges = new();
         int rootId = -1;
 
         foreach (var subClone in selection)
         {
-            nodes.Add(new TreeNode { Id = subClone.CloneId, Size = subClone.AliveCount });
+            nodes.Add(new ListNode { Id = subClone.CloneId, Size = subClone.AliveCount });
             edges.Add(FindEdgeToParent(parentMap, selection, subClone.CloneId));
         }
 
         if (edges.Count(e => e.SourceId == -1) > 1)
         {
-            nodes.Add(new TreeNode { Id = -1, Size = 0 }); // Root in an abstract node since the root is missing
+            nodes.Add(new ListNode { Id = -1, Size = 0 }); // Root in an abstract node since the root is missing
             rootId = -1;
         }
         else
@@ -74,10 +74,10 @@ public static class TreeBuilder
             }
         }
 
-        return new ParentTree { RootId = rootId, Nodes = nodes, Edges = edges };
+        return new ListTree { RootId = rootId, Nodes = nodes, Edges = edges };
     }
 
-    private static TreeEdge FindEdge(Dictionary<int, int> parentMap, List<SubClone> selection, List<int> internalNodes, int id)
+    private static ListEdge FindEdge(Dictionary<int, int> parentMap, List<SubClone> selection, List<int> internalNodes, int id)
     {
         int dist = 0;
         int source = id;
@@ -87,30 +87,48 @@ public static class TreeBuilder
             source = parentMap[source];
         } while (source != -1 && selection.All(sc => sc.CloneId != source) && internalNodes.All(n => n != source));
 
-        return new TreeEdge { Distance = dist, SourceId = source, TargetId = id };
+        return new ListEdge { Distance = dist, SourceId = source, TargetId = id };
     }
 
     // Construct a parent tree with lowest common ancestor (LCA) for each pair of children
-    public static ParentTree BuildLCAT(IEnumerable<SubClone> allSubClones, List<SubClone> selection)
+    public static ListTree BuildLCAT(IEnumerable<SubClone> allSubClones, List<SubClone> selection)
     {
         var parentMap = TreeBuilder.CreateParentMap(allSubClones);
         var internalNodes = FindInternalNodes(parentMap, selection);
 
-        List<TreeNode> nodes = new();
-        List<TreeEdge> edges = new();
+        List<ListNode> nodes = new();
+        List<ListEdge> edges = new();
 
         foreach (var subClone in selection)
         {
-            nodes.Add(new TreeNode { Id = subClone.CloneId, Size = subClone.AliveCount });
+            nodes.Add(new ListNode { Id = subClone.CloneId, Size = subClone.AliveCount });
             edges.Add(FindEdge(parentMap, selection, internalNodes, subClone.CloneId));
         }
 
         foreach (int internalNode in internalNodes)
         {
-            nodes.Add(new TreeNode { Id = internalNode, Size = 0 });
+            nodes.Add(new ListNode { Id = internalNode, Size = 0 });
             edges.Add(FindEdge(parentMap, selection, internalNodes, internalNode));
         }
 
-        return new ParentTree { RootId = 0, Nodes = nodes, Edges = edges.Where(e => e.TargetId != 0).ToList() };
+        return new ListTree { RootId = 0, Nodes = nodes, Edges = edges.Where(e => e.TargetId != 0).ToList() };
+    }
+
+    private static void WalkTheTree(ListTree listTree, TreeNode currentNode)
+    {
+        var children = listTree.Edges.Where(e => e.SourceId == currentNode.Id).ToList();
+        foreach (var child in children)
+        {
+            var childNode = new TreeNode(child.TargetId, listTree.Nodes.Find(node => node.Id == child.TargetId).Size);
+            currentNode.Children.Add((childNode, child.Distance));
+            WalkTheTree(listTree, childNode);
+        }
+    }
+    
+    public static TreeNode ListToTree(ListTree listTree)
+    {
+        var root = new TreeNode(listTree.RootId, listTree.Nodes.Find(n => n.Id == listTree.RootId).Size);
+        WalkTheTree(listTree, root);
+        return root;
     }
 }

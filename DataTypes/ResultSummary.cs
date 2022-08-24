@@ -45,7 +45,7 @@ public struct ResultSummary
             Header().Split(",").Zip(ToString().Split(","), (label, val) => $"{label}: {val}"));
 
 
-    public ResultSummary(int repeatId, int generationId, int stepNo, string timeElapsed, ParentTree connectedTree,
+    public ResultSummary(int repeatId, int generationId, int stepNo, string timeElapsed, ListTree connectedTree,
         List<SubClone> aboveCutOff, List<SubClone> clones, PopulationState popState)
     {
         RepeatId = repeatId;

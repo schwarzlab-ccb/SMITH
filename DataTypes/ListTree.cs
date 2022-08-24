@@ -3,9 +3,9 @@
 namespace SimChA.DataTypes;
 
 // Should be refactored into a recursive form
-public struct ParentTree
+public struct ListTree
 {
     public int RootId;
-    public List<TreeNode> Nodes;
-    public List<TreeEdge> Edges;
+    public List<ListNode> Nodes;
+    public List<ListEdge> Edges;
 }
