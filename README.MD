@@ -22,7 +22,7 @@ The program has been tested on:
 
 ### Simulation
 
-The simulation code is written in **C# 8**. **.NET 5.0** or newer is requred. We recommend installation using *Conda*:
+The simulation code is written in **C# 8**. **.NET 5.0** or newer is required. We recommend installation using *Conda*:
 ```
 conda install -c conda-forge dotnet
 ``` 
