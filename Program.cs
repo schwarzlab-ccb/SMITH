@@ -22,22 +22,25 @@ else
 {
     simParams = new SimParams
     {
-        Checkpoints = true,
+        Checkpoints = false,
         // Function
         FitnessAcc = FitnessAccType.Mul,
         FitnessDist = FitnessSampleType.Constant,
         FitnessEffect = FitnessEffectType.Birth,
         Seed = new Random().Next(),
         // Experiment
-        MinPop = 1000,
-        MaxPop = 1000*2^30,
+        MinPop = 100,
+        MaxPop = 10000,
         MaxSteps = 1_000_000,
-        CutOff = 0.0001f,
+        MaxClones = 10000,
         Reps = 1,
+
+        CloneSample = 100,
+        CutOff = 0.0f,
 
         // Model
         Turnover = 0.01,
-        MutationProb = 0.01,
+        MutationProb = 0.5,
         DriverProb = 0.01,
 
         FitnessMean = .1,
@@ -45,7 +48,7 @@ else
 
         // Initialization
         StartMut = 1,
-        StartPop = 100
+        StartPop = 1
     };
 }
 
@@ -61,6 +64,27 @@ catch (Exception e)
 {
     Console.WriteLine($"Failed to write to disk with error: {e.Message}");
     return 2;
+}
+
+ComputeState GetCompState(PopulationState state, Simulator simulator)
+{
+    if (simulator.StepNo >= simParams.MaxSteps)
+    {
+        return ComputeState.Finished;
+    }
+    if (simulator.Clones.Count >= simParams.MaxClones)
+    {
+        return ComputeState.Finished;
+    }
+    if (state.Alive <= 0)
+    {
+        return state.Tumor > simParams.MinPop ? ComputeState.Finished : ComputeState.Reset;
+    }
+    if (state.Tumor >= simParams.MaxPop)
+    {
+        return ComputeState.Finished;
+    }
+    return ComputeState.Running;
 }
 
 try
@@ -79,11 +103,7 @@ try
         int checkpointId = 0;
         var simulator = new Simulator(simParams, random);
         var checkpoints = Utility.CreateCheckpoints(simParams);
-        var popSizes = new List<PopulationState> {CellSampling.PopState(simulator.Clones)};
-        var EndCondFunc = () =>
-            !(popSizes.Last().Tumor <= simParams.MaxPop
-              && popSizes.Last().Alive > 0
-              && simulator.StepNo < simParams.MaxSteps);
+        var popSizes = new List<PopulationState> { CellSampling.PopState(simulator.Clones) };
         do
         {
             simulator.Step();
@@ -100,29 +120,32 @@ try
                        $"C_lost: {popSizes.Last().Lost:N0}";
             Console.Write(lastLine.PadRight(lastSize) + (options.Value.Newline ? "\n" : "\r"));
 
-            if ((EndCondFunc() && (popSizes.Last().Tumor >= simParams.MinPop || simulator.StepNo >= simParams.MaxSteps))
+            if (GetCompState(popSizes.Last(), simulator) == ComputeState.Finished
                 || (checkpoints.Any() && popSizes.Last().Tumor > checkpoints[checkpointId]))
             {
                 // Analysis
                 double cutOff = popSizes.Last().Alive * simParams.CutOff;
                 var aboveCutOff = simulator.Clones.Where(sc => sc.AliveCount > cutOff).ToList();
-                var lcaTree = TreeBuilder.BuildLCAT(simulator.Clones, aboveCutOff);
-                var connectedTree = TreeBuilder.BuildCTree(simulator.Clones, aboveCutOff);
+                var cloneSample = (simParams.CloneSample > 0 && simParams.CloneSample < aboveCutOff.Count
+                    ? aboveCutOff.Take(simParams.CloneSample)
+                    : aboveCutOff).ToList();
+                var lcaTree = TreeBuilder.BuildLCAT(simulator.Clones, cloneSample);
+                var connectedTree = TreeBuilder.BuildCTree(simulator.Clones, cloneSample);
                 var treeNodes = lcaTree.Nodes.Select(n => n.Id).ToList();
                 var sample = simulator.Clones.Where(sc => treeNodes.Contains(sc.CloneId)).ToList();
-                
+
                 string time = TimeSpan.FromMilliseconds(watch.ElapsedMilliseconds).ToString();
                 var result = new ResultSummary(repeatId, checkpointId, simulator.StepNo, time,
-                    connectedTree, aboveCutOff, simulator.Clones, popSizes.Last());
+                    connectedTree, cloneSample, simulator.Clones, popSizes.Last());
                 files.AddToSummary(result);
                 checkpointId++;
 
                 // Result
-                if (EndCondFunc())
+                if (GetCompState(popSizes.Last(), simulator) == ComputeState.Finished)
                 {
                     files.WriteSubClones(sample);
                     files.WriteParentTree(lcaTree);
-                    
+
                     var mullerSelect = popSizes.Select(pair => pair.Alive * 0.01).ToList();
                     int firstPop = mullerSelect.FindIndex(minPop => minPop > 0);
                     var mullerPops = simulator.Clones.Where(sc =>
@@ -130,14 +153,14 @@ try
                             .Any(g => mullerSelect[g] <= sc.AliveAtGen(g))).ToList();
                     var mullerTree = TreeBuilder.BuildCTree(simulator.Clones, mullerPops);
                     files.WriteMullerDataFrames(mullerPops, mullerTree);
-                    
+
                     files.StoreCopy(repeatId);
                     Console.WriteLine($"Sim: {repeatId + 1}.{tryNo}/{simParams.Reps} result:".PadRight(160));
                     Console.WriteLine(result.ToText());
                     GC.Collect();
                 }
             }
-        } while (!EndCondFunc());
+        } while (GetCompState(popSizes.Last(), simulator) == ComputeState.Running);
 
         // Skip on failure
         if (popSizes.Last().Tumor < simParams.MinPop && simulator.StepNo < simParams.MaxSteps)
