@@ -12,11 +12,10 @@ public static class FitnessFunction
         switch (simParams.FitnessDist)
         {
             case FitnessSampleType.Exponential:
-                return Dist.ExponentialDistribution.Sample(rnd, 1 / simParams.FitnessMean);
+                return Dist.ExponentialDistribution.Sample(rnd, simParams.FitnessMean);
 
             case FitnessSampleType.Normal:
-                return Math.Max(Dist.NormalDistribution.Sample(rnd, simParams.FitnessMean, simParams.FitnessMean / 2.0),
-                    0);
+                return Math.Max(Dist.NormalDistribution.Sample(rnd, simParams.FitnessMean, simParams.FitnessMean / 2.0), 0);
 
             case FitnessSampleType.Uniform:
                 return Dist.ContinuousUniformDistribution.Sample(rnd, 0, simParams.FitnessMean * 2.0);
