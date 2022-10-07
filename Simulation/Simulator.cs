@@ -67,26 +67,27 @@ public class Simulator
         StepNo++;
 
         List<SubClone> newClones = new();
-        var popState = CellSampling.PopState(Clones);
-
-        double unconfined = popState.Tumor;
-        if (SimParams.Confinement > 0)
-        {
-            double r = Math.Pow(3.0 / 4.0 * (popState.Tumor / Math.PI), 1.0 / 3.0);
-            double reminder = r - 1.0 / SimParams.Confinement;
-            if (reminder > 0)
-            {
-                double blockedPop = 4.0 / 3.0 * Math.PI * Math.Pow(reminder, 3.0);
-                unconfined = popState.Tumor - blockedPop;
-            }
-        }
-
-        double divFraction = popState.Alive > unconfined && popState.Alive > 0
-            ? Math.Clamp(unconfined / popState.Alive, 0.0, 1.0)
-            : 1.0;
-
+        // var popState = CellSampling.PopState(Clones);
+        
         foreach (var subClone in Clones.Where(sc => sc.AliveCount > 0))
         {
+            long tumor = subClone.AliveCount + subClone.NecroCount;
+            double unconfined = tumor;
+            if (SimParams.Confinement > 0)
+            {
+                double r = Math.Pow(3.0 / 4.0 * (tumor / Math.PI), 1.0 / 3.0);
+                double reminder = r - 1.0 / SimParams.Confinement;
+                if (reminder > 0)
+                {
+                    double blockedPop = 4.0 / 3.0 * Math.PI * Math.Pow(reminder, 3.0);
+                    unconfined = tumor - blockedPop;
+                }
+            }
+
+            double divFraction = subClone.AliveCount > unconfined && subClone.AliveCount > 0
+                ? Math.Clamp(unconfined / subClone.AliveCount, 0.0, 1.0)
+                : 1.0;
+            
             AliveSC++;
 
             // Kill cells

@@ -25,7 +25,7 @@ else
         Checkpoints = true,
         // Function
         FitnessAcc = FitnessAccType.Mul,
-        FitnessDist = FitnessSampleType.Constant,
+        FitnessDist = FitnessSampleType.Exponential,
         FitnessEffect = FitnessEffectType.Birth,
         Seed = new Random().Next(),
         // Experiment
@@ -37,10 +37,10 @@ else
 
         // Model
         Turnover = 0.01,
-        MutationProb = 0.0001,
+        MutationProb = 0.00001,
 
-        FitnessMean = .2,
-        Confinement = .1,
+        FitnessMean = .1,
+        Confinement = .01,
 
         // Initialization
         StartMut = 1,
@@ -68,6 +68,7 @@ try
     globalWatch.Start();
 
     int tryNo = 0;
+    double diversity = 0;
     for (int repeatId = 0; repeatId < simParams.Reps; repeatId++)
     {
         var watch = new Stopwatch();
@@ -129,6 +130,7 @@ try
                             .Any(g => mullerSelect[g] <= sc.AliveAtGen(g))).ToList();
                     var mullerTree = TreeBuilder.BuildCTree(simulator.Clones, mullerPops);
                     files.WriteMullerDataFrames(mullerPops, mullerTree);
+                    diversity += result.ClonalDiversity;
                     
                     files.StoreCopy(repeatId);
                     Console.WriteLine($"Sim: {repeatId + 1}.{tryNo}/{simParams.Reps} result:".PadRight(160));
@@ -155,6 +157,7 @@ try
 
     files.CopySummary();
     globalWatch.Stop();
+    Console.WriteLine($"Total diversity: {diversity / simParams.Reps}");
 
     Console.WriteLine($"Total time: {TimeSpan.FromMilliseconds(globalWatch.ElapsedMilliseconds)}");
 }
