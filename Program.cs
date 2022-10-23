@@ -25,22 +25,22 @@ else
         Checkpoints = true,
         // Function
         FitnessAcc = FitnessAccType.Mul,
-        FitnessDist = FitnessSampleType.Constant,
+        FitnessDist = FitnessSampleType.Exponential,
         FitnessEffect = FitnessEffectType.Birth,
         Seed = new Random().Next(),
         // Experiment
         MinPop = 1000,
         MaxPop = 1_048_576_000,
         MaxSteps = 1_000_000,
-        CutOff = 0.0001f,
-        Reps = 1,
+        CutOff = 0.001f,
+        Reps = 20,
 
         // Model
         Turnover = 0.01,
-        MutationProb = 0.0001,
+        MutationProb = 0.00001,
 
-        FitnessMean = .2,
-        Confinement = .1,
+        FitnessMean = .125,
+        Confinement = 1,
 
         // Initialization
         StartMut = 1,
