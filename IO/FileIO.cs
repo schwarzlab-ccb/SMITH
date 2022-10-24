@@ -131,7 +131,10 @@ public class FileIO
         outputFile.WriteLine("id,pop,ccf");
         foreach ((int id, long pop) in vaf)
         {
-            outputFile.WriteLine($"{id},{pop},{(double)pop / totalSize:F4}");
+            if (id != -1)
+            {
+                outputFile.WriteLine($"{id},{pop},{(double)pop / totalSize:F4}");
+            }
         }
     }
 

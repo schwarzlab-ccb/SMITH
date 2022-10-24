@@ -40,7 +40,7 @@ else
         MutationProb = 0.00001,
 
         FitnessMean = .125,
-        Confinement = 1,
+        Confinement = .1,
 
         // Initialization
         StartMut = 1,
