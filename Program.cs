@@ -33,14 +33,14 @@ else
         MaxPop = 1_048_576_000,
         MaxSteps = 1_000_000,
         CutOff = 0.0001f,
-        Reps = 10,
+        Reps = 1,
 
         // Model
         Turnover = 0.01,
         MutationProb = 0.00001,
 
         FitnessMean = .125,
-        Confinement = .1,
+        Confinement = 1,
 
         // Initialization
         StartMut = 1,
@@ -110,10 +110,11 @@ try
                 var connectedTree = TreeBuilder.BuildCTree(simulator.Clones, aboveCutOff);
                 var treeNodes = lcaTree.Nodes.Select(n => n.Id).ToList();
                 var sample = simulator.Clones.Where(sc => treeNodes.Contains(sc.CloneId)).ToList();
+                var CCF = TreeAnalysis.ComputeCCF(connectedTree);
                 
                 string time = TimeSpan.FromMilliseconds(watch.ElapsedMilliseconds).ToString();
                 var result = new ResultSummary(repeatId, checkpointId, simulator.StepNo, time,
-                    connectedTree, aboveCutOff, simulator.Clones, popSizes.Last());
+                    connectedTree, aboveCutOff, simulator.Clones, popSizes.Last(), CCF);
                 files.AddToSummary(result);
                 checkpointId++;
 
@@ -130,6 +131,7 @@ try
                             .Any(g => mullerSelect[g] <= sc.AliveAtGen(g))).ToList();
                     var mullerTree = TreeBuilder.BuildCTree(simulator.Clones, mullerPops);
                     files.WriteMullerDataFrames(mullerPops, mullerTree);
+                    files.WriteCCF(CCF, popSizes.Last().Alive);
                     
                     files.StoreCopy(repeatId);
                     Console.WriteLine($"Sim: {repeatId + 1}.{tryNo}/{simParams.Reps} result:".PadRight(160));

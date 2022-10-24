@@ -97,7 +97,7 @@ public class Simulator
             int newNecrotic = newDead - disappeared;
 
             // Create new cells
-            double birthFit = GetBirth(subClone.Fitness, SimParams.FitnessEffect);
+            double birthFit = 1 + Math.Log(GetBirth(subClone.Fitness, SimParams.FitnessEffect));
             double birthProb = Math.Min(1, birthFit * DivFrac * SimParams.Turnover);
             int newCellsCount = ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, birthProb);
 
