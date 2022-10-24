@@ -25,7 +25,7 @@ else
         Checkpoints = true,
         // Function
         FitnessAcc = FitnessAccType.Mul,
-        FitnessDist = FitnessSampleType.Constant,
+        FitnessDist = FitnessSampleType.Exponential,
         FitnessEffect = FitnessEffectType.Birth,
         Seed = new Random().Next(),
         // Experiment
@@ -33,13 +33,13 @@ else
         MaxPop = 1_048_576_000,
         MaxSteps = 1_000_000,
         CutOff = 0.0001f,
-        Reps = 1,
+        Reps = 10,
 
         // Model
         Turnover = 0.01,
-        MutationProb = 0.0001,
+        MutationProb = 0.00001,
 
-        FitnessMean = .2,
+        FitnessMean = .125,
         Confinement = .1,
 
         // Initialization
@@ -96,7 +96,8 @@ try
                        $"SC_alive: {simulator.AliveSC}, " +
                        $"C_alive: {popSizes.Last().Alive:N0}, " +
                        $"C_necro: {popSizes.Last().Necro:N0}, " +
-                       $"C_lost: {popSizes.Last().Lost:N0}";
+                       $"C_lost: {popSizes.Last().Lost:N0}, " +
+                       $"Frac: {simulator.DivFrac:F2}";
             Console.Write(lastLine.PadRight(lastSize) + (options.Value.Newline ? "\n" : "\r"));
 
             if ((EndCondFunc() && (popSizes.Last().Tumor >= simParams.MinPop || simulator.StepNo >= simParams.MaxSteps))

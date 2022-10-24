@@ -43,8 +43,7 @@ public struct ResultSummary
     public string ToText()
         => "\t" + Join(",\n\t",
             Header().Split(",").Zip(ToString().Split(","), (label, val) => $"{label}: {val}"));
-
-
+    
     public ResultSummary(int repeatId, int generationId, int stepNo, string timeElapsed, ParentTree connectedTree,
         List<SubClone> aboveCutOff, List<SubClone> clones, PopulationState popState)
     {
@@ -64,8 +63,7 @@ public struct ResultSummary
         CellNecroCount = popState.Necro;
         CellSelectCount = aboveCutOff.Sum(sc => sc.AliveCount);
 
-        (NodeCount, LeafCount, TreeDepth, Branching)
-            = TreeAnalysis.ComputeTreeSize(connectedTree);
+        (NodeCount, LeafCount, TreeDepth, Branching) = TreeAnalysis.ComputeTreeSize(connectedTree);
         TreeBalance = TreeAnalysis.ComputeTreeBalance(LeafCount, connectedTree);
         ClonalDiversity = TreeAnalysis.ComputeClonalDiversity(aboveCutOff);
         MeanDriversPerCell = TreeAnalysis.ComputeMeanDriversPerCell(aboveCutOff);
