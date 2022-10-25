@@ -31,4 +31,5 @@ public struct SimParams
 
     // Output
     public bool Checkpoints;
+    public double IndConf;
 }

@@ -32,15 +32,16 @@ else
         MinPop = 1000,
         MaxPop = 1_048_576_000,
         MaxSteps = 1_000_000,
-        CutOff = 0.0001f,
-        Reps = 20,
+        CutOff = 0.00001f,
+        Reps = 1,
 
         // Model
         Turnover = 0.01,
         MutationProb = 0.00001,
 
-        FitnessMean = .125,
-        Confinement = 1,
+        FitnessMean = .2,
+        Confinement = .5,
+        IndConf = .1,
 
         // Initialization
         StartMut = 1,
@@ -123,7 +124,7 @@ try
                     files.WriteSubClones(sample);
                     files.WriteParentTree(lcaTree);
                     
-                    var mullerSelect = popSizes.Select(pair => pair.Alive * 0.01).ToList();
+                    var mullerSelect = popSizes.Select(pair => pair.Alive * 0.005).ToList();
                     int firstPop = mullerSelect.FindIndex(minPop => minPop > 0);
                     var mullerPops = simulator.Clones.Where(sc =>
                         sc.FirstGen <= firstPop || Enumerable.Range(firstPop, popSizes.Count)
