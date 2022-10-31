@@ -9,21 +9,21 @@ public struct SimParams
     public int Seed;
     public int StartMut;
     public int StartPop;
+    public uint Reps;
 
     // Experiment
-    public uint Reps;
-    public long MaxPop;
-    public uint MaxSteps;
-    public int MaxClones;
-    public uint MinPop;
+    public long MaxPop; // Stop when this population is reached, can be negative to disable
+    public uint MaxSteps; // Stop when this many simulation steps are reached, can be negative to disable
+    public int MaxClones; // Stop when this many clones are found, can be negative to disable
+    public uint MinPop; // If the sample size of MinPop is not reach, simulation restarts
 
     // Model
     public double Turnover;
-    public double Confinement;
     public double MutationProb;
-    public double DriverProb;
+    public double DriverProb; // Likelihood that a mutation is a driver mutation
     public double FitnessMean;
-
+    public double ConfGlobal;
+    public double ConfLocal; 
 
     // Function    
     public FitnessAccType FitnessAcc;
@@ -31,7 +31,8 @@ public struct SimParams
     public FitnessEffectType FitnessEffect;
 
     // Output
-    public bool Checkpoints;
-    public int CloneSample;
-    public double CutOff;
+    public bool Checkpoints; // Store meta-results in summary at every cell doubling 
+    public double CutOff; // Minimum sample size compared to the total sample size for a clone to be considered
+    public int CloneSample; // Limits the number of clones after cut-off, can be negative to disable
+    public double FishFrac; // Minimum fraction of the population that must be sampled at any timepoint to be considered a clone
 }

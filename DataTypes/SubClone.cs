@@ -23,6 +23,9 @@ public class SubClone
 
     public long NecroCount => Cells.Last().Necro;
 
+    public long CellCount => AliveCount + NecroCount;
+
+
     public int LastGen => FirstGen + Cells.Count;
 
     public long LostCount { get; private set; }

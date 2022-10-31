@@ -33,6 +33,7 @@ public class Simulator
     public List<SubClone> Clones { get; }
     public SimParams SimParams { get; }
     private Random Rnd { get; }
+    public double DivFrac { get; private set; }
 
     private int GetNewId() => ++newId;
 
@@ -67,46 +68,64 @@ public class Simulator
         StepNo++;
 
         List<SubClone> newClones = new();
-        var popState = CellSampling.PopState(Clones);
-
-        double unconfined = popState.Tumor;
-        if (SimParams.Confinement > 0)
+         var popState = CellSampling.PopState(Clones);
+        
+        long tumor = popState.Alive + popState.Necro;
+        double unconfined = tumor;
+        if (SimParams.ConfGlobal > 0)
         {
-            double r = Math.Pow(3.0 / 4.0 * (popState.Tumor / Math.PI), 1.0 / 3.0);
-            double reminder = r - 1.0 / SimParams.Confinement;
+            double r = Math.Pow(3.0 / 4.0 * (tumor / Math.PI), 1.0 / 3.0);
+            double reminder = r - 1.0 / SimParams.ConfGlobal;
             if (reminder > 0)
             {
                 double blockedPop = 4.0 / 3.0 * Math.PI * Math.Pow(reminder, 3.0);
-                unconfined = popState.Tumor - blockedPop;
+                unconfined = tumor - blockedPop;
             }
         }
 
-        double divFraction = popState.Alive > unconfined && popState.Alive > 0
+        DivFrac = popState.Alive > unconfined && popState.Alive > 0
             ? Math.Clamp(unconfined / popState.Alive, 0.0, 1.0)
             : 1.0;
-
+        
         foreach (var subClone in Clones.Where(sc => sc.AliveCount > 0))
         {
+            double freeCells = subClone.CellCount;
+            if (SimParams.ConfGlobal > 0)
+            {
+                double r = Math.Pow(3.0 / 4.0 * (subClone.CellCount / Math.PI), 1.0 / 3.0);
+                double reminder = r - 1.0 / SimParams.ConfLocal;
+                if (reminder > 0)
+                {
+                    double blockedPop = 4.0 / 3.0 * Math.PI * Math.Pow(reminder, 3.0);
+                    freeCells = subClone.CellCount - blockedPop;
+                }
+            }
+
+            double cloneFrac = subClone.AliveCount > freeCells && subClone.AliveCount > 0
+                ? Math.Clamp(freeCells / subClone.AliveCount, 0.0, 1.0)
+                : 1.0;
+            
             AliveSC++;
 
             // Kill cells
             double deathFit = GetDeath(subClone.Fitness, SimParams.FitnessEffect);
             int newDead = ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, deathFit * SimParams.Turnover);
-            int newNecrotic = (int)Math.Round(newDead * (1 - divFraction));
-            int disappeared = newDead - newNecrotic;
+            int disappeared = ExtremeBinDist.Sample(Rnd, newDead, DivFrac);
+            int newNecrotic = newDead - disappeared;
 
             // Create new cells
             double birthFit = GetBirth(subClone.Fitness, SimParams.FitnessEffect);
             double birthProb = Math.Clamp(birthFit * SimParams.Turnover, 0.0, 1.0);
-            int newCellsCount = ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, birthProb * divFraction);
+            int newCellsCount = ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, birthProb * cloneFrac * DivFrac);
 
             // Mutate some of the cells
-            int newMutantCount =
-                ExtremeBinDist.Sample(Rnd, newCellsCount, Math.Clamp(SimParams.MutationProb * 2, 0.0, 1.0));
+            int newMutantCount = ExtremeBinDist.Sample(Rnd, newCellsCount, Math.Clamp(SimParams.MutationProb * 2, 0.0, 1.0));
 
             for (int mutationI = 0; mutationI < newMutantCount; mutationI++)
             {
-                double divChange = Rnd.NextDouble() < SimParams.DriverProb ? FitnessFunction.SampleFitness(SimParams, Rnd) : 0;
+                double divChange = Rnd.NextDouble() < SimParams.DriverProb 
+                    ? FitnessFunction.SampleFitness(SimParams, Rnd) 
+                    : 0;
                 double newDivision = AccFitness(subClone.Fitness, divChange, SimParams.FitnessAcc);
                 var childClone = subClone.CreateChild(GetNewId(), StepNo, newDivision, subClone.NumberDrivers + 1);
                 newClones.Add(childClone);
