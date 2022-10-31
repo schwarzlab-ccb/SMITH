@@ -72,10 +72,10 @@ public class Simulator
         
         long tumor = popState.Alive + popState.Necro;
         double unconfined = tumor;
-        if (SimParams.Confinement > 0)
+        if (SimParams.ConfGlobal > 0)
         {
             double r = Math.Pow(3.0 / 4.0 * (tumor / Math.PI), 1.0 / 3.0);
-            double reminder = r - 1.0 / SimParams.Confinement;
+            double reminder = r - 1.0 / SimParams.ConfGlobal;
             if (reminder > 0)
             {
                 double blockedPop = 4.0 / 3.0 * Math.PI * Math.Pow(reminder, 3.0);
@@ -90,10 +90,10 @@ public class Simulator
         foreach (var subClone in Clones.Where(sc => sc.AliveCount > 0))
         {
             double freeCells = subClone.CellCount;
-            if (SimParams.Confinement > 0)
+            if (SimParams.ConfGlobal > 0)
             {
                 double r = Math.Pow(3.0 / 4.0 * (subClone.CellCount / Math.PI), 1.0 / 3.0);
-                double reminder = r - 1.0 / SimParams.IndConf;
+                double reminder = r - 1.0 / SimParams.ConfLocal;
                 if (reminder > 0)
                 {
                     double blockedPop = 4.0 / 3.0 * Math.PI * Math.Pow(reminder, 3.0);

@@ -91,7 +91,7 @@ try
                     files.WriteSubClones(sample);
                     files.WriteParentTree(lcaTreeList);
 
-                    var mullerSelect = popSizes.Select(pair => pair.Alive * 0.01).ToList();
+                    var mullerSelect = popSizes.Select(pair => pair.Alive * simParams.FishFrac).ToList();
                     int firstPop = mullerSelect.FindIndex(minPop => minPop > 0);
                     var mullerPops = simulator.Clones.Where(sc =>
                         sc.FirstGen <= firstPop || Enumerable.Range(firstPop, popSizes.Count)

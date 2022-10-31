@@ -29,8 +29,6 @@ public class State
     }
 
     public static SimParams GetDefaultSimParams() => new() {
-        Checkpoints = true,
-        
         // Function
         FitnessAcc = FitnessAccType.Add,
         FitnessDist = FitnessSampleType.Exponential,
@@ -42,19 +40,22 @@ public class State
         MaxPop = 1_048_576_000,
         MaxSteps = 1_000_000,
         MaxClones = 1_000_000,
-        CutOff = 0.0001f,
-        Reps = 1,
+        Reps = 10,
+        StartMut = 1,
+        StartPop = 1,
         
         // Model
         Turnover = 0.01,
         MutationProb = 0.00001,
         DriverProb = 1,
         FitnessMean = .125,
-        Confinement = .1,
-        IndConf = .1,
+        ConfGlobal = .5,
+        ConfLocal = .125,
 
         // Initialization
-        StartMut = 1,
-        StartPop = 1
+        Checkpoints = true,
+        CloneSample = -1,
+        FishFrac = 0.01,
+        CutOff = 0.0001f,
     };
 }
