@@ -2,8 +2,16 @@
 
 namespace SimChA.DataTypes;
 
-public struct TreeNode
+public class TreeNode
 {
     public int Id;
     public long Size;
+    public List<(TreeNode child, int distance)> Children;
+
+    public TreeNode(int id, long size)
+    {
+        Id = id;
+        Size = size;
+        Children = new List<(TreeNode, int)>();
+    }
 }

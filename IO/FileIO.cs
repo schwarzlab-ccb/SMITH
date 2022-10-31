@@ -66,7 +66,7 @@ public class FileIO
         }
     }
 
-    public void WriteParentTree(ParentTree tree)
+    public void WriteParentTree(ListTree tree)
     {
         string outPath = Path.Combine(Path.GetFullPath(RootFolder), DOT_FILENAME);
         using var outputFile = new StreamWriter(outPath);
@@ -86,7 +86,7 @@ public class FileIO
         outputFile.WriteLine("}");
     }
 
-    public void WriteMullerDataFrames(IEnumerable<SubClone> subClones, ParentTree tree)
+    public void WriteMullerDataFrames(IEnumerable<SubClone> subClones, ListTree tree)
     {
         string popPath = Path.Combine(Path.GetFullPath(RootFolder), POPULATIONS_DF_FILENAME);
         string adjPath = Path.Combine(Path.GetFullPath(RootFolder), ADJACENCY_DF_FILENAME);

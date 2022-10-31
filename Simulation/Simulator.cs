@@ -106,7 +106,7 @@ public class Simulator
 
             for (int mutationI = 0; mutationI < newMutantCount; mutationI++)
             {
-                double divChange = FitnessFunction.SampleFitness(SimParams, Rnd);
+                double divChange = Rnd.NextDouble() < SimParams.DriverProb ? FitnessFunction.SampleFitness(SimParams, Rnd) : 0;
                 double newDivision = AccFitness(subClone.Fitness, divChange, SimParams.FitnessAcc);
                 var childClone = subClone.CreateChild(GetNewId(), StepNo, newDivision, subClone.NumberDrivers + 1);
                 newClones.Add(childClone);

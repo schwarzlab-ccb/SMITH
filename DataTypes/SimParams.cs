@@ -14,13 +14,14 @@ public struct SimParams
     public uint Reps;
     public long MaxPop;
     public uint MaxSteps;
-    public double CutOff;
+    public int MaxClones;
     public uint MinPop;
 
     // Model
     public double Turnover;
     public double Confinement;
     public double MutationProb;
+    public double DriverProb;
     public double FitnessMean;
 
 
@@ -31,4 +32,6 @@ public struct SimParams
 
     // Output
     public bool Checkpoints;
+    public int CloneSample;
+    public double CutOff;
 }

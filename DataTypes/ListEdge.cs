@@ -2,7 +2,7 @@
 
 namespace SimChA.DataTypes;
 
-public class TreeEdge
+public class ListEdge
 {
     public int Distance;
     public int SourceId;

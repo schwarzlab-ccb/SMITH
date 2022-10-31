@@ -4,27 +4,27 @@ namespace SimChA.Computation;
 
 public static class TreeAnalysis
 {
-    private static long SubtreeCellCount(ParentTree parentTree, Dictionary<int, long> knownSizes, TreeNode subtreeRoot)
+    private static long SubtreeCellCount(ListTree listTree, Dictionary<int, long> knownSizes, ListNode subtreeRoot)
     {
         if (knownSizes.ContainsKey(subtreeRoot.Id))
         {
             return knownSizes[subtreeRoot.Id];
         }
-        long size = subtreeRoot.Size + parentTree.Edges
+        long size = subtreeRoot.Size + listTree.Edges
             .Where(e => e.SourceId == subtreeRoot.Id)
-            .Select(e => SubtreeCellCount(parentTree, knownSizes, parentTree.Nodes.Find(n => n.Id == e.TargetId)))
+            .Select(e => SubtreeCellCount(listTree, knownSizes, listTree.Nodes.Find(n => n.Id == e.TargetId)))
             .Sum();
         knownSizes[subtreeRoot.Id] = size; 
         return size;
     }
 
-    public static Dictionary<int, long> ComputeCCF(ParentTree parentTree)
+    public static Dictionary<int, long> ComputeCCF(ListTree listTree)
     {
         var knownSizes = new Dictionary<int, long>();
         var CCF = new Dictionary<int, long>();
-        foreach (var node in parentTree.Nodes)
+        foreach (var node in listTree.Nodes)
         {
-            long size = SubtreeCellCount(parentTree, knownSizes, node);
+            long size = SubtreeCellCount(listTree, knownSizes, node);
             if (size > 0)
             {
                 CCF[node.Id] = size;
@@ -47,23 +47,23 @@ public static class TreeAnalysis
     }
 
     // Returns number of nodes, number of leafs, depth, mean child count
-    public static (int, int, int, float) ComputeTreeSize(ParentTree parentTree)
+    public static (int, int, int, float) ComputeTreeSize(ListTree listTree)
     {
-        if (parentTree.Nodes.Count == 0)
+        if (listTree.Nodes.Count == 0)
         {
             return (0, 0, 0, 0);
         }
 
         TreeSizeData data = new();
-        var branches = TreeToBranches(parentTree);
-        int depth = CountNodes(branches, data, parentTree.RootId, 0);
-        int nodeCount = parentTree.Nodes.Count;
+        var branches = TreeToBranches(listTree);
+        int depth = CountNodes(branches, data, listTree.RootId, 0);
+        int nodeCount = listTree.Nodes.Count;
         int leafCount = data.leafCount;
         float branching = data.childCount / (float)leafCount;
         return (nodeCount, leafCount, depth, branching);
     }
 
-    public static float ComputeTreeBalance(int leafCount, ParentTree parentTree)
+    public static float ComputeTreeBalance(int leafCount, ListTree listTree)
     {
         if (leafCount == 1)
         {
@@ -72,10 +72,10 @@ public static class TreeAnalysis
 
         float treeBalance = 0;
         long Sdash_i_sum = 0;
-        var subtreeCount = ComputeCCF(parentTree);
-        var branches = TreeToBranches(parentTree);
+        var subtreeCount = ComputeCCF(listTree);
+        var branches = TreeToBranches(listTree);
 
-        foreach (var node in parentTree.Nodes.Where(n => branches[n.Id].Count >= 2))
+        foreach (var node in listTree.Nodes.Where(n => branches[n.Id].Count >= 2))
         {
             int nChildren = branches[node.Id].Count;
             long S_i = subtreeCount[node.Id];
@@ -112,7 +112,7 @@ public static class TreeAnalysis
                / subClones.Select(clone => (double)clone.AliveCount).Sum();
     }
 
-    private static Dictionary<int, List<int>> TreeToBranches(ParentTree pt)
+    private static Dictionary<int, List<int>> TreeToBranches(ListTree pt)
     {
         Dictionary<int, List<int>> branches = new();
         foreach (var node in pt.Nodes)
