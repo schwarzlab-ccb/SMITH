@@ -63,7 +63,7 @@ public static class TreeAnalysis
         return (nodeCount, leafCount, depth, branching);
     }
 
-    public static float ComputeTreeBalance(int leafCount, ListTree listTree)
+    public static float ComputeTreeBalance(int leafCount, ListTree listTree, Dictionary<int, long> CCF)
     {
         if (leafCount == 1)
         {
@@ -72,13 +72,12 @@ public static class TreeAnalysis
 
         float treeBalance = 0;
         long Sdash_i_sum = 0;
-        var subtreeCount = ComputeCCF(listTree);
         var branches = TreeToBranches(listTree);
 
         foreach (var node in listTree.Nodes.Where(n => branches[n.Id].Count >= 2))
         {
             int nChildren = branches[node.Id].Count;
-            long S_i = subtreeCount[node.Id];
+            long S_i = CCF[node.Id];
             if (S_i == 0)
             {
                 continue;
@@ -87,7 +86,7 @@ public static class TreeAnalysis
             long Sdash_i = S_i - node.Size;
             Sdash_i_sum += Sdash_i;
 
-            float W_i = branches[node.Id].Select(b => (float)subtreeCount[b] / Sdash_i)
+            float W_i = branches[node.Id].Select(b => (float) CCF[b] / Sdash_i)
                 .Where(p => p > 0)
                 .Select(p => -1 * p * (float)Math.Log(p) / (float)Math.Log(nChildren))
                 .Sum();

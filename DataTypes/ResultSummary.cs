@@ -46,7 +46,7 @@ public struct ResultSummary
 
 
     public ResultSummary(int repeatId, int generationId, int stepNo, string timeElapsed, ListTree connectedTree,
-        List<SubClone> aboveCutOff, List<SubClone> clones, PopulationState popState)
+        List<SubClone> aboveCutOff, List<SubClone> clones, PopulationState popState, Dictionary<int, long> CCF)
     {
         RepeatId = repeatId;
         GenerationId = generationId;
@@ -64,9 +64,8 @@ public struct ResultSummary
         CellNecroCount = popState.Necro;
         CellSelectCount = aboveCutOff.Sum(sc => sc.AliveCount);
 
-        (NodeCount, LeafCount, TreeDepth, Branching)
-            = TreeAnalysis.ComputeTreeSize(connectedTree);
-        TreeBalance = TreeAnalysis.ComputeTreeBalance(LeafCount, connectedTree);
+        (NodeCount, LeafCount, TreeDepth, Branching) = TreeAnalysis.ComputeTreeSize(connectedTree);
+        TreeBalance = TreeAnalysis.ComputeTreeBalance(LeafCount, connectedTree, CCF);
         ClonalDiversity = TreeAnalysis.ComputeClonalDiversity(aboveCutOff);
         MeanDriversPerCell = TreeAnalysis.ComputeMeanDriversPerCell(aboveCutOff);
     }

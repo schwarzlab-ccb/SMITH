@@ -34,7 +34,7 @@ else
         MaxPop = 1_048_576_000,
         MaxSteps = 1_000_000,
         CutOff = 0.001f,
-        MaxClones = 10,
+        MaxClones = 1_000_000,
         Reps = 1,
         
         // Model
@@ -116,7 +116,8 @@ try
                        $"SC_alive: {simulator.AliveSC}, " +
                        $"C_alive: {popSizes.Last().Alive:N0}, " +
                        $"C_necro: {popSizes.Last().Necro:N0}, " +
-                       $"C_lost: {popSizes.Last().Lost:N0}";
+                       $"C_lost: {popSizes.Last().Lost:N0}, " +
+                       $"Frac: {simulator.DivFrac:F2}";
             Console.Write(lastLine.PadRight(lastSize) + (options.Value.Newline ? "\n" : "\r"));
 
             if (GetCompState(popSizes.Last(), simulator) == ComputeState.Finished
@@ -131,10 +132,11 @@ try
                 var lcaTreeList = TreeBuilder.BuildLCAT(simulator.Clones, cloneSample);
                 var treeNodes = lcaTreeList.Nodes.Select(n => n.Id).ToList();
                 var sample = simulator.Clones.Where(sc => treeNodes.Contains(sc.CloneId)).ToList();
+                var CCF = TreeAnalysis.ComputeCCF(lcaTreeList);
                 
                 string time = TimeSpan.FromMilliseconds(watch.ElapsedMilliseconds).ToString();
                 var result = new ResultSummary(repeatId, checkpointId, simulator.StepNo, time,
-                    lcaTreeList, cloneSample, simulator.Clones, popSizes.Last());
+                    lcaTreeList, cloneSample, simulator.Clones, popSizes.Last(), CCF);
                 files.AddToSummary(result);
                 checkpointId++;
 
@@ -152,6 +154,8 @@ try
                     var mullerTree = TreeBuilder.BuildCTree(simulator.Clones, mullerPops);
                     files.WriteMullerDataFrames(mullerPops, mullerTree);
 
+                    files.WriteCCF(CCF, popSizes.Last().Alive);
+                    
                     files.StoreCopy(repeatId);
                     Console.WriteLine($"Sim: {repeatId + 1}.{tryNo}/{simParams.Reps} result:".PadRight(160));
                     Console.WriteLine(result.ToText());

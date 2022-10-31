@@ -1,5 +1,7 @@
 out="out"$1
 echo "Writing to $out" 
+echo "Plotting CCF"
+python3 scripts/plot_ccf.py -i $out/ccf.csv -o $out
 echo "Plotting Fish Plot"
 col=42
 smooth=2

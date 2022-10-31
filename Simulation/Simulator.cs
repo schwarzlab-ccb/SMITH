@@ -33,6 +33,7 @@ public class Simulator
     public List<SubClone> Clones { get; }
     public SimParams SimParams { get; }
     private Random Rnd { get; }
+    public double DivFrac { get; private set; }
 
     private int GetNewId() => ++newId;
 
@@ -81,7 +82,7 @@ public class Simulator
             }
         }
 
-        double divFraction = popState.Alive > unconfined && popState.Alive > 0
+        DivFrac = popState.Alive > unconfined && popState.Alive > 0
             ? Math.Clamp(unconfined / popState.Alive, 0.0, 1.0)
             : 1.0;
 
@@ -92,13 +93,13 @@ public class Simulator
             // Kill cells
             double deathFit = GetDeath(subClone.Fitness, SimParams.FitnessEffect);
             int newDead = ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, deathFit * SimParams.Turnover);
-            int newNecrotic = (int)Math.Round(newDead * (1 - divFraction));
-            int disappeared = newDead - newNecrotic;
+            int disappeared = ExtremeBinDist.Sample(Rnd, newDead, DivFrac);
+            int newNecrotic = newDead - disappeared;
 
             // Create new cells
-            double birthFit = GetBirth(subClone.Fitness, SimParams.FitnessEffect);
-            double birthProb = Math.Clamp(birthFit * SimParams.Turnover, 0.0, 1.0);
-            int newCellsCount = ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, birthProb * divFraction);
+            double birthFit = 1 + Math.Log(GetBirth(subClone.Fitness, SimParams.FitnessEffect));
+            double birthProb = Math.Min(1, birthFit * DivFrac * SimParams.Turnover);
+            int newCellsCount = ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, birthProb);
 
             // Mutate some of the cells
             int newMutantCount =
