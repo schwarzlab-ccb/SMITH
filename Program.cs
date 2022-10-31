@@ -23,8 +23,9 @@ else
     simParams = new SimParams
     {
         Checkpoints = true,
+        
         // Function
-        FitnessAcc = FitnessAccType.Mul,
+        FitnessAcc = FitnessAccType.Add,
         FitnessDist = FitnessSampleType.Exponential,
         FitnessEffect = FitnessEffectType.Birth,
         Seed = new Random().Next(),
@@ -33,17 +34,16 @@ else
         MinPop = 1000,
         MaxPop = 1_048_576_000,
         MaxSteps = 1_000_000,
-        CutOff = 0.001f,
         MaxClones = 1_000_000,
+        CutOff = 0.001f,
         Reps = 1,
         
         // Model
         Turnover = 0.01,
         MutationProb = 0.00001,
         DriverProb = 1,
-
         FitnessMean = .125,
-        Confinement = 1,
+        Confinement = .1,
 
         // Initialization
         StartMut = 1,
@@ -67,11 +67,11 @@ catch (Exception e)
 
 ComputeState GetCompState(PopulationState state, Simulator simulator)
 {
-    if (simulator.StepNo >= simParams.MaxSteps)
+    if (simulator.StepNo >= simParams.MaxSteps && simParams.MaxSteps > 0)
     {
         return ComputeState.Finished;
     }
-    if (simulator.Clones.Count >= simParams.MaxClones)
+    if (simulator.Clones.Count >= simParams.MaxClones && simParams.MaxClones > 0)
     {
         return ComputeState.Finished;
     }
@@ -79,7 +79,7 @@ ComputeState GetCompState(PopulationState state, Simulator simulator)
     {
         return state.Tumor > simParams.MinPop ? ComputeState.Finished : ComputeState.Reset;
     }
-    if (state.Tumor >= simParams.MaxPop)
+    if (state.Tumor >= simParams.MaxPop  && simParams.MaxPop > 0)
     {
         return ComputeState.Finished;
     }

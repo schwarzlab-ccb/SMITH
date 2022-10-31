@@ -12,9 +12,9 @@ public struct SimParams
 
     // Experiment
     public uint Reps;
-    public long MaxPop;
-    public uint MaxSteps;
-    public int MaxClones;
+    public long MaxPop; // Stop when this population is reached, can be negative to disable
+    public uint MaxSteps; // Stop when this many simulation steps are reached, can be negative to disable
+    public int MaxClones; // Stop when this many clones are found, can be negative to disable
     public uint MinPop;
 
     // Model
