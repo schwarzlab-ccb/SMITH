@@ -35,7 +35,7 @@ else
         MaxPop = 1_048_576_000,
         MaxSteps = 1_000_000,
         MaxClones = 1_000_000,
-        CutOff = 0.001f,
+        CutOff = 0.0001f,
         Reps = 1,
         
         // Model
@@ -44,6 +44,7 @@ else
         DriverProb = 1,
         FitnessMean = .125,
         Confinement = .1,
+        IndConf = .1,
 
         // Initialization
         StartMut = 1,

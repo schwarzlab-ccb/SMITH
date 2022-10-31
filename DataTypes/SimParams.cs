@@ -23,6 +23,7 @@ public struct SimParams
     public double MutationProb;
     public double DriverProb;
     public double FitnessMean;
+    public double IndConf;
 
 
     // Function    
