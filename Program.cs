@@ -28,6 +28,7 @@ else
         FitnessDist = FitnessSampleType.Exponential,
         FitnessEffect = FitnessEffectType.Birth,
         Seed = new Random().Next(),
+        
         // Experiment
         MinPop = 1000,
         MaxPop = 1_048_576_000,
@@ -39,6 +40,7 @@ else
         // Model
         Turnover = 0.01,
         MutationProb = 0.00001,
+        DriverProb = 1,
 
         FitnessMean = .125,
         Confinement = 1,
