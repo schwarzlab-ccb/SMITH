@@ -6,5 +6,6 @@ public enum FitnessAccType
 {
     Mul,
     Add,
-    Eth
+    Eth,
+    Log
 }
