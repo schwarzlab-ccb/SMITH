@@ -6,17 +6,17 @@ namespace SimChA.Simulation;
 
 public static class Utility
 {
-    public static List<uint> CreateCheckpoints(SimParams simParams)
+    public static List<long> CreateCheckpoints(SimParams simParams)
     {
         if (!simParams.Checkpoints)
         {
-            return new List<uint>();
+            return new List<long>();
         }
 
-        var checkpoints = new List<uint> { simParams.MinPop };
+        var checkpoints = new List<long> { simParams.MinPop };
         while (checkpoints.Last() < simParams.MaxPop)
         {
-            checkpoints.Add(checkpoints.Last() * 2);
+            checkpoints.Add(checkpoints.Last() * 2L);
         }
 
         return checkpoints;
