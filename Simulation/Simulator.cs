@@ -90,7 +90,7 @@ public class Simulator
         foreach (var subClone in Clones.Where(sc => sc.AliveCount > 0))
         {
             double freeCells = subClone.CellCount;
-            if (SimParams.ConfGlobal > 0)
+            if (SimParams.ConfLocal > 0)
             {
                 double r = Math.Pow(3.0 / 4.0 * (subClone.CellCount / Math.PI), 1.0 / 3.0);
                 double reminder = r - 1.0 / SimParams.ConfLocal;
