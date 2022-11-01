@@ -6,9 +6,9 @@ namespace SimChA.Computation;
 
 public static class CellSampling
 {
-    public static PopulationState PopState(List<SubClone> populations)
+    public static PopState PopState(List<SubClone> populations)
     {
-        var popState = new PopulationState
+        var popState = new PopState
         {
             Alive = populations.Sum(sc => sc.AliveCount),
             Necro = populations.Sum(sc => sc.NecroCount),

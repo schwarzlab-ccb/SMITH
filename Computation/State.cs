@@ -7,7 +7,7 @@ namespace SimChA.Computation;
 
 public class State
 {
-    public static ComputeState GetCompState(PopulationState state, Simulator simulator, SimParams simParams)
+    public static ComputeState GetCompState(PopState state, Simulator simulator, SimParams simParams)
     {
         if (simulator.StepNo >= simParams.MaxSteps && simParams.MaxSteps > 0)
         {
@@ -58,4 +58,18 @@ public class State
         FishFrac = 0.01,
         CutOff = 0.0001f,
     };
+
+    public static string StateLog(int repeatId, int tryNo, Simulator simulator, SimParams simParams, List<PopState> popStates)
+    {
+        double prog = (double)popStates.Last().Tumor / simParams.MaxPop;
+        return $"sim: {repeatId + 1}.{tryNo}/{simParams.Reps}, " +
+               $"step: {simulator.StepNo:D3}, " +
+               $"prog: {prog:P}, " +
+               $"SC_total: {simulator.Clones.Count}, " +
+               $"SC_alive: {simulator.AliveSC}, " +
+               $"C_alive: {popStates.Last().Alive:N0}, " +
+               $"C_necro: {popStates.Last().Necro:N0}, " +
+               $"C_lost: {popStates.Last().Lost:N0}, " +
+               $"Frac: {simulator.DivFrac:F2}";
+    }
 }

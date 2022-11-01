@@ -47,29 +47,21 @@ try
         int checkpointId = 0;
         var simulator = new Simulator(simParams, random);
         var checkpoints = Utility.CreateCheckpoints(simParams);
-        var popSizes = new List<PopulationState> { CellSampling.PopState(simulator.Clones) };
+        var popStates = new List<PopState> { CellSampling.PopState(simulator.Clones) };
         do
         {
             simulator.Step();
-            popSizes.Add(CellSampling.PopState(simulator.Clones));
-            int lastSize = lastLine.Length; // Only pad what you need
-            double prog = (double)popSizes.Last().Tumor / simParams.MaxPop;
-            lastLine = $"sim: {repeatId + 1}.{tryNo}/{simParams.Reps}, " +
-                       $"step: {simulator.StepNo:D3}, " +
-                       $"prog: {prog:P}, " +
-                       $"SC_total: {simulator.Clones.Count}, " +
-                       $"SC_alive: {simulator.AliveSC}, " +
-                       $"C_alive: {popSizes.Last().Alive:N0}, " +
-                       $"C_necro: {popSizes.Last().Necro:N0}, " +
-                       $"C_lost: {popSizes.Last().Lost:N0}, " +
-                       $"Frac: {simulator.DivFrac:F2}";
-            Console.Write(lastLine.PadRight(lastSize) + (options.Value.Newline ? "\n" : "\r"));
+            popStates.Add(CellSampling.PopState(simulator.Clones));
+            
+            int lastLineLength = lastLine.Length; // Only pad what you need
+            lastLine = State.StateLog(repeatId, tryNo, simulator, simParams, popStates);
+            Console.Write(lastLine.PadRight(lastLineLength) + (options.Value.Newline ? "\n" : "\r"));
 
-            if (State.GetCompState(popSizes.Last(), simulator, simParams) == ComputeState.Finished
-                || checkpoints.Any() && popSizes.Last().Tumor > checkpoints[checkpointId])
+            if (State.GetCompState(popStates.Last(), simulator, simParams) == ComputeState.Finished
+                || checkpoints.Any() && popStates.Last().Tumor > checkpoints[checkpointId])
             {
                 // Analysis
-                double cutOff = popSizes.Last().Alive * simParams.CutOff;
+                double cutOff = popStates.Last().Alive * simParams.CutOff;
                 var aboveCutOff = simulator.Clones.Where(sc => sc.AliveCount > cutOff).ToList();
                 var cloneSample = (simParams.CloneSample > 0 && simParams.CloneSample < aboveCutOff.Count
                     ? aboveCutOff.OrderByDescending(c => c.AliveCount).Take(simParams.CloneSample)
@@ -81,25 +73,25 @@ try
                 
                 string time = TimeSpan.FromMilliseconds(watch.ElapsedMilliseconds).ToString();
                 var result = new ResultSummary(repeatId, checkpointId, simulator.StepNo, time,
-                    lcaTreeList, cloneSample, simulator.Clones, popSizes.Last(), CCF);
+                    lcaTreeList, cloneSample, simulator.Clones, popStates.Last(), CCF);
                 files.AddToSummary(result);
                 checkpointId++;
 
                 // Result
-                if (State.GetCompState(popSizes.Last(), simulator, simParams) == ComputeState.Finished)
+                if (State.GetCompState(popStates.Last(), simulator, simParams) == ComputeState.Finished)
                 {
                     files.WriteSubClones(sample);
                     files.WriteParentTree(lcaTreeList);
 
-                    var mullerSelect = popSizes.Select(pair => pair.Alive * simParams.FishFrac).ToList();
+                    var mullerSelect = popStates.Select(pair => pair.Alive * simParams.FishFrac).ToList();
                     int firstPop = mullerSelect.FindIndex(minPop => minPop > 0);
                     var mullerPops = simulator.Clones.Where(sc =>
-                        sc.FirstGen <= firstPop || Enumerable.Range(firstPop, popSizes.Count)
+                        sc.FirstGen <= firstPop || Enumerable.Range(firstPop, popStates.Count)
                             .Any(g => mullerSelect[g] <= sc.AliveAtGen(g))).ToList();
                     var mullerTree = TreeBuilder.BuildCTree(simulator.Clones, mullerPops);
                     files.WriteMullerDataFrames(mullerPops, mullerTree);
 
-                    files.WriteCCF(CCF, popSizes.Last().Alive);
+                    files.WriteCCF(CCF, popStates.Last().Alive);
                     
                     files.StoreCopy(repeatId);
                     Console.WriteLine($"Sim: {repeatId + 1}.{tryNo}/{simParams.Reps} result:".PadRight(160));
@@ -107,10 +99,10 @@ try
                     GC.Collect();
                 }
             }
-        } while (State.GetCompState(popSizes.Last(), simulator, simParams) == ComputeState.Running);
+        } while (State.GetCompState(popStates.Last(), simulator, simParams) == ComputeState.Running);
 
         // Skip on failure
-        if (State.GetCompState(popSizes.Last(), simulator, simParams) == ComputeState.Reset)
+        if (State.GetCompState(popStates.Last(), simulator, simParams) == ComputeState.Reset)
         {
             tryNo++;
             repeatId--;
