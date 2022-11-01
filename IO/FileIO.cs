@@ -86,7 +86,7 @@ public class FileIO
         outputFile.WriteLine("}");
     }
 
-    public void WriteMullerDataFrames(IEnumerable<SubClone> subClones, ListTree tree)
+    public void WriteMullerDataFrames(List<SubClone> subClones, ListTree tree)
     {
         string popPath = Path.Combine(Path.GetFullPath(RootFolder), POPULATIONS_DF_FILENAME);
         string adjPath = Path.Combine(Path.GetFullPath(RootFolder), ADJACENCY_DF_FILENAME);

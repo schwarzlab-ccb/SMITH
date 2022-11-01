@@ -39,8 +39,8 @@ public class State
         MinPop = 1000,
         MaxPop = 1_048_576_000,
         MaxSteps = 1_000_000,
-        MaxClones = 1_000_000,
-        Reps = 10,
+        MaxClones = -1,
+        Reps = 1,
         StartMut = 1,
         StartPop = 1,
         
@@ -71,5 +71,25 @@ public class State
                $"C_necro: {popStates.Last().Necro:N0}, " +
                $"C_lost: {popStates.Last().Lost:N0}, " +
                $"Frac: {simulator.DivFrac:F2}";
+    }
+
+    public static (List<SubClone> subClones, ListTree tree) GetMullerData(Simulator simulator, SimParams simParams, List<PopState> popStates)
+    {
+        if (simParams.FishFrac > 0)
+        {
+            var mullerSelect = popStates.Select(pair => pair.Alive * simParams.FishFrac).ToList();
+            int firstPop = mullerSelect.FindIndex(minPop => minPop > 0);
+            if (firstPop > 0)
+            {
+                var mullerPops = simulator
+                    .Clones
+                    .Where(sc => sc.FirstGen <= firstPop || Enumerable.Range(firstPop, popStates.Count)
+                        .Any(g => mullerSelect[g] <= sc.AliveAtGen(g)))
+                    .ToList();
+                var mullerTree = TreeBuilder.BuildCTree(simulator.Clones, mullerPops);
+                return (mullerPops, mullerTree);
+            }
+        }
+        return (new List<SubClone>(), new ListTree());
     }
 }

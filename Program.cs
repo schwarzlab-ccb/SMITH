@@ -82,17 +82,12 @@ try
                 {
                     files.WriteSubClones(sample);
                     files.WriteParentTree(lcaTreeList);
-
-                    var mullerSelect = popStates.Select(pair => pair.Alive * simParams.FishFrac).ToList();
-                    int firstPop = mullerSelect.FindIndex(minPop => minPop > 0);
-                    var mullerPops = simulator.Clones.Where(sc =>
-                        sc.FirstGen <= firstPop || Enumerable.Range(firstPop, popStates.Count)
-                            .Any(g => mullerSelect[g] <= sc.AliveAtGen(g))).ToList();
-                    var mullerTree = TreeBuilder.BuildCTree(simulator.Clones, mullerPops);
-                    files.WriteMullerDataFrames(mullerPops, mullerTree);
-
+                    var (mullerPops, mullerTree) = State.GetMullerData(simulator, simParams, popStates);
+                    if (mullerPops.Any())
+                    {
+                        files.WriteMullerDataFrames(mullerPops, mullerTree);
+                    }
                     files.WriteCCF(CCF, popStates.Last().Alive);
-                    
                     files.StoreCopy(repeatId);
                     Console.WriteLine($"Sim: {repeatId + 1}.{tryNo}/{simParams.Reps} result:".PadRight(160));
                     Console.WriteLine(result.ToText());
