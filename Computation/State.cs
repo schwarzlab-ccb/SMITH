@@ -79,7 +79,7 @@ public class State
         {
             var mullerSelect = popStates.Select(pair => pair.Alive * simParams.FishFrac).ToList();
             int firstPop = mullerSelect.FindIndex(minPop => minPop > 0);
-            if (firstPop > 0)
+            if (firstPop >= 0)
             {
                 var mullerPops = simulator
                     .Clones
