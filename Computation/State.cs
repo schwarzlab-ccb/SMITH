@@ -49,8 +49,8 @@ public class State
         MutationProb = 0.00001,
         DriverProb = 1,
         FitnessMean = .125,
-        ConfGlobal = .5,
-        ConfLocal = .125,
+        Confinement = .5,
+        ConfinementRatio = .125,
 
         // Initialization
         Checkpoints = true,
@@ -70,7 +70,7 @@ public class State
                $"C_alive: {popStates.Last().Alive:N0}, " +
                $"C_necro: {popStates.Last().Necro:N0}, " +
                $"C_lost: {popStates.Last().Lost:N0}, " +
-               $"Frac: {simulator.DivFrac:F2}";
+               $"Frac: {simulator.GlobalFrac:F2}";
     }
 
     public static (List<SubClone> subClones, ListTree tree) GetMullerData(Simulator simulator, SimParams simParams, List<PopState> popStates)

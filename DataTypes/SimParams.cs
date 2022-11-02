@@ -22,8 +22,8 @@ public struct SimParams
     public double MutationProb;
     public double DriverProb; // Likelihood that a mutation is a driver mutation
     public double FitnessMean;
-    public double ConfGlobal;
-    public double ConfLocal; 
+    public double Confinement;
+    public double ConfinementRatio; 
 
     // Function    
     public FitnessAccType FitnessAcc;
@@ -35,4 +35,6 @@ public struct SimParams
     public double CutOff; // Minimum sample size compared to the total sample size for a clone to be considered
     public int CloneSample; // Limits the number of clones after cut-off, can be negative to disable
     public double FishFrac; // Minimum fraction of the population that must be sampled at any timepoint to be considered a clone
+    
+    public double LocalConfinement => Confinement * ConfinementRatio;
 }

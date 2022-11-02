@@ -33,7 +33,7 @@ public class Simulator
     public List<SubClone> Clones { get; }
     public SimParams SimParams { get; }
     private Random Rnd { get; }
-    public double DivFrac { get; private set; }
+    public double GlobalFrac { get; private set; }
 
     private int GetNewId() => ++newId;
 
@@ -62,62 +62,53 @@ public class Simulator
             FitnessEffectType.Both => 2 / (fitness + 1),
             _ => throw new ArgumentOutOfRangeException(nameof(effect), effect, null)
         };
-    
+
+    private static double CalcFree(long totalPop, double conf)
+    {
+        if (conf > 0)
+        {
+            double r = Math.Pow(3.0 / 4.0 * (totalPop / Math.PI), 1.0 / 3.0);
+            double reminder = r - 1.0 / conf;
+            if (reminder > 0)
+            {
+                double blockedPop = 4.0 / 3.0 * Math.PI * Math.Pow(reminder, 3.0);
+                return totalPop - blockedPop;
+            }
+        }
+        return totalPop;
+    }
+
+    private static double CalcFraction(long aliveCount, double freeCount) => 
+        aliveCount > freeCount && aliveCount > 0 ? Math.Clamp(freeCount / aliveCount, 0.0, 1.0) : 1.0;
+
     public void Step()
     {
         AliveSC = 0;
         StepNo++;
 
         List<SubClone> newClones = new();
-         var popState = CellSampling.PopState(Clones);
+        var popState = CellSampling.PopState(Clones);
         
-        long tumor = popState.Alive + popState.Necro;
-        double unconfined = tumor;
-        if (SimParams.ConfGlobal > 0)
-        {
-            double r = Math.Pow(3.0 / 4.0 * (tumor / Math.PI), 1.0 / 3.0);
-            double reminder = r - 1.0 / SimParams.ConfGlobal;
-            if (reminder > 0)
-            {
-                double blockedPop = 4.0 / 3.0 * Math.PI * Math.Pow(reminder, 3.0);
-                unconfined = tumor - blockedPop;
-            }
-        }
-
-        DivFrac = popState.Alive > unconfined && popState.Alive > 0
-            ? Math.Clamp(unconfined / popState.Alive, 0.0, 1.0)
-            : 1.0;
+        double globalFree = CalcFree(popState.Alive + popState.Necro, SimParams.Confinement);
+        GlobalFrac = CalcFraction(popState.Alive, globalFree);
         
         foreach (var subClone in Clones.Where(sc => sc.AliveCount > 0))
         {
-            double freeCells = subClone.CellCount;
-            if (SimParams.ConfLocal > 0)
-            {
-                double r = Math.Pow(3.0 / 4.0 * (subClone.CellCount / Math.PI), 1.0 / 3.0);
-                double reminder = r - 1.0 / SimParams.ConfLocal;
-                if (reminder > 0)
-                {
-                    double blockedPop = 4.0 / 3.0 * Math.PI * Math.Pow(reminder, 3.0);
-                    freeCells = subClone.CellCount - blockedPop;
-                }
-            }
-
-            double cloneFrac = subClone.AliveCount > freeCells && subClone.AliveCount > 0
-                ? Math.Clamp(freeCells / subClone.AliveCount, 0.0, 1.0)
-                : 1.0;
-            
             AliveSC++;
+
+            double localFree = CalcFree(subClone.CellCount, SimParams.LocalConfinement);
+            double cloneFrac = CalcFraction(popState.Alive, localFree) * GlobalFrac;
 
             // Kill cells
             double deathFit = GetDeath(subClone.Fitness, SimParams.FitnessEffect);
             int newDead = ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, deathFit * SimParams.Turnover);
-            int disappeared = ExtremeBinDist.Sample(Rnd, newDead, DivFrac);
+            int disappeared = ExtremeBinDist.Sample(Rnd, newDead, GlobalFrac);
             int newNecrotic = newDead - disappeared;
 
             // Create new cells
             double birthFit = GetBirth(subClone.Fitness, SimParams.FitnessEffect);
             double birthProb = Math.Clamp(birthFit * SimParams.Turnover, 0.0, 1.0);
-            int newCellsCount = ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, birthProb * cloneFrac * DivFrac);
+            int newCellsCount = ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, birthProb * cloneFrac);
 
             // Mutate some of the cells
             int newMutantCount = ExtremeBinDist.Sample(Rnd, newCellsCount, Math.Clamp(SimParams.MutationProb * 2, 0.0, 1.0));
