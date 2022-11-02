@@ -97,7 +97,7 @@ public class Simulator
             AliveSC++;
 
             double localFree = CalcFree(subClone.CellCount, SimParams.LocalConfinement);
-            double cloneFrac = CalcFraction(popState.Alive, localFree) * GlobalFrac;
+            double cloneFrac = CalcFraction(subClone.AliveCount, localFree) * GlobalFrac;
 
             // Kill cells
             double deathFit = GetDeath(subClone.Fitness, SimParams.FitnessEffect);
