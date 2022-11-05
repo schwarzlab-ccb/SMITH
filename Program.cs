@@ -17,11 +17,16 @@ var simParams = options.Value.ConfigFile != ""
     ? FileIO.SimParamsFromFile(options.Value.ConfigFile) 
     : State.GetDefaultSimParams();
 
+if (simParams.MaxPop >= int.MaxValue)
+{
+    throw new ArgumentException($"Max population size must be less than {int.MaxValue}");
+}
+
 var random = new Random(simParams.Seed);
 FileIO files;
-bool isRepeated = simParams.Reps > 1;
 try
 {
+    bool isRepeated = simParams.Reps > 1;
     files = new FileIO(options.Value.OutputPath, isRepeated);
     files.WriteSimParams(simParams);
 }

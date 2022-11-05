@@ -89,14 +89,14 @@ public class Simulator
         List<SubClone> newClones = new();
         var popState = CellSampling.PopState(Clones);
         
-        double globalFree = CalcFree(popState.Alive + popState.Necro, SimParams.Confinement);
+        double globalFree = CalcFree(popState.Alive + popState.Necro, SimParams.ConfGlobal);
         GlobalFrac = CalcFraction(popState.Alive, globalFree);
         
         foreach (var subClone in Clones.Where(sc => sc.AliveCount > 0))
         {
             AliveSC++;
 
-            double localFree = CalcFree(subClone.CellCount, SimParams.LocalConfinement);
+            double localFree = CalcFree(subClone.CellCount, SimParams.ConfLocal);
             double cloneFrac = CalcFraction(subClone.AliveCount, localFree) * GlobalFrac;
 
             // Kill cells

@@ -49,8 +49,8 @@ public class State
         MutationProb = 0.00001,
         DriverProb = 1,
         FitnessMean = .125,
-        Confinement = .5,
-        ConfinementRatio = .125,
+        ConfGlobal = .5,
+        ConfLocal = .125,
 
         // Initialization
         Checkpoints = true,
