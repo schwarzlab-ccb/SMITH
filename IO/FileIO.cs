@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 using System.Text.Json;
 using SimChA.DataTypes;
 
@@ -6,7 +7,8 @@ namespace SimChA.IO;
 
 public class FileIO
 {
-    private const string DOT_FILENAME = "parent_graph.dot";
+    private const string PARENT_GRAPH_FILENAME = "parent_graph.dot";
+    private const string BIN_TREE_FILENAME = "bin_tree.dot";
 
     private const string SUBCLONES_FILENAME = "subclones.out";
 
@@ -68,7 +70,7 @@ public class FileIO
 
     public void WriteParentTree(ListTree tree)
     {
-        string outPath = Path.Combine(Path.GetFullPath(RootFolder), DOT_FILENAME);
+        string outPath = Path.Combine(Path.GetFullPath(RootFolder), PARENT_GRAPH_FILENAME);
         using var outputFile = new StreamWriter(outPath);
 
         outputFile.WriteLine("Digraph SMITH {");
@@ -83,6 +85,26 @@ public class FileIO
             outputFile.WriteLine($"\t{edge.SourceId} -> {edge.TargetId} [label=\"{edge.Distance}\"];");
         }
 
+        outputFile.WriteLine("}");
+    }
+
+    private static void WriteBinNote(TreeNode treeNode, StreamWriter writer)
+    {
+        string fillStr = treeNode.Size == 0 ? "fillcolor=gray25, style=filled" : "";
+        writer.WriteLine($"\t{treeNode.Id} [label=\"{treeNode.Id}:{treeNode.Size}\"{fillStr}];");
+        foreach (var tuple in treeNode.Children)
+        {
+            writer.WriteLine($"\t{treeNode.Id} -> {tuple.child.Id} [label=\"{tuple.distance}\"];");
+            WriteBinNote(tuple.child, writer);
+        }
+    }
+    
+    public void WriteBinTree(TreeNode binTree)
+    {
+        string outPath = Path.Combine(Path.GetFullPath(RootFolder), BIN_TREE_FILENAME);
+        using var outputFile = new StreamWriter(outPath);
+        outputFile.WriteLine("Digraph BinTree {");
+        WriteBinNote(binTree, outputFile);
         outputFile.WriteLine("}");
     }
 

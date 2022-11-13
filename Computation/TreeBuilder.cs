@@ -7,6 +7,9 @@ public static class TreeBuilder
 {
     public static Dictionary<int, int> CreateParentMap(IEnumerable<SubClone> subClones)
         => subClones.ToDictionary(sc => sc.CloneId, sc => sc.ParentId);
+    
+    public static Dictionary<int, int> CountFirstGent(IEnumerable<SubClone> subClones)
+        => subClones.ToDictionary(sc => sc.CloneId, sc => sc.FirstGen);
 
     private static ListEdge FindEdgeToParent(Dictionary<int, int> parentMap, List<SubClone> selection, int id)
     {
@@ -93,11 +96,11 @@ public static class TreeBuilder
     // Construct a parent tree with lowest common ancestor (LCA) for each pair of children
     public static ListTree BuildLCAT(IEnumerable<SubClone> allSubClones, List<SubClone> selection)
     {
-        var parentMap = TreeBuilder.CreateParentMap(allSubClones);
-        var internalNodes = FindInternalNodes(parentMap, selection);
-
         List<ListNode> nodes = new();
         List<ListEdge> edges = new();
+        
+        var parentMap = CreateParentMap(allSubClones);
+        var internalNodes = FindInternalNodes(parentMap, selection);
 
         foreach (var subClone in selection)
         {
@@ -130,5 +133,35 @@ public static class TreeBuilder
         var root = new TreeNode(listTree.RootId, listTree.Nodes.Find(n => n.Id == listTree.RootId).Size);
         WalkTheTree(listTree, root);
         return root;
+    }
+
+    public static int ConvertToBinaryNodes(Dictionary<int, int> firstGen, TreeNode tree, int minFreeId)
+    {
+        // Keep LCA if empty
+        if (tree.Children.Count == 2 && tree.Size == 0)
+        {
+            minFreeId = ConvertToBinaryNodes(firstGen, tree.Children[0].child, minFreeId + 1);
+            minFreeId = ConvertToBinaryNodes(firstGen, tree.Children[1].child, minFreeId + 1);
+        }
+        // Split the self and add oldest child
+        else if (tree.Children.Count > 1)
+        {
+            tree.Children.Sort((c, d) => firstGen[c.child.Id]);
+            var firstChild = tree.Children[0];
+            var restChildren = tree.Children.Skip(1).ToList();
+            var copy = new TreeNode(minFreeId, 0)
+            {
+                Children = restChildren
+            };
+            tree.Children = new List<(TreeNode child, int dist)> { (firstChild.child, firstChild.distance), (copy, 0) };
+            minFreeId = ConvertToBinaryNodes(firstGen, tree.Children[0].child, minFreeId + 1);
+            minFreeId = ConvertToBinaryNodes(firstGen, tree.Children[1].child, minFreeId + 1);
+        }
+        // Continue the traversal
+        else if (tree.Children.Count == 1)
+        {
+            minFreeId = ConvertToBinaryNodes(firstGen, tree.Children[0].child, minFreeId + 1);
+        }
+        return minFreeId;
     }
 }
