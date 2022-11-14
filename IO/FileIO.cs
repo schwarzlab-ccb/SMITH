@@ -90,8 +90,8 @@ public class FileIO
 
     private static void WriteBinNote(TreeNode treeNode, StreamWriter writer)
     {
-        string fillStr = treeNode.Size == 0 ? "fillcolor=gray25, style=filled" : "";
-        writer.WriteLine($"\t{treeNode.Id} [label=\"{treeNode.Id}:{treeNode.Size}\"{fillStr}];");
+        string fillStr = treeNode.Size == 0 ? "fillcolor=gray32, style=filled" : "";
+        writer.WriteLine($"\t{treeNode.Id} [label=\"{treeNode.Label}:{treeNode.Size}\"{fillStr}];");
         foreach (var tuple in treeNode.Children)
         {
             writer.WriteLine($"\t{treeNode.Id} -> {tuple.child.Id} [label=\"{tuple.distance}\"];");

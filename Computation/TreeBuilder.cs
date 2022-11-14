@@ -151,6 +151,7 @@ public static class TreeBuilder
             var restChildren = tree.Children.Skip(1).ToList();
             var copy = new TreeNode(minFreeId, 0)
             {
+                Label = tree.Label,
                 Children = restChildren
             };
             tree.Children = new List<(TreeNode child, int dist)> { (firstChild.child, firstChild.distance), (copy, 0) };
