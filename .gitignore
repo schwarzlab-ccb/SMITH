@@ -1,9 +1,6 @@
 # Output files 
 out*
 
-# Input files
-sim_params.json
-
 # Figures from notebooks
 notebooks/figures
 
