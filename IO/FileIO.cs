@@ -7,7 +7,7 @@ namespace SimChA.IO;
 
 public class FileIO
 {
-    private const string PARENT_GRAPH_FILENAME = "parent_graph.dot";
+    private const string CLONE_TREE_FILENAME = "clone_tree.dot";
     private const string BIN_TREE_FILENAME = "bin_tree.dot";
 
     private const string SUBCLONES_FILENAME = "subclones.out";
@@ -70,7 +70,7 @@ public class FileIO
 
     public void WriteParentTree(ListTree tree)
     {
-        string outPath = Path.Combine(Path.GetFullPath(RootFolder), PARENT_GRAPH_FILENAME);
+        string outPath = Path.Combine(Path.GetFullPath(RootFolder), CLONE_TREE_FILENAME);
         using var outputFile = new StreamWriter(outPath);
 
         outputFile.WriteLine("Digraph SMITH {");

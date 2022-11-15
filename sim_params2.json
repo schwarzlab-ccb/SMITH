@@ -1,0 +1,23 @@
+{
+  "Seed": -1,
+  "StartMut": 1,
+  "StartPop": 1,
+  "Reps": 1,
+  "MaxPop": 1048576000,
+  "MaxSteps": 1000000,
+  "MaxClones": -1,
+  "MinPop": 1,
+  "Turnover": 0.01,
+  "MutationProb": 0.005,
+  "DriverProb": 0,
+  "FitnessMean": 0.5,
+  "ConfGlobal": 0,
+  "ConfLocal": 0,
+  "FitnessAcc": 1,
+  "FitnessDist": 2,
+  "FitnessEffect": 0,
+  "Checkpoints": true,
+  "CutOff": 0.01,
+  "CloneSample": -1,
+  "FishFrac": 0.01
+}

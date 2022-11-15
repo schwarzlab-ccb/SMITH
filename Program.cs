@@ -85,17 +85,16 @@ try
                 // Result
                 if (State.GetCompState(popStates.Last(), simulator, simParams) == ComputeState.Finished)
                 {
-                    var cTree = TreeBuilder.BuildCTree(simulator.Clones, cloneSample);
-                    var nodeTree = TreeBuilder.ListToTree(cTree);
-                    var firstGenMap = TreeBuilder.CountFirstGent(sample);
-                    TreeBuilder.ConvertToBinaryNodes(firstGenMap, nodeTree, sample.Max(sc => sc.CloneId) + 1);
-                    files.WriteBinTree(nodeTree);
                     files.WriteSubClones(sample);
                     files.WriteParentTree(lcaTreeList);
                     var (mullerPops, mullerTree) = State.GetMullerData(simulator, simParams, popStates);
                     if (mullerPops.Any())
                     {
                         files.WriteMullerDataFrames(mullerPops, mullerTree);
+                        var nodeTree = TreeBuilder.ListToTree(mullerTree);
+                        var firstGenMap = TreeBuilder.CountFirstGent(sample);
+                        TreeBuilder.ConvertToBinaryNodes(firstGenMap, nodeTree, sample.Max(sc => sc.CloneId) + 1);
+                        files.WriteBinTree(nodeTree);
                     }
                     files.WriteCCF(CCF, popStates.Last().Alive);
                     files.StoreCopy(repeatId);
