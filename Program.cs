@@ -92,7 +92,7 @@ try
                     {
                         files.WriteMullerDataFrames(mullerPops, mullerTree);
                         var nodeTree = TreeBuilder.ListToTree(mullerTree);
-                        var firstGenMap = TreeBuilder.CountFirstGent(sample);
+                        var firstGenMap = TreeBuilder.CountFirstGent(mullerPops);
                         TreeBuilder.ConvertToBinaryNodes(firstGenMap, nodeTree, sample.Max(sc => sc.CloneId) + 1);
                         files.WriteBinTree(nodeTree);
                     }
