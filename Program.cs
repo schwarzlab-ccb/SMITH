@@ -62,7 +62,7 @@ try
             lastLine = State.StateLog(repeatId, tryNo, simulator, simParams, popStates);
             Console.Write(lastLine.PadRight(lastLineLength) + (options.Value.Newline ? "\n" : "\r"));
 
-            if (State.GetCompState(popStates.Last(), simulator, simParams) == ComputeState.Finished
+            if (State.GetCompState(popStates.Last(), simulator, simParams, tryNo) == ComputeState.Finished
                 || checkpoints.Any() && popStates.Last().Tumor > checkpoints[checkpointId])
             {
                 // Analysis
@@ -83,7 +83,7 @@ try
                 checkpointId++;
 
                 // Result
-                if (State.GetCompState(popStates.Last(), simulator, simParams) == ComputeState.Finished)
+                if (State.GetCompState(popStates.Last(), simulator, simParams, tryNo) == ComputeState.Finished)
                 {
                     files.WriteSubClones(sample);
                     files.WriteParentTree(lcaTreeList);
@@ -103,10 +103,10 @@ try
                     GC.Collect();
                 }
             }
-        } while (State.GetCompState(popStates.Last(), simulator, simParams) == ComputeState.Running);
+        } while (State.GetCompState(popStates.Last(), simulator, simParams, tryNo) == ComputeState.Running);
 
         // Skip on failure
-        if (State.GetCompState(popStates.Last(), simulator, simParams) == ComputeState.Reset)
+        if (State.GetCompState(popStates.Last(), simulator, simParams, tryNo) == ComputeState.Reset)
         {
             tryNo++;
             repeatId--;
