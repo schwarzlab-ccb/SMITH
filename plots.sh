@@ -15,4 +15,3 @@ dot -Tpng $out/bin_tree.dot > $out/bin_tree.png
 python3 scripts/dot_to_newick.py $out/bin_tree.dot
 echo "plotting Metrics Overview"
 python3 scripts/plot_metrics_single_experiment.py --input_folder $out 
-

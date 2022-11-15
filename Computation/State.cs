@@ -8,12 +8,8 @@ namespace SimChA.Computation;
 public class State
 {
     public static int maxTries = 10_000;
-    public static ComputeState GetCompState(PopState state, Simulator simulator, SimParams simParams, int tryNo)
+    public static ComputeState GetCompState(PopState state, Simulator simulator, SimParams simParams)
     {
-        if (tryNo > maxTries)
-        {
-            return ComputeState.Finished;
-        }
         if (simulator.StepNo >= simParams.MaxSteps && simParams.MaxSteps > 0)
         {
             return ComputeState.Finished;
@@ -48,6 +44,7 @@ public class State
         Reps = 1,
         StartMut = 1,
         StartPop = 1,
+        MaxTries = 1.000,
         
         // Model
         Turnover = 0.01,

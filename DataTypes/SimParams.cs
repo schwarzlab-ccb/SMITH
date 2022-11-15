@@ -16,7 +16,8 @@ public struct SimParams
     public uint MaxSteps; // Stop when this many simulation steps are reached, can be negative to disable
     public int MaxClones; // Stop when this many clones are found, can be negative to disable
     public uint MinPop; // If the sample size of MinPop is not reach, simulation restarts
-
+    public double MaxTries; // Maximum number of tries. Note that this will cause incomplete results.
+    
     // Model
     public double Turnover;
     public double MutationProb;
