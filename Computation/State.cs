@@ -44,7 +44,7 @@ public class State
         Reps = 1,
         StartMut = 1,
         StartPop = 1,
-        MaxTries = 1.000,
+        MaxTries = 1000,
         
         // Model
         Turnover = 0.01,
