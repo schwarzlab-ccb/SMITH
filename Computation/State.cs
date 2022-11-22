@@ -38,10 +38,10 @@ public class State
         
         // Experiment
         MinPop = 1000,
-        MaxPop = 1_048_576_000,
+        MaxPop = 1_048_576,
         MaxSteps = 1_000_000,
         MaxClones = -1,
-        Reps = 1,
+        Reps = 2,
         StartMut = 1,
         StartPop = 1,
         MaxTries = 1000,
