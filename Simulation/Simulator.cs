@@ -102,7 +102,7 @@ public class Simulator
             // Kill cells
             double deathFit = GetDeath(subClone.Fitness, SimParams.FitnessEffect);
             int newDead = ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, deathFit * SimParams.Turnover);
-            int disappeared = ExtremeBinDist.Sample(Rnd, newDead, GlobalFrac);
+            int disappeared = ExtremeBinDist.Sample(Rnd, newDead, cloneFrac);
             int newNecrotic = newDead - disappeared;
 
             // Create new cells
