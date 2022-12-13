@@ -487,25 +487,6 @@ def load_final_metrics_over_time_revisions(cur_MutationProb=0.0001,
                                            cur_Confinement_local=0.0
                                           ):
     
-    # range_MutationProb = [0.000005, 0.00001, 0.00002, 0.00004]
-    # range_FitnessMean = [0.05, 0.1, 0.2, 0.4]
-    # range_Confinement_global = [0, 0.0625, 0.125, 0.25, 0.5, 1]
-    # range_Confinement_local = [0, 0.0625, 0.125, 0.25, 0.5, 1]
-
-    # target_generation = 20
-
-    # long_results = pd.DataFrame(columns=['MeanDriversPerCell', 'ClonalDiversity', 'clonal_fluctuation',
-    #                                         'fraction_alive_cells', 'fraction_necro', 'RepeatId', 'MutationProb', 'FitnessMean', 'Confinement_global', 'Confinement_local'])
-
-
-    # for cur_MutationProb in range_MutationProb:
-    #     for cur_FitnessMean in range_FitnessMean:
-    #         for cur_Confinement_global in range_Confinement_global:
-    #             for cur_Confinement_local in range_Confinement_local:
-    #                 cur_file = f'../../results/experiments/final_results/results_summary/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}.csv'
-    #                 if not os.path.exists(cur_file):
-    #                     continue
-    
     target_generation = 20
     cur_file = f'../../results/experiments/final_results/results_summary/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}.csv'
     fitness_comparison_df = pd.read_csv(cur_file)
@@ -519,7 +500,7 @@ def load_final_metrics_over_time_revisions(cur_MutationProb=0.0001,
     for m, mr in zip(["clonal diversity", "mean drivers per cell", 'clonal fluctuation'], ['ClonalDiversity', 'MeanDriversPerCell', 'clonal_fluctuation']):
         fitness_comparison_df[m] = fitness_comparison_df[mr]
         fitness_comparison_df['Generation_label'] = fitness_comparison_df['GenerationId'].apply(
-        lambda x: f'$2^{brackets[0]}{int(x)+9}{brackets[1]}$')
+        lambda x: f'$2^{brackets[0]}{int(x)+10}{brackets[1]}$')
             
     return fitness_comparison_df
 
@@ -1130,7 +1111,7 @@ def plot_tree(input_tree,
             color=color,
             lw=lw,
             linestyle=linestyle,
-            alpha=alpha,
+            alpha=alpha
         )
         # Add node marker
         if marker_func is not None:
