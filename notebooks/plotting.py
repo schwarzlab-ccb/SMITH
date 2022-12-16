@@ -28,6 +28,7 @@ plotting_params = {
     'WIDTH_HALF': 6,
     'HEIGHT_FULL': 18,
     'ASPECT_RATIO': 4/3,
+    'FONTSIZE_HUGE': 20,
     'FONTSIZE_LARGE': 12,
     'FONTSIZE_MEDIUM': 10,
     'FONTSIZE_SMALL': 8,
@@ -713,15 +714,17 @@ def load_final_fitness_revisions_all():
     return long_results
     
     
-def plot_final_fitness(i, data, ax, h_scale=0.1, hl_scale=0.1, yshift=3.5, col='FitnessDist'):
+def plot_final_fitness(i, data, ax, h_scale=0.1, hl_scale=0.1, yshift=3.5, col='FitnessDist', order=None):
     cols = ['MeanDriversPerCell', 'ClonalDiversity', 'clonal_fluctuation']
     cols_formatted = ["mean drivers per cell", "clonal diversity", 'clonal fluctuation']
     
     if col == 'FitnessDist':
-        order = ['Exponential', 'Constant', 'Normal', 'Uniform']
+        if order is None:
+            order = ['Exponential', 'Constant', 'Normal', 'Uniform']
         ax.set_xlabel('fitness distribution')    
     elif col == 'FitnessAcc':
-        order = ['Add', 'Mul', 'ETH']
+        if order is None:
+            order = ['Add', 'Mul', 'ETH']
         ax.set_xlabel('fitness accumulation')    
     sns.boxplot(data=data, y=cols[i], x=col, ax=ax, order=order)
     yticks = ax.get_yticks()
@@ -1100,7 +1103,7 @@ def plot_tree(input_tree,
                 alpha = 1.0
             else:
                 linestyle = '--'
-                alpha = 0.5
+                alpha = 0.25
 
         draw_clade_lines(
             use_linecollection=True,
@@ -1197,7 +1200,7 @@ def plot_tree(input_tree,
                         alpha = 1.0
                     else:
                         linestyle = '--'
-                        alpha = 0.5
+                        alpha = 0.25
                 draw_clade_lines(
                     use_linecollection=True,
                     orientation="vertical",
