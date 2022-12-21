@@ -3,6 +3,9 @@ out*
 
 # Figures from notebooks
 notebooks/figures
+notebooks/final_figures
+notebooks/results
+figures_first_submission
 
 # Jupyter Notebooks
 .ipynb_checkpoints

@@ -1,6 +1,5 @@
 import itertools
 import os
-import sys
 
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -8,8 +7,6 @@ import matplotlib as mpl
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from scipy.stats import expon, norm, beta
-from scipy.ndimage import gaussian_filter
 from scipy.stats import ttest_ind
 import matplotlib.transforms as mtransforms
 
@@ -586,8 +583,6 @@ def load_final_fitness():
     cur_FitnessAcc = 0
 
     key_FitnessDist = {0: "Constant", 1: "Normal", 2: "Exponential", 3: "Uniform"}
-    key_FitnessAcc = {0: "Mul", 1: "Add", 2: "ETH"}
-    key_FitnessEffect = {0: "Birth", 1: "Death", 2: "Both"}
 
     target_generation = 20
     
