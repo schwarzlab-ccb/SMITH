@@ -11,14 +11,8 @@ from scipy.stats import ttest_ind
 import matplotlib.transforms as mtransforms
 
 # install PyFish via https://bitbucket.org/schwarzlab/pyfish
-import pyfish
 from pyfish import process_data, fish_plot
 from pyfish.core import *
-
-
-# everything is in inches
-figure_size = 2 * 6.75
-figure_size_small = figure_size / (3.5)
 
 plotting_params = {
     'WIDTH_FULL': 12,
@@ -59,44 +53,6 @@ def set_plotting_params():
     plt.rcParams['axes.spines.top'] = False
 
 
-def set_plotting_params_notebook():
-
-    plotting_params_notebook = {
-    'WIDTH_FULL': 12,
-    'WIDTH_HALF': 6,
-    'HEIGHT_FULL': 18,
-    'ASPECT_RATIO': 4/3,
-    'FONTSIZE_LARGE': 20,
-    'FONTSIZE_MEDIUM': 15,
-    'FONTSIZE_SMALL': 12,
-    'FONTSIZE_TINY': 10,
-    'LINEWIDTH': 5,
-    'MARKERSIZE_SMALL': 5,
-    'MARKERSIZE_MEDIUM': 8,
-    'MARKERSIZE_LARGE': 12,
-    'LINEWIDTH_SMALL': 2}
-
-    plt.rc('font', family='sans-serif')
-    plt.rc('font', size=plotting_params_notebook['FONTSIZE_MEDIUM'])
-    plt.rc('axes', titlesize=plotting_params_notebook['FONTSIZE_LARGE'])
-    plt.rc('axes', labelsize=plotting_params_notebook['FONTSIZE_MEDIUM'])
-    plt.rc('xtick', labelsize=plotting_params_notebook['FONTSIZE_SMALL'])
-    plt.rc('ytick', labelsize=plotting_params_notebook['FONTSIZE_SMALL'])
-    plt.rc('legend', fontsize=plotting_params_notebook['FONTSIZE_SMALL'])
-    plt.rc('legend', frameon=False)
-    plt.rc('figure', titlesize=plotting_params_notebook['FONTSIZE_LARGE'])
-
-    # Seaborn standard palette and theme
-    sns.set_palette(sns.color_palette())
-    sns.set_theme(style="white",
-                  rc={"axes.facecolor": (0, 0, 0, 0), "legend.facecolor": "white",
-                      'xtick.bottom': True, 'ytick.left': True,
-                      "xtick.labelsize": 10, "ytick.labelsize": 10, 'axes.labelsize': 12, 'axes.titlesize': 12},)
-
-    plt.rcParams['axes.spines.right'] = False
-    plt.rcParams['axes.spines.top'] = False
-
-
 def stylize_axes(ax):
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -114,7 +70,6 @@ def label_axes(axs, fontsize=15):
 
 
 def plot_statistical_significance(ax, data, c, parameter, only_neighbors=False, h_scale=0.1, hl_scale=0.1, yshift=3.5, ystart=None):
-    yticks = ax.get_yticks()
     xticklabels = {x.get_position()[0]: x.get_text() for x in ax.get_xticklabels()}
     xticks = ax.get_xticks()
 
@@ -145,155 +100,6 @@ def plot_statistical_significance(ax, data, c, parameter, only_neighbors=False, 
     ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1]+h)
 
 
-def clonal_fluctuation(x, r):
-    if x.loc[x['RepeatId'] == r, 'ClonalDiversity'].isna().any().any():
-        return np.nan
-    avg_slope = x.loc[x['RepeatId'] == r].sort_values(
-        'GenerationId')['ClonalDiversity'].diff().mean()
-    avg_abs_slope = x.loc[x['RepeatId'] == r].sort_values(
-        'GenerationId')['ClonalDiversity'].diff().abs().mean()
-
-    # print(avg_abs_slope, avg_slope, avg_abs_slope - avg_slope)
-    if avg_slope == np.nan or avg_abs_slope == np.nan:
-        return np.nan
-    else:
-        return avg_abs_slope - avg_slope
-
-
-def mark_legend_titles(legend, title_names):
-
-    for item, label in zip(legend.legendHandles, legend.texts):
-        if label._text in title_names:
-            # width=item.get_window_extent(fig.canvas.get_renderer()).width
-            # label.set_position((-2*width,0))
-            label.set_ha('left')
-            label.set_position((-48, 0))
-            label.set_fontsize(20)
-            label.set_fontweight('bold')
-            label.set_color('black')
-
-def load_final_confinement(absolute=False, selection_fish=[0, 1, 2]):
-    cur_MutationProb = 0.0001
-    cur_FitnessMean = 0.2 
-    range_Confinement_fish = [0.001, 0.1, 1]
-    range_Confinement_metrics = [0.001, 0.02, 0.04, 0.1, 0.25, 0.5, 1]
-    
-    target_generation = 20
-    confinement_data_fish = []
-    lines = []
-
-    range_MutationProb = [0.000025, 0.00005, 0.0001, 0.0002, 0.0004]
-    range_FitnessMean = [0.05, 0.1, 0.2, 0.4, 0.8]
-    range_Confinement = [0.001, 0.02, 0.04, 0.1, 0.25, 0.5, 1]
-    target_generation = 20
-
-    long_results = pd.DataFrame(columns=['MeanDriversPerCell', 'ClonalDiversity', 'clonal_fluctuation',
-                                            'fraction_alive_cells', 'fraction_necro', 'RepeatId', 'MutationProb', 'FitnessMean', 'Confinement'])
-
-
-    for cur_MutationProb in range_MutationProb:
-        for cur_FitnessMean in range_FitnessMean:
-            for cur_Confinement in range_Confinement:
-                cur = pd.read_csv(f'data/parameter_ranges/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement:.6f}.csv')
-                cur['clonal_fluctuation'] = 0
-                for r in cur['RepeatId'].unique():
-                    cur.loc[cur['RepeatId']==r, 'clonal_fluctuation'] = clonal_fluctuation(cur, r)
-                cur = cur.loc[cur['GenerationId'] == target_generation]
-                cur['fraction_alive_cells'] = cur['CellAliveCount'] / (cur['CellTotalCount'])
-                cur['fraction_necro'] = cur['CellNecroCount'] / (cur['CellTotalCount'])
-
-                cur['MutationProb'] = cur_MutationProb
-                cur['FitnessMean'] = cur_FitnessMean
-                cur['Confinement'] = cur_Confinement
-
-                long_results = pd.concat([long_results, cur[['MeanDriversPerCell', 'ClonalDiversity', 'clonal_fluctuation',
-                                        'fraction_alive_cells', 'fraction_necro', 'RepeatId', 'MutationProb', 'FitnessMean', 'Confinement']].reset_index(drop=True)]).reset_index(drop=True)
-
-
-        
-    cur_MutationProb = 0.0001
-    cur_FitnessMean = 0.2     
-    for cur_Confinement, r in zip(range_Confinement_fish, selection_fish):
-        
-        cur = pd.read_csv(f'data/parameter_ranges/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement:.6f}.csv')
-        cur = cur.loc[cur['RepeatId'] == r]
-        
-        cur_folder = f'parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement:.6f}_{r+1}'
-        populations_df = pd.read_csv(f'data/full_results/{cur_folder}/populations.csv')
-        parent_tree_df = pd.read_csv(f'data/full_results/{cur_folder}/parent_tree.csv')
-        data = process_data(populations_df, parent_tree_df, absolute=absolute, smooth=2)
-        confinement_data_fish.append(data)
-        
-        cur_lines = []
-        for s, a in enumerate(cur['CellTotalCount']):
-            cur_lines.append(populations_df['Step'].max() - (populations_df.groupby('Step').sum()['Pop'] > a).sum())
-        lines.append(cur_lines)
-        
-    return long_results, confinement_data_fish, lines
-
-
-def load_final_confinement_revisions_old(cur_FitnessDist=0, absolute=False, selection_fish=[]):
-    cur_MutationProb = 0.0001
-    cur_FitnessMean = 0.2 
-    range_Confinement_fish = [0.001, 0.1, 1]
-    range_Confinement_metrics = [0.001, 0.02, 0.04, 0.1, 0.25, 0.5, 1]
-    
-    target_generation = 20
-    confinement_data_fish = []
-    lines = []
-
-    range_MutationProb = [0.0000025, 0.000005, 0.00001, 0.00002, 0.00004]
-    range_FitnessMean = [0.1, 0.2, 0.4, 0.8]
-    range_Confinement = [0.001, 0.02, 0.04, 0.1, 0.25, 0.5, 1]
-    target_generation = 20
-
-    long_results = pd.DataFrame(columns=['MeanDriversPerCell', 'ClonalDiversity', 'clonal_fluctuation',
-                                            'fraction_alive_cells', 'fraction_necro', 'RepeatId', 'MutationProb', 'FitnessMean', 'Confinement'])
-
-
-    for cur_MutationProb in range_MutationProb:
-        for cur_FitnessMean in range_FitnessMean:
-            for cur_Confinement in range_Confinement:
-                cur = pd.read_csv(
-                    f'../../results/experiments/final_results/results_summary/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement:.6f}.csv')
-                cur['clonal_fluctuation'] = 0
-                for r in cur['RepeatId'].unique():
-                    cur.loc[cur['RepeatId']==r, 'clonal_fluctuation'] = clonal_fluctuation(cur, r)
-                cur = cur.loc[cur['GenerationId'] == target_generation]
-                cur['fraction_alive_cells'] = cur['CellAliveCount'] / (cur['CellTotalCount'])
-                cur['fraction_necro'] = cur['CellNecroCount'] / (cur['CellTotalCount'])
-
-                cur['MutationProb'] = cur_MutationProb
-                cur['FitnessMean'] = cur_FitnessMean
-                cur['Confinement'] = cur_Confinement
-
-                long_results = pd.concat([long_results, cur[['MeanDriversPerCell', 'ClonalDiversity', 'clonal_fluctuation',
-                                        'fraction_alive_cells', 'fraction_necro', 'RepeatId', 'MutationProb', 'FitnessMean', 'Confinement']].reset_index(drop=True)]).reset_index(drop=True)
-
-
-        
-    cur_MutationProb = 0.0001
-    cur_FitnessMean = 0.2     
-    for cur_Confinement, r in zip(range_Confinement_fish, selection_fish):
-        
-        cur = pd.read_csv(
-            f'../../results/experiments/final_results/results_summary/parameter_range_with_fitness_{cur_FitnessDist}_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement:.6f}.csv')
-        cur = cur.loc[cur['RepeatId'] == r]
-        
-        cur_folder = f'parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement:.6f}_{r+1}'
-        populations_df = pd.read_csv(f'data/full_results/{cur_folder}/populations.csv')
-        parent_tree_df = pd.read_csv(f'data/full_results/{cur_folder}/parent_tree.csv')
-        data = process_data(populations_df, parent_tree_df, absolute=absolute, smooth=2)
-        confinement_data_fish.append(data)
-        
-        cur_lines = []
-        for s, a in enumerate(cur['CellTotalCount']):
-            cur_lines.append(populations_df['Step'].max() - (populations_df.groupby('Step').sum()['Pop'] > a).sum())
-        lines.append(cur_lines)
-        
-    return long_results, confinement_data_fish, lines
-
-
 def load_final_confinement_revisions(absolute=False, selection_fish=[]):
     
     target_generation = 20
@@ -309,7 +115,7 @@ def load_final_confinement_revisions(absolute=False, selection_fish=[]):
 
     target_generation = 20
 
-    long_results = pd.DataFrame(columns=['MeanDriversPerCell', 'ClonalDiversity', 'clonal_fluctuation',
+    long_results = pd.DataFrame(columns=['MeanDriversPerCell', 'ClonalDiversity',
                                             'fraction_alive_cells', 'fraction_necro', 'RepeatId', 'MutationProb', 'FitnessMean', 'Confinement_global', 'Confinement_local'])
 
 
@@ -321,9 +127,6 @@ def load_final_confinement_revisions(absolute=False, selection_fish=[]):
                     if not os.path.exists(cur_file):
                         continue
                     cur = pd.read_csv(cur_file)
-                    cur['clonal_fluctuation'] = 0
-                    for r in cur['RepeatId'].unique():
-                        cur.loc[cur['RepeatId']==r, 'clonal_fluctuation'] = clonal_fluctuation(cur, r)
                     cur = cur.loc[cur['GenerationId'] == target_generation]
                     cur['fraction_alive_cells'] = cur['CellAliveCount'] / (cur['CellTotalCount'])
                     cur['fraction_necro'] = cur['CellNecroCount'] / (cur['CellTotalCount'])
@@ -333,12 +136,13 @@ def load_final_confinement_revisions(absolute=False, selection_fish=[]):
                     cur['Confinement_global'] = cur_Confinement_global
                     cur['Confinement_local'] = cur_Confinement_local
 
-                    long_results = pd.concat([long_results, cur[['MeanDriversPerCell', 'ClonalDiversity', 'clonal_fluctuation',
+                    long_results = pd.concat([long_results, cur[['MeanDriversPerCell', 'ClonalDiversity',
                                                                  'fraction_alive_cells', 'fraction_necro', 'RepeatId', 'MutationProb', 'FitnessMean', 'Confinement_global', 'Confinement_local']].reset_index(drop=True)]).reset_index(drop=True)
 
 
         
     return long_results, confinement_data_fish, lines
+
 
 
 def load_final_confinement_revisions_all(absolute=False, selection_fish=[]):
@@ -383,66 +187,6 @@ def load_final_confinement_revisions_all(absolute=False, selection_fish=[]):
 
     return long_results, confinement_data_fish, lines
 
-
-def load_final_confinement_revisions_power_law(absolute=False, selection_fish=[], new=False):
-    
-    target_generation = 20
-    confinement_data_fish = []
-    lines = []
-
-    range_MutationProb = [0.000005, 0.00001 , 0.00002, 0.00004]
-    range_FitnessMean = [0.05, 0.1, 0.2, 0.4]
-    if new:
-        range_Confinement_global = [10/15, 11/15, 12/15, 13/15, 14/15, 15/15]
-        range_Confinement_local = [10/15, 11/15, 12/15, 13/15, 14/15, 15/15]
-    else:
-        range_Confinement_global = [1/2, 2/3, 3/4, 3/5, 4/5, 5/6, 1]
-        range_Confinement_local = [1/2, 2/3, 3/4, 3/5, 4/5, 5/6, 1]
-
-    target_generation = 20
-
-    long_results = pd.DataFrame(columns=['MeanDriversPerCell', 'ClonalDiversity', 'clonal_fluctuation',
-                                            'fraction_alive_cells', 'fraction_necro', 'RepeatId', 'MutationProb', 'FitnessMean', 'Confinement_global', 'Confinement_local'])
-
-
-    for cur_MutationProb in range_MutationProb:
-        for cur_FitnessMean in range_FitnessMean:
-            for cur_Confinement_global in range_Confinement_global:
-                for cur_Confinement_local in range_Confinement_local:
-                    cur_file = f'../../results/experiments/final_results/results_summary/power_law{"_new" if new else ""}_parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}.csv'
-                    # print(cur_file)
-                    if not os.path.exists(cur_file):
-                        continue
-                    cur = pd.read_csv(cur_file)
-                    cur['clonal_fluctuation'] = 0
-                    for r in cur['RepeatId'].unique():
-                        # print(r)
-                        cur.loc[cur['RepeatId']==r, 'clonal_fluctuation'] = clonal_fluctuation(cur, r)
-                    cur = cur.loc[cur['GenerationId'] == target_generation]
-                    cur['fraction_alive_cells'] = cur['CellAliveCount'] / (cur['CellTotalCount'])
-                    cur['fraction_necro'] = cur['CellNecroCount'] / (cur['CellTotalCount'])
-
-                    cur['MutationProb'] = cur_MutationProb
-                    cur['FitnessMean'] = cur_FitnessMean
-                    cur['Confinement_global'] = cur_Confinement_global
-                    cur['Confinement_local'] = cur_Confinement_local
-
-                    long_results = pd.concat([long_results, cur[['MeanDriversPerCell', 'ClonalDiversity', 'clonal_fluctuation',
-                                                                 'fraction_alive_cells', 'fraction_necro', 'RepeatId', 'MutationProb', 'FitnessMean', 'Confinement_global', 'Confinement_local']].reset_index(drop=True)]).reset_index(drop=True)
-
-
-    return long_results, confinement_data_fish, lines
-
-
-
-def plot_confinement_metrics(confinement_data_df, axs):
-    
-    confinement_data_df.loc[confinement_data_df['Confinement']==0.001, 'Confinement'] = 0
-    
-    for metric, metric_name, ax in zip(['MeanDriversPerCell', 'ClonalDiversity', 'clonal_fluctuation'], ["mean drivers per cell", "clonal diversity", 'clonal fluctuation'], axs):
-        sns.boxplot(data=confinement_data_df, y=metric, x='Confinement', ax=ax)
-        ax.set_ylabel(metric_name)
-    
     
 def plot_final_fish(data, ax, lines=None):
     fish_plot(pops_stack=data[0], steps=data[1], colors=data[2], pop_max=data[3], ax=ax)
@@ -456,27 +200,6 @@ def plot_final_fish(data, ax, lines=None):
         for l in lines:
             ax.axvline(l, color='black', linestyle='--', alpha=0.25)
     
-def load_final_metrics_over_time():
-    
-    cur_MutationProb = 0.0001
-    cur_FitnessMean = 0.2
-    cur_Confinement = 0.1
-    target_generation = 20
-
-    fitness_comparison_df = pd.read_csv(f'../../results/experiments/final_results/results_summary/parameter_range_with_fitness_{cur_FitnessDist}_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement:.6f}.csv')
-
-    fitness_comparison_df['clonal_fluctuation'] = 0
-    for r in fitness_comparison_df['RepeatId'].unique():
-        for gen in range(target_generation+1):
-            fitness_comparison_df.loc[(fitness_comparison_df['RepeatId']==r) & (fitness_comparison_df['GenerationId']==gen), 'clonal_fluctuation'] = clonal_fluctuation(fitness_comparison_df.loc[fitness_comparison_df['GenerationId']<gen], r)
-
-    brackets = "{", "}"
-    for m, mr in zip(["clonal diversity", "mean drivers per cell", 'clonal fluctuation'], ['ClonalDiversity', 'MeanDriversPerCell', 'clonal_fluctuation']):
-        fitness_comparison_df[m] = fitness_comparison_df[mr]
-        fitness_comparison_df['Generation_label'] = fitness_comparison_df['GenerationId'].apply(
-        lambda x: f'$2^{brackets[0]}{int(x)+9}{brackets[1]}$')
-            
-    return fitness_comparison_df
 
 
 def load_final_metrics_over_time_revisions(cur_MutationProb=0.0001,
@@ -489,13 +212,8 @@ def load_final_metrics_over_time_revisions(cur_MutationProb=0.0001,
     cur_file = f'../../results/experiments/final_results/results_summary/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}.csv'
     fitness_comparison_df = pd.read_csv(cur_file)
 
-    fitness_comparison_df['clonal_fluctuation'] = 0
-    for r in fitness_comparison_df['RepeatId'].unique():
-        for gen in range(target_generation+1):
-            fitness_comparison_df.loc[(fitness_comparison_df['RepeatId']==r) & (fitness_comparison_df['GenerationId']==gen), 'clonal_fluctuation'] = clonal_fluctuation(fitness_comparison_df.loc[fitness_comparison_df['GenerationId']<gen], r)
-
     brackets = "{", "}"
-    for m, mr in zip(["clonal diversity", "mean drivers per cell", 'clonal fluctuation'], ['ClonalDiversity', 'MeanDriversPerCell', 'clonal_fluctuation']):
+    for m, mr in zip(["clonal diversity", "mean drivers per cell"], ['ClonalDiversity', 'MeanDriversPerCell']):
         fitness_comparison_df[m] = fitness_comparison_df[mr]
         fitness_comparison_df['Generation_label'] = fitness_comparison_df['GenerationId'].apply(
         lambda x: f'$2^{brackets[0]}{int(x)+10}{brackets[1]}$')
@@ -503,157 +221,15 @@ def load_final_metrics_over_time_revisions(cur_MutationProb=0.0001,
     return fitness_comparison_df
 
 
-def plot_final_metrics_over_time(cur, i, ax):
-    
-    metrics = ["mean drivers per cell", "clonal diversity", 'clonal fluctuation']
-    metric = metrics[i]
-    
-    sns.boxplot(data=cur, x='GenerationId', y=metric, palette='viridis', ax=ax)
-
-    brackets = "{", "}"
-    ax.set_xticklabels([f'$2^{brackets[0]}{int(x.get_text())+9}{brackets[1]}$' for x in ax.get_xticklabels()],
-                        fontsize=12.5)
-    ax.set_xticks(ax.get_xticks()[::4])
-    ax.set_xlabel('population size')
-    
-
-def load_final_example_trajectories(selection, first_gen=8):
-    
-    cur_MutationProb = 0.0001
-    cur_FitnessMean = 0.2
-    cur_Confinement = 0.1
-    target_generation = 20
-    example_trajectories_df = pd.read_csv(f'data/parameter_ranges/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement:.6f}.csv')
-    example_trajectories_df = example_trajectories_df.loc[example_trajectories_df['RepeatId'].isin(selection)]
-    example_trajectories_df['clonal_fluctuation'] = 0
-    for r in example_trajectories_df['RepeatId'].unique():
-        example_trajectories_df.loc[example_trajectories_df['RepeatId']==r, 'clonal_fluctuation'] = clonal_fluctuation(example_trajectories_df, r)
-    example_trajectories_df = example_trajectories_df.loc[(example_trajectories_df['GenerationId']>=first_gen)]
-    example_trajectories_fish = dict()
-    lines = []
-    for r in selection:
-        cur = pd.read_csv(f'data/parameter_ranges/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement:.6f}.csv')
-        cur = cur.loc[cur['RepeatId'] == r]
-        cur = cur.loc[(cur['GenerationId']>=first_gen)]
-        cur_folder = f'parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement:.6f}_{r+1}'
-        populations_df = pd.read_csv(f'data/full_results/{cur_folder}/populations.csv')
-        parent_tree_df = pd.read_csv(f'data/full_results/{cur_folder}/parent_tree.csv')
-        data = process_data(populations_df, parent_tree_df, absolute=False, smooth=0)
-        example_trajectories_fish[r] = data
-        
-        cur_lines = []
-        for s, a in enumerate(cur['CellTotalCount']):
-            cur_lines.append(populations_df['Step'].max() - (populations_df.groupby('Step').sum()['Pop'] > a).sum())
-        lines.append(cur_lines)
-    
-    return example_trajectories_df, example_trajectories_fish, lines
-
-
 def load_single_fish_data(cur_MutationProb, cur_FitnessMean, cur_Confinement_global, cur_Confinement_local, r):
 
     cur_folder = f'../../results/experiments/results/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}_{int(r)+1}'
 
-    # try:
     populations_df = pd.read_csv(f'{cur_folder}/populations.csv')
     parent_tree_df = pd.read_csv(f'{cur_folder}/parent_tree.csv')
     fish_data = process_data(populations_df, parent_tree_df, absolute=False, smooth=0)
 
     return fish_data
-
-    # except FileNotFoundError:
-    #     return None
-
-
-def plot_final_example_trajectories(example_trajectories, ax, selection_names=('Example 1 (mainly rising)', 'Example 2 (mainly flat)', 'Example 3 (mainly oscillating)')):
-    
-    for j, r in enumerate(np.sort(example_trajectories['RepeatId'].unique())):
-        cur = example_trajectories.loc[example_trajectories['RepeatId']==r]
-        ax.plot(cur["Generations"] / cur["Generations"].max(), cur["ClonalDiversity"], '-', color=f'C{j}', label=f'{selection_names[j]}', lw=2, ms=10)
-    ax.set_xticks(np.arange(0, 1.25, 0.25))
-    ax.set_xlabel("relative simulation time")
-    ax.set_ylabel('clonal diversity')
-
-    ax.legend()
-    
-
-def load_final_fitness():
-    cur_FitnessMean = 0.2
-    range_FitnessDist = [0, 1, 2, 3]
-    cur_FitnessEffect = 0
-    cur_FitnessAcc = 0
-
-    key_FitnessDist = {0: "Constant", 1: "Normal", 2: "Exponential", 3: "Uniform"}
-
-    target_generation = 20
-    
-    long_results = pd.DataFrame(columns=['MeanDriversPerCell', 'ClonalDiversity', 'FitnessDist',
-                                        'FitnessAcc', 'FitnessEffect', 'RepeatId'])
-    for cur_FitnessDist in range_FitnessDist:
-        cur = pd.read_csv(f'data/fitness/fitness_{cur_FitnessMean:.3f}_{cur_FitnessDist}_{cur_FitnessAcc}_{cur_FitnessEffect}.csv')
-        
-        cur['clonal_fluctuation'] = 0
-        for r in cur['RepeatId'].unique():
-            for gen in range(target_generation+1):
-                cur.loc[(cur['RepeatId']==r) & (cur['GenerationId']==gen), 'clonal_fluctuation'] = clonal_fluctuation(cur.loc[cur['GenerationId']<gen], r)
-        
-        cur = cur.loc[cur['GenerationId'] == target_generation]
-
-        cur['FitnessDist'] = cur_FitnessDist
-        cur['FitnessEffect'] = cur_FitnessEffect
-        cur['FitnessAcc'] = cur_FitnessAcc
-
-        long_results = pd.concat([long_results, cur[['MeanDriversPerCell', 'ClonalDiversity', 'clonal_fluctuation', 'FitnessDist',
-                                'FitnessAcc', 'FitnessEffect', 'RepeatId']].reset_index(drop=True)]).reset_index(drop=True)
-        
-    long_results['FitnessDist'] = long_results['FitnessDist'].apply(lambda x: key_FitnessDist[x])
-
-    return long_results
-
-
-
-def load_final_fitness_revisions():
-    range_MutationProb = [0.000005, 0.00001, 0.00005]
-    range_FitnessMean = [0.05, 0.1, 0.15]
-    range_Confinement_global = [0, 0.0625, 0.125, 0.25, 0.5, 1]
-    range_Confinement_local = [0, 0.0625, 0.125, 0.25]
-    range_FitnessDist = [0, 1, 2, 3]
-    range_FitnessAcc = [0, 1, 2]
-
-    key_FitnessDist = {0: "Constant", 1: "Normal", 2: "Exponential", 3: "Uniform"}
-    key_FitnessAcc = {0: "Mul", 1: "Add", 2: "ETH"}
-
-    target_generation = 20
-    
-    # long_results = pd.DataFrame(
-    #     columns=['MeanDriversPerCell', 'ClonalDiversity', 'FitnessDist', 'FitnessAcc', 'RepeatId'])
-    all_results = []
-    for cur_Confinement_global in tqdm(range_Confinement_global):
-        for cur_FitnessAcc in range_FitnessAcc:
-            for cur_MutationProb in range_MutationProb:
-                for cur_FitnessMean in range_FitnessMean:
-                    for cur_FitnessDist in range_FitnessDist:
-                        for cur_Confinement_local in range_Confinement_local:
-                            cur = pd.read_csv(
-                                f'../../results/experiments/final_results/results_summary/fitness_parameter_range_{cur_FitnessDist}_{cur_FitnessAcc}_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}.csv')
-                            
-                            cur['clonal_fluctuation'] = 0
-                            for r in cur['RepeatId'].unique():
-                                for gen in range(target_generation+1):
-                                    cur.loc[(cur['RepeatId']==r) & (cur['GenerationId']==gen), 'clonal_fluctuation'] = clonal_fluctuation(cur.loc[cur['GenerationId']<gen], r)
-                            
-                            cur = cur.loc[cur['GenerationId'] == target_generation]
-
-                            cur['FitnessDist'] = cur_FitnessDist
-                            cur['FitnessAcc'] = cur_FitnessAcc
-
-                            all_results.append(cur[['MeanDriversPerCell', 'ClonalDiversity', 'clonal_fluctuation',
-                                               'FitnessDist', 'FitnessAcc', 'RepeatId']].reset_index(drop=True))
-    long_results = pd.concat(all_results).reset_index(drop=True)
-        
-    long_results['FitnessDist'] = long_results['FitnessDist'].apply(lambda x: key_FitnessDist[x])
-    long_results['FitnessAcc'] = long_results['FitnessAcc'].apply(lambda x: key_FitnessAcc[x])
-
-    return long_results
     
 
 def load_final_fitness_revisions_all():
@@ -679,13 +255,6 @@ def load_final_fitness_revisions_all():
         cur_Confinement_local = float(f.split('_')[8].replace('.csv', ''))
 
         cur = pd.read_csv(cur_file)
-
-        
-        cur['clonal_fluctuation'] = 0
-        # for r in cur['RepeatId'].unique():
-        #     for gen in range(target_generation+1):
-        #         cur.loc[(cur['RepeatId']==r) & (cur['GenerationId']==gen), 'clonal_fluctuation'] = clonal_fluctuation(cur.loc[cur['GenerationId']<gen], r)
-        
         cur = cur.loc[cur['GenerationId'] == target_generation]
 
         cur['FitnessDist'] = cur_FitnessDist
@@ -697,7 +266,7 @@ def load_final_fitness_revisions_all():
 
 
         all_results.append(
-            cur[['MeanDriversPerCell', 'ClonalDiversity', 'clonal_fluctuation', 'MutationProb',
+            cur[['MeanDriversPerCell', 'ClonalDiversity', 'MutationProb',
                 'FitnessMean', 'Confinement_global', 'Confinement_local',
                 'FitnessDist', 'FitnessAcc', 'RepeatId']].reset_index(drop=True))
 
@@ -710,8 +279,8 @@ def load_final_fitness_revisions_all():
     
     
 def plot_final_fitness(i, data, ax, h_scale=0.1, hl_scale=0.1, yshift=3.5, col='FitnessDist', order=None):
-    cols = ['MeanDriversPerCell', 'ClonalDiversity', 'clonal_fluctuation']
-    cols_formatted = ["mean drivers per cell", "clonal diversity", 'clonal fluctuation']
+    cols = ['MeanDriversPerCell', 'ClonalDiversity']
+    cols_formatted = ["mean drivers per cell", "clonal diversity"]
     
     if col == 'FitnessDist':
         if order is None:
@@ -732,7 +301,7 @@ def plot_final_fitness(i, data, ax, h_scale=0.1, hl_scale=0.1, yshift=3.5, col='
     ax.set_ylabel(cols_formatted[i], ha='center')
     
 
-########### MEDICC COPY #################
+########### MODIFIED FROM MEDICC ##################
 COL_ALLELE_A = mpl.colors.to_rgba('orange')
 COL_ALLELE_B = mpl.colors.to_rgba('teal')
 COL_CLONAL = mpl.colors.to_rgba('lightgrey')
@@ -775,6 +344,7 @@ def _get_x_positions(tree):
         depths = tree.depths(unit_branch_lengths=True)
     return depths
 
+
 def _get_y_positions(tree, adjust=False, normal_name='diploid'):
     """Create a mapping of each clade to its vertical position.
     Dict of {clade: y-coord}.
@@ -790,80 +360,17 @@ Coordinates are negative, and integers for tips.
         for subclade in clade:
             if subclade not in heights:
                 calc_row(subclade)
-        # Closure over heights
         heights[clade] = (heights[clade.clades[0]] + heights[clade.clades[-1]]) / 2.0
 
     if tree.root.clades:
         calc_row(tree.root)
-        
-    if adjust:
-        pos = pd.DataFrame([(clade, val) for clade, val in heights.items()], columns=['clade','pos']).sort_values('pos')
-        pos['newpos'] = 0
-        count = 0
-        for i in pos.index:
-            if pos.loc[i,'clade'].name is not None and pos.loc[i,'clade'].name != 'root':
-                count = count+1
-            pos.loc[i, 'newpos'] = count
-
-        pos.set_index('clade', inplace=True)
-        heights = pos.to_dict()['newpos']
-
-    return heights
-
-
-def _get_y_positions_new(tree, adjust=False, normal_name='diploid'):
-    """Create a mapping of each clade to its vertical position.
-    Dict of {clade: y-coord}.
-Coordinates are negative, and integers for tips.
-    """
-    maxheight = tree.count_terminals()
-    heights = {tip: maxheight -1 -i for i,
-            tip in enumerate(reversed([x for x in tree.get_terminals() if x.name != normal_name]))}
-    heights.update({list(tree.find_clades(normal_name))[0]: maxheight})
-    # print(heights)
-    # print()
-
-    # Internal nodes: place at midpoint of children
-    def calc_row(clade):
-        for subclade in clade:
-            if subclade not in heights:
-                calc_row(subclade)
-        # Closure over heights
-        # print(clade.name)
-        # print(clade.clades[0], clade.clades[-1])
-        # print((heights[clade.clades[0]], heights[clade.clades[-1]]))
-        # print((heights[clade.clades[0]] + heights[clade.clades[-1]]) / 2.0)
-        heights[clade] = (heights[clade.clades[0]] + heights[clade.clades[-1]]) / 2.0
-
-    if tree.root.clades:
-        calc_row(tree.root)
-
-    # print()
-    # print(heights)
-    # print()
-        
-    # if adjust:
-    #     pos = pd.DataFrame([(clade, val) for clade, val in heights.items()], columns=['clade','pos']).sort_values('pos')
-    #     pos['newpos'] = 0
-    #     count = 0
-    #     print(pos)
-    #     for i in pos.index:
-    #         if pos.loc[i,'clade'].name is not None and pos.loc[i,'clade'].name != 'root':
-    #             count = count+1
-    #         pos.loc[i, 'newpos'] = count
-
-    #     pos.set_index('clade', inplace=True)
-    #     heights = pos.to_dict()['newpos']
 
     diploid_height = heights[[x for x in tree.get_terminals() if x.name.split('-')[0] == '0'][0]]
     for clade in tree.find_clades():
         if clade.name is None:
             heights[clade] = diploid_height
-    # heights[tree.root] = diploid_height
 
     return heights
-
-
 
 
 def plot_tree(input_tree,
@@ -994,7 +501,7 @@ def plot_tree(input_tree,
     ax.set_title(title, x=0.01, y=1.0, ha='left', va='bottom',
                 fontweight='bold', fontsize=16, zorder=10)
     x_posns = _get_x_positions(input_tree)
-    y_posns = _get_y_positions_new(
+    y_posns = _get_y_positions(
         input_tree, adjust=not hide_internal_nodes, normal_name=normal_name)
 
     # Arrays that store lines for the plot of clades
