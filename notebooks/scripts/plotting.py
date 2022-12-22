@@ -1,7 +1,6 @@
 import itertools
 import os
 
-from tqdm import tqdm
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
@@ -155,7 +154,7 @@ def load_final_confinement_revisions_all(absolute=False, selection_fish=[]):
     target_generation = 20
 
     columns = [
-        'MeanDriversPerCell', 'ClonalDiversity', 'clonal_fluctuation', 'fraction_alive_cells', 'Generations',
+        'MeanDriversPerCell', 'ClonalDiversity', 'fraction_alive_cells', 'Generations',
         'fraction_necro', 'RepeatId', 'MutationProb', 'FitnessMean', 'Confinement_global', 'Confinement_local']
 
     long_results = pd.DataFrame(columns=columns)
@@ -171,9 +170,6 @@ def load_final_confinement_revisions_all(absolute=False, selection_fish=[]):
         cur_Confinement_local = float(f.split('_')[5].replace('.csv', ''))
 
         cur = pd.read_csv(cur_file)
-        cur['clonal_fluctuation'] = 0
-        # for r in cur['RepeatId'].unique():
-        #     cur.loc[cur['RepeatId']==r, 'clonal_fluctuation'] = clonal_fluctuation(cur, r)
         cur = cur.loc[cur['GenerationId'] == target_generation]
         cur['fraction_alive_cells'] = cur['CellAliveCount'] / (cur['CellTotalCount'])
         cur['fraction_necro'] = cur['CellNecroCount'] / (cur['CellTotalCount'])
@@ -242,7 +238,7 @@ def load_final_fitness_revisions_all():
     all_results = []
     cur_dir = '../../results/experiments/final_results/results_summary'
 
-    for f in tqdm([x for x in os.listdir(cur_dir) if x[:10]=='fitness_pa']):
+    for f in [x for x in os.listdir(cur_dir) if x[:10]=='fitness_pa']:
         cur_file = os.path.join(cur_dir, f)
         # if not os.path.exists(cur_file):
         #     continue

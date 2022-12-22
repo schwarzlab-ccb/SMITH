@@ -6,6 +6,7 @@ notebooks/figures
 notebooks/final_figures
 notebooks/results
 figures_first_submission
+notebooks/data/fish*
 
 # Jupyter Notebooks
 .ipynb_checkpoints

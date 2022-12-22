@@ -151,11 +151,16 @@ An evolutionary tree describing the individual sampled clones and their total po
 
 ![CCF](./doc/img/parent_graph.png)
 
-## Figures
+## Figures for Streck et al. 2022
+The main and supplementary figures for the 2022 publication (Streck, Kaufmann and Schwarz) are created using the notebooks in the `smith/notebooks` directory.
 
-This branch is accompanying an article.
+Most plotting data is provided in `smith/notebooks/data` and was created from raw data using `smith/notebooks/scripts/create_plotting_data_from_raw.py`.
+The exception are the plotting data for the fish plots which were excluded due to size restrictions. The raw fish data can be generated using the smith config files found in `smith/notebooks/data/fish_configs`.
 
-For plots of the figures in the article, see the notebooks in the `notebooks` subfolder.
+**Noble et al. 2022:**
+Raw data was taken from [the Noble et al. 2022 GitHub repository](https://github.com/robjohnnoble/ModesOfEvolution).
+To create the `real_data.csv` run the script `smith/notebooks/scripts/combine_real_data.R`. Note that you have to see the variable `NOBLE_REPO_DIR` at the top of the script
+
 
 ## Contact
 Email questions, feature requests and bug reports to Adam Streck, adam.streck@mdc-berlin.de.
