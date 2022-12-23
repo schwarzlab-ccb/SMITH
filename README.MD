@@ -1,10 +1,10 @@
-# SMITH 2022: Stochastic Model of Intra-Tumor Heterogeneity (Article Version)
+# SMITH: Stochastic Model of Intra-Tumor Heterogeneity
 
 SMITH is a tool for fast stochastic simulation of evolution of subclones within a solid tumor. 
 
 We use a confined, well-mixed, branching model of cell populations.
 
-The tool runs large-scale simulations (typically ~billion, but larger orders are also possible) and allows for fast evaluation across multiple executions.
+The tool runs large-scale simulations (typically ~billion, but larger orders are also possible with the limitation of 2^31 per clone) and allows for fast evaluation across multiple executions.
 
 ## Requirements
 
@@ -66,31 +66,35 @@ Use `dotnet run -- [options]` to specify any of the following:
 The following parameter values can be set in the configuration file:
 
 ### Simulation options
- * `FitnessAcc: [0,1,2]` The fitness accumulation across all mutations. Either multiplicative (0), additive (1), or limited multiplicative (2).
+ * `FitnessAcc: [0,1,2]` The fitness accumulation across all mutations. Either multiplicative (0), additive (1), or asymptotic with the max value of 10 (2).
  * `FitnessDist: [0,1,2,3]` The fitness of a mutation is sampled from a distribution. Either constant (0), normal (1), exponential (2), or uniform (3).
- * `FitnessEffect: [0,1,2]` The effect of mutation on the fitness of the clone. Either birth (0), death (1), , or both (2).
+ * `FitnessEffect: [0,1,2]` The effect of mutation on the fitness of the clone. Either birth (0), death (1), or both (2).
  * `Seed: int` The random seed for the simulation.
+
+ ### Model
+* `Turnover: [0.0-1.0]`  The fraction of cells dividing per step (should be considerably smaller than 1).
+* `MutationProb: [0.0-1.0]` The probability of a mutation per cell division.
+* `FitnessMean: [0.0-1.0]` The mean fitness increase per mutation.
+* `ConfGlobal: [0.0-1.0]` The global confinement of the population - the higher the confinement the stronger the competition between clones.
+* `ConfLocal: [0.0-1.0]` The local confinement of the population - the higher the confinement the stronger the restriction of the population of each clone.
+
+ ### Initialization
+* `StartMut: uint` The number of mutation of the cells in the first clone at the start.
+* `StartPop: uint` The number of cells in the the first clone at the start.
 
 ### Control variables
 * `MinPop: uint` The simulation resets if the population dies out before reaching this number.
 * `MaxPop: uint` The simulation stops at (or after) this population.
-* `MaxSteps: uint` The simulation stops at this step.
-* `MaxClones: uint` The simulation stops at this number of clones.
+* `MaxSteps: int` The simulation stops at this step. -1 means no limit.
+* `MaxClones: int` The simulation stops at this number of clones. -1 means no limit.
+* `MaxTries: int` The simulation stops if it fails to finish after this number of tries. -1 means no limit.
 * `Reps: uint` How many times the simulation runs.
 
 ### Output
 * `CutOff: [0.0-1.0]` Only clones with the following fraction are considered in analysis (ignores microclones).
 * `CloneSample: int` The number of clones to sample from the population, the clones are sorted by size in descending order, then first `CloneSample` clones are selected. This is ingored if the value is negative.
+* `FishFrac: [0.0-1.0]` Similar to `CutOff`, but used for Fish Plots.
 
-### Model
-* `Turnover: [0.0-1.0]`  The fraction of cells dividing per step (should be considerably smaller than 1).
-* `MutationProb: [0.0-1.0]` The probability of a mutation per cell division.
-* `FitnessMean: [0.0-1.0]` The mean fitness increase per mutation.
-* `Confinement: [0.0-1.0]` The higher the confinement the stronger the competition between clones.
-
-### Initialization
-* `StartMut: uint` The number of mutation of the cells in the first clone at the start.
-* `StartPop: uint` The number of cells in the the first clone at the start.
 
 ## Test
 
@@ -108,6 +112,10 @@ To reproduce the results run `dotnet run -- -C ./doc/doc_config.json`.
 
 The text files are primariliy used as source for plots shown below.
 
+#### `ccf.csv`
+Cancer cell fraction in the format `clone, population, ccf`.
+
+
 #### `parent_tree.csv` 
 
 Describes the parent-child relationship between subclones. Used for plotting of Fish Plots. For details see [PyFish repository](https://bitbucket.org/schwarzlab/pyfish/).
@@ -120,9 +128,14 @@ Lists population sizes at individual timepoints for each subclone.  Used for plo
 
 Statistical / analytical eveluation of the simulation at individual stops. If checkpoints are used, log2 sizes are considered as stops, starting from the minimum size. Otherwise only one output at the end of the simulation is printed.
 
-#### `parent_graph.dot`
+#### `parent_tree.dot`
 
-An evolutionary tree with mutation distances and population sizes between the individual subclones. The graph is written in the [DOT language](https://graphviz.org/doc/info/lang.html).
+An evolutionary tree with mutation distances and population sizes between the individual subclones. The graph is written in the [DOT format](https://graphviz.org/doc/info/lang.html).
+
+
+#### `parent_tree.new`
+
+Same as `parent_tree.dot`, but in the [Newick format](https://en.wikipedia.org/wiki/Newick_format)
 
 #### `sim_params.json` 
 
@@ -139,22 +152,17 @@ Fish plots generated using the [PyFish package](https://bitbucket.org/schwarzlab
 
 | relative plot (population sizes compared to each other) | absolute plot (population sizes compared to the final sample) |
 |---------------------------------------------------------|---------------------------------------------------------------|
-| ![CCF](./doc/img/fish.png)                              | ![CCF](./doc/img/fish_abs.png)                                |
+| ![](./doc/img/fish.png)                              | ![](./doc/img/fish_abs.png)                                |
 
-#### `metrics_relationships.png`
-Plot the pairwise relationship between every pair of metrics present in `summary.csv` as well as their indiviudal distributions. This is usually used in the initial assesment of the simulation as a quick overview of the values produced.
-
-![CCF](./doc/img/metrics_relationships.png)
-
-#### `parent_graph.png` 
+#### `clone_tree.png` 
 An evolutionary tree describing the individual sampled clones and their total population (labelled nodes), together with their evolutionary distance from the parent (labelled edges).
 
-![CCF](./doc/img/parent_graph.png)
+![](./doc/img/clone_tree.png)
 
-## Figures for Streck et al. 2022
-The main and supplementary figures for the 2022 publication (Streck, Kaufmann and Schwarz) are created using the notebooks in the `smith/notebooks` directory.
+## Figures for Streck et al. 2023
+The main and supplementary figures for the 2023 publication (Streck, Kaufmann and Schwarz) are created using the notebooks in the `article_figures` directory.
 
-Most plotting data is provided in `smith/notebooks/data` and was created from raw data using `smith/notebooks/scripts/create_plotting_data_from_raw.py`.
+Most plotting data is provided in `article_figures/data` and was created from raw data using `article_figures/scripts/create_plotting_data_from_raw.py`.
 
 The exception are the plotting data for the fish plots and individual trajectories which were excluded due to size restrictions (>100MB). The raw fish data for these simulation runs can be generated using the smith config files found in `smith/notebooks/data/fish_plot_configs` and `smith/notebooks/data/trajectories_configs`.
 
