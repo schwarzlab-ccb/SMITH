@@ -1,4 +1,5 @@
 # Run this script from the directory above smith/scripts/ to create the data files used for plotting
+from plotting import *
 import os
 import sys
 import pickle
@@ -10,8 +11,9 @@ from pyfish.core import *
 
 # Local scripts
 sys.path.append('scripts/')
-from plotting import *
 
+
+RESULTS_DIR = '../../results/experiments/results'
 
 # Metrics over time
 cur_MutationProb = 1e-5
@@ -32,6 +34,38 @@ with open('data/metrics_over_time.pkl', 'wb') as f:
     pickle.dump(all_metrics_over_time, f)
 
 
+# Individual trajectories
+example_trajectories = {
+    (0, 0): [0, 25, 97, 74.],
+    (0.5, 0): [67, 33, 54, 56],
+    (0, 0.0625): [49, 1, 36, 98],
+    (0.5, 0.25): [97, 24, 2, 12.]}
+
+trajectories = dict()
+for cur_Confinement_global, cur_Confinement_local in zip(
+        [0, 0.5, 0, 0.5], [0, 0, 0.0625, 0.25]):
+
+    cur_samples = example_trajectories[(cur_Confinement_global, cur_Confinement_local)]
+
+    for i, r in enumerate(cur_samples):
+        cur_folder = f'{RESULTS_DIR}/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}_{int(r)+1}'
+        full_population = pd.read_csv(f'{cur_folder}/populations.csv')
+        parent_tree_df = pd.read_csv(f'{cur_folder}/parent_tree.csv')
+        fish_data = process_data(full_population, parent_tree_df, absolute=False, smooth=0)
+        population_df = fish_data[0].groupby('Id').sum()
+
+        trajectories[(cur_Confinement_global, cur_Confinement_local, i)
+                     ] = (full_population, population_df)
+
+        subprocess.run(
+            ['cp',
+             f'{RESULTS_DIR}/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}_{int(r)+1}/sim_params.json',
+             f'data/trajectories_configs/{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}_{int(r)+1}_sim_params.json'])
+
+with open('data/trajectories.pkl', 'wb') as f:
+    pickle.dump(trajectories, f)
+
+
 # Fitness distribution and accumulation data
 selection_confinement_global = [0, 0.0625, 0.125, 0.25, 0.5, 1]
 selection_confinement_local = [0, 0.0625, 0.125, 0.25]
@@ -39,9 +73,9 @@ selection_confinement_local = [0, 0.0625, 0.125, 0.25]
 fitness_dist_data = load_final_fitness_revisions_all()
 
 fitness_dist_data = fitness_dist_data.loc[(fitness_dist_data['MutationProb'] == 1e-5)
-                                & (fitness_dist_data['FitnessMean'] == 0.1)
-                                & (fitness_dist_data['FitnessAcc'] == 'Add')
-                                ]
+                                          & (fitness_dist_data['FitnessMean'] == 0.1)
+                                          & (fitness_dist_data['FitnessAcc'] == 'Add')
+                                          ]
 
 selection_confinement_global = [0, 0.0625, 0.125, 0.25, 0.5, 1]
 selection_confinement_local = [0, 0.0625, 0.125, 0.25]
@@ -49,9 +83,9 @@ selection_confinement_local = [0, 0.0625, 0.125, 0.25]
 fitness_acc_data = load_final_fitness_revisions_all()
 
 fitness_acc_data = fitness_acc_data.loc[(fitness_acc_data['MutationProb'] == 1e-5)
-                                & (fitness_acc_data['FitnessMean'] == 0.1)
-                                & (fitness_acc_data['FitnessDist'] == 'Exponential')
-                                ]
+                                        & (fitness_acc_data['FitnessMean'] == 0.1)
+                                        & (fitness_acc_data['FitnessDist'] == 'Exponential')
+                                        ]
 fitness_acc_data['FitnessAcc'] = fitness_acc_data['FitnessAcc'].apply(
     lambda x: {'ETH': 'Asy'}.get(x, x))
 
@@ -63,7 +97,8 @@ fitness_acc_data.to_pickle('data/fitness_acc_data.pkl')
 cur_MutationProb = 1e-5
 cur_FitnessMean = 0.1
 
-selected_confinement_data_df = confinement_data_df.loc[(confinement_data_df['MutationProb'] == cur_MutationProb) & (confinement_data_df['FitnessMean'] == cur_FitnessMean)]
+selected_confinement_data_df = confinement_data_df.loc[(confinement_data_df['MutationProb'] == cur_MutationProb) & (
+    confinement_data_df['FitnessMean'] == cur_FitnessMean)]
 selected_confinement_data_df = selected_confinement_data_df.loc[~selected_confinement_data_df[[
     'ClonalDiversity', 'MeanDriversPerCell']].isna().any(axis=1)]
 selected_confinement_data_df['index'] = selected_confinement_data_df.index
@@ -96,13 +131,14 @@ cur_selection_confinement_local = [0, 0.0625, 0.125, 0.25, 0.5]
 
 for cur_Confinement_global in cur_selection_confinement_global:
     for cur_Confinement_local in cur_selection_confinement_local:
-        row = most_representative_runs.loc[(most_representative_runs['Confinement_global'] == cur_Confinement_global) & (most_representative_runs['Confinement_local'] == cur_Confinement_local)].iloc[0]
+        row = most_representative_runs.loc[(most_representative_runs['Confinement_global'] == cur_Confinement_global) & (
+            most_representative_runs['Confinement_local'] == cur_Confinement_local)].iloc[0]
         fish_plot_data[(row['Confinement_global'], row['Confinement_local'])] = load_single_fish_data(
             *row[['MutationProb', 'FitnessMean', 'Confinement_global', 'Confinement_local', 'RepeatId']].values)
 
         subprocess.run(
             ['cp',
-             f'../../results/experiments/results/parameter_range_{row["MutationProb"]:.6f}_{row["FitnessMean"]:.6f}_{row["Confinement_global"]:.6f}_{row["Confinement_local"]:.6f}_{int(row["RepeatId"])+1}/sim_params.json',
+             f'{RESULTS_DIR}/parameter_range_{row["MutationProb"]:.6f}_{row["FitnessMean"]:.6f}_{row["Confinement_global"]:.6f}_{row["Confinement_local"]:.6f}_{int(row["RepeatId"])+1}/sim_params.json',
              f'data/fish_plot_configs//{row["MutationProb"]:.6f}_{row["FitnessMean"]:.6f}_{row["Confinement_global"]:.6f}_{row["Confinement_local"]:.6f}_{int(row["RepeatId"])+1}_sim_params.json'])
 
 with open('data/fish_plot_data.pkl', 'wb') as f:
@@ -114,8 +150,9 @@ tree_data = dict()
 cur_selection_confinement_global = [0, 0.0625, 0.125, 0.5, 1, 2]
 cur_selection_confinement_local = [0, 0.0625, 0.125, 0.25, 0.5]
 for cur_Confinement_global, cur_Confinement_local in zip([0, 0.5, 0, 1], [0, 0, 0.0625, 0.25]):
-    row = most_representative_runs.loc[(most_representative_runs['Confinement_global'] == cur_Confinement_global) & (most_representative_runs['Confinement_local'] == cur_Confinement_local)].iloc[0]
-    cur_folder = f"../../results/experiments/results/parameter_range_{row['MutationProb']:.6f}_{row['FitnessMean']:.6f}_{row['Confinement_global']:.6f}_{row['Confinement_local']:.6f}_{int(row['RepeatId'])+1}"
+    row = most_representative_runs.loc[(most_representative_runs['Confinement_global'] == cur_Confinement_global) & (
+        most_representative_runs['Confinement_local'] == cur_Confinement_local)].iloc[0]
+    cur_folder = f"{RESULTS_DIR}/parameter_range_{row['MutationProb']:.6f}_{row['FitnessMean']:.6f}_{row['Confinement_global']:.6f}_{row['Confinement_local']:.6f}_{int(row['RepeatId'])+1}"
     # make sure to convert to newick format first using smith/scripts/dot_to_newick.py
     tree = Bio.Phylo.read(os.path.join(cur_folder, 'bin_tree.new'), 'newick')
     normal_name = [x.name for x in tree.get_terminals() if x.name.split('-')[0] == '0'][0]
@@ -139,7 +176,7 @@ real_data = pd.read_csv(f"{NOBLE_REPO_DIR}/real_data.csv", index_col=0)
 
 real_data['type'] = 'solid'
 real_data.loc[real_data['dataset'] == 'AML', 'type'] = 'non-spatial'
-real_data = real_data.loc[real_data['minimal']==0]
+real_data = real_data.loc[real_data['minimal'] == 0]
 real_data = real_data[['dataset', 'n', 'D']]
 
 noble_data_for_metric_plots = pd.read_csv(f"{NOBLE_REPO_DIR}/dataForMetricPlots.csv")
@@ -148,12 +185,13 @@ noble_combined_cases = pd.read_csv(f"{NOBLE_REPO_DIR}/DivMutation_Allcombined_ca
 noble_data_for_metric_plots['label'] = 'invasive_glandular'
 noble_data_for_metric_plots['Drivers'] += 1
 noble_combined_cases['Drivers'] += 1
-case_dict = {"caseA":"non-spatial", "caseB":"gland fission", "caseC":"invasive glandular", 
-             "caseD_new":"boundary growth", "neutral":"neutral"}
+case_dict = {"caseA": "non-spatial", "caseB": "gland fission", "caseC": "invasive glandular",
+             "caseD_new": "boundary growth", "neutral": "neutral"}
 noble_combined_cases['label'] = noble_combined_cases['case'].map(case_dict)
 noble_combined_cases['DriverDiversity'] = noble_combined_cases['Diversity']
 
-noble_combined = pd.concat([noble_data_for_metric_plots, noble_combined_cases.loc[noble_combined_cases['label']=='non-spatial']])
+noble_combined = pd.concat([noble_data_for_metric_plots,
+                           noble_combined_cases.loc[noble_combined_cases['label'] == 'non-spatial']])
 noble_combined['Sweep'] = noble_combined['DriverDiversity'] < 1.5
 
 real_data.to_pickle('data/noble_2022_real_data.pkl')

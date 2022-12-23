@@ -7,6 +7,7 @@ notebooks/final_figures
 notebooks/results
 figures_first_submission
 notebooks/data/fish*
+notebooks/data/trajectories.pkl
 
 # Jupyter Notebooks
 .ipynb_checkpoints
