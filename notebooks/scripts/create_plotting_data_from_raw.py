@@ -86,6 +86,7 @@ most_representative_runs = pd.DataFrame(((confinement_data_df_grouped - confinem
 
 most_representative_runs['MutationProb'] = cur_MutationProb
 most_representative_runs['FitnessMean'] = cur_FitnessMean
+most_representative_runs.to_pickle('data/most_representative_runs.pkl')
 
 
 # Fish plot data
@@ -138,6 +139,8 @@ real_data = pd.read_csv(f"{NOBLE_REPO_DIR}/real_data.csv", index_col=0)
 
 real_data['type'] = 'solid'
 real_data.loc[real_data['dataset'] == 'AML', 'type'] = 'non-spatial'
+real_data = real_data.loc[real_data['minimal']==0]
+real_data = real_data[['dataset', 'n', 'D']]
 
 noble_data_for_metric_plots = pd.read_csv(f"{NOBLE_REPO_DIR}/dataForMetricPlots.csv")
 noble_combined_cases = pd.read_csv(f"{NOBLE_REPO_DIR}/DivMutation_Allcombined_cases.csv", sep=" ")
