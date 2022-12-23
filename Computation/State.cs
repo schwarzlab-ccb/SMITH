@@ -7,7 +7,6 @@ namespace SimChA.Computation;
 
 public class State
 {
-    public static int maxTries = 10_000;
     public static ComputeState GetCompState(PopState state, Simulator simulator, SimParams simParams)
     {
         if (simulator.StepNo >= simParams.MaxSteps && simParams.MaxSteps > 0)
