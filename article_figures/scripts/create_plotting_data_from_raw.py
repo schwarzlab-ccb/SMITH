@@ -147,9 +147,9 @@ with open('data/fish_plot_data.pkl', 'wb') as f:
 
 # Tree data
 tree_data = dict()
-cur_selection_confinement_global = [0, 0.0625, 0.125, 0.5, 1, 2]
-cur_selection_confinement_local = [0, 0.0625, 0.125, 0.25, 0.5]
-for cur_Confinement_global, cur_Confinement_local in zip([0, 0.5, 0, 1], [0, 0, 0.0625, 0.25]):
+cur_selection_confinement_global = [0, 0.5, 0, 1, 0.5, 2]
+cur_selection_confinement_local = [0, 0, 0.0625, 0.25, 0.125, 0.125]
+for cur_Confinement_global, cur_Confinement_local in zip(cur_selection_confinement_global, cur_selection_confinement_local):
     row = most_representative_runs.loc[(most_representative_runs['Confinement_global'] == cur_Confinement_global) & (
         most_representative_runs['Confinement_local'] == cur_Confinement_local)].iloc[0]
     cur_folder = f"{RESULTS_DIR}/parameter_range_{row['MutationProb']:.6f}_{row['FitnessMean']:.6f}_{row['Confinement_global']:.6f}_{row['Confinement_local']:.6f}_{int(row['RepeatId'])+1}"
