@@ -9,7 +9,7 @@
   "MaxClones": -1,
   "MaxTries": -1,
   "Turnover": 0.01,
-  "MutationProb": 0.0001,
+  "MutationProb": 0.0002,
   "DriverProb": 1,
   "FitnessMean": 0.25,
   "ConfGlobal": 0.5,

@@ -47,7 +47,7 @@ public class State
         
         // Model
         Turnover = 0.01,
-        MutationProb = 0.00001,
+        MutationProb = 0.00002,
         DriverProb = 1,
         FitnessMean = .125,
         ConfGlobal = .5,

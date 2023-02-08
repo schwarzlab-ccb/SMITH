@@ -108,7 +108,7 @@ public class Simulator
             // Create new cells
             double birthFit = GetBirth(subClone.Fitness, SimParams.FitnessEffect);
             double birthProb = Math.Clamp(birthFit * SimParams.Turnover, 0.0, 1.0);
-            int newCellsCount = 0;
+            int newCellsCount;
             if (subClone.AliveCount > 1_000_000_000)
             {
                 double frac = 1_000_000_000.0 / subClone.AliveCount;
@@ -121,7 +121,7 @@ public class Simulator
                 
 
             // Mutate some of the cells
-            int newMutantCount = ExtremeBinDist.Sample(Rnd, newCellsCount, Math.Clamp(SimParams.MutationProb * 2, 0.0, 1.0));
+            int newMutantCount = ExtremeBinDist.Sample(Rnd, newCellsCount, SimParams.MutationProb);
 
             for (int mutationI = 0; mutationI < newMutantCount; mutationI++)
             {
