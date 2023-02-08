@@ -13,6 +13,9 @@ import matplotlib.transforms as mtransforms
 from pyfish import process_data, fish_plot
 from pyfish.core import *
 
+RESULTS_DIR = '../../results/experiments/results'
+FINAL_RESULTS_DIR = '../../results/experiments/final_results'
+
 plotting_params = {
     'WIDTH_FULL': 12,
     'WIDTH_HALF': 6,
@@ -122,7 +125,7 @@ def load_final_confinement_revisions(absolute=False, selection_fish=[]):
         for cur_FitnessMean in range_FitnessMean:
             for cur_Confinement_global in range_Confinement_global:
                 for cur_Confinement_local in range_Confinement_local:
-                    cur_file = f'../../results/experiments/final_results/results_summary/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}.csv'
+                    cur_file = f'{FINAL_RESULTS_DIR}/results_summary/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}.csv'
                     if not os.path.exists(cur_file):
                         continue
                     cur = pd.read_csv(cur_file)
@@ -150,7 +153,7 @@ def load_final_confinement_revisions_all(absolute=False, selection_fish=[]):
     confinement_data_fish = []
     lines = []
 
-    cur_dir = '../../results/experiments/final_results/results_summary'
+    cur_dir = f'{FINAL_RESULTS_DIR}/results_summary'
     target_generation = 20
 
     columns = [
@@ -205,7 +208,7 @@ def load_final_metrics_over_time_revisions(cur_MutationProb=0.0001,
                                           ):
     
     target_generation = 20
-    cur_file = f'../../results/experiments/final_results/results_summary/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}.csv'
+    cur_file = f'{FINAL_RESULTS_DIR}/results_summary/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}.csv'
     fitness_comparison_df = pd.read_csv(cur_file)
 
     brackets = "{", "}"
@@ -219,7 +222,7 @@ def load_final_metrics_over_time_revisions(cur_MutationProb=0.0001,
 
 def load_single_fish_data(cur_MutationProb, cur_FitnessMean, cur_Confinement_global, cur_Confinement_local, r):
 
-    cur_folder = f'../../results/experiments/results/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}_{int(r)+1}'
+    cur_folder = f'{RESULTS_DIR}/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}_{int(r)+1}'
 
     populations_df = pd.read_csv(f'{cur_folder}/populations.csv')
     parent_tree_df = pd.read_csv(f'{cur_folder}/parent_tree.csv')
@@ -236,7 +239,7 @@ def load_final_fitness_revisions_all():
     target_generation = 20
     
     all_results = []
-    cur_dir = '../../results/experiments/final_results/results_summary'
+    cur_dir = f'{FINAL_RESULTS_DIR}/results_summary'
 
     for f in [x for x in os.listdir(cur_dir) if x[:10]=='fitness_pa']:
         cur_file = os.path.join(cur_dir, f)

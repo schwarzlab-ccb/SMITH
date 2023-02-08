@@ -164,11 +164,11 @@ The main and supplementary figures for the 2023 publication (Streck, Kaufmann an
 
 Most plotting data is provided in `article_figures/data` and was created from raw data using `article_figures/scripts/create_plotting_data_from_raw.py`.
 
-The exception are the plotting data for the fish plots and individual trajectories which were excluded due to size restrictions (>100MB). The raw fish data for these simulation runs can be generated using the smith config files found in `smith/notebooks/data/fish_plot_configs` and `smith/notebooks/data/trajectories_configs`.
+The exception are the plotting data for the fish plots and individual trajectories which were excluded due to size restrictions (>100MB). The raw fish data for these simulation runs can be generated using the smith config files found in `smith/article_figures/data/fish_plot_configs` and `smith/article_figures/data/trajectories_configs`.
 
 **Noble et al. 2022:**
 Raw data was taken from [the Noble et al. 2022 GitHub repository](https://github.com/robjohnnoble/ModesOfEvolution).
-To create the `real_data.csv` run the script `smith/notebooks/scripts/combine_real_data.R`. Note that you have to see the variable `NOBLE_REPO_DIR` at the top of the script
+To create the `real_data.csv` run the script `smith/article_figures/scripts/combine_real_data.R`. Note that you have to see the variable `NOBLE_REPO_DIR` at the top of the script
 
 
 ## Contact

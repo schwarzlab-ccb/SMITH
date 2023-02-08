@@ -2,12 +2,13 @@
 out*
 
 # Figures from notebooks
-notebooks/figures
-notebooks/final_figures
-notebooks/results
+notebooks
+article_figures/figures
+article_figures/final_figures
+article_figures/results
 figures_first_submission
-notebooks/data/fish*
-notebooks/data/trajectories.pkl
+article_figures/data/fish_plot_data.pkl
+article_figures/data/trajectories.pkl
 
 # Jupyter Notebooks
 .ipynb_checkpoints
