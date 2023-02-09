@@ -13,7 +13,7 @@ public struct SimParams
 
     // Experiment
     public long MaxPop; // Stop when this population is reached, can be negative to disable
-    public uint MaxSteps; // Stop when this many simulation steps are reached, can be negative to disable
+    public int MaxSteps; // Stop when this many simulation steps are reached, can be negative to disable
     public int MaxClones; // Stop when this many clones are found, can be negative to disable
     public uint MinPop; // If the sample size of MinPop is not reach, simulation restarts
     public int MaxTries; // Maximum number of tries. Note that this will cause incomplete results.

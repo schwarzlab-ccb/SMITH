@@ -1,7 +1,7 @@
 out="out"$1
 echo "Writing to $out" 
-echo "Plotting CCF"
-python3 scripts/plot_ccf.py -i $out/ccf.csv -o $out
+# echo "Plotting CCF"
+# python3 scripts/plot_ccf.py -i $out/ccf.csv -o $out
 echo "Plotting Fish Plot"
 col=42
 smooth=2
@@ -10,8 +10,8 @@ pyfish $out/populations.csv $out/parent_tree.csv $out/fish_abs.png -R $col -S $s
 echo "Plotting Clone Tree"
 dot -Tpng $out/clone_tree.dot > $out/clone_tree.png
 python3 scripts/dot_to_newick.py $out/clone_tree.dot
-echo "Plotting Bin Tree"
-dot -Tpng $out/bin_tree.dot > $out/bin_tree.png
-python3 scripts/dot_to_newick.py $out/bin_tree.dot
-echo "plotting Metrics Overview"
-python3 scripts/plot_metrics_single_experiment.py --input_folder $out 
+# echo "Plotting Bin Tree"
+# dot -Tpng $out/bin_tree.dot > $out/bin_tree.png
+# python3 scripts/dot_to_newick.py $out/bin_tree.dot
+# echo "plotting Metrics Overview"
+# python3 scripts/plot_metrics_single_experiment.py --input_folder $out 
