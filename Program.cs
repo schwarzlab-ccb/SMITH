@@ -91,10 +91,6 @@ try
                     if (mullerPops.Any())
                     {
                         files.WriteMullerDataFrames(mullerPops, mullerTree);
-                        var nodeTree = TreeBuilder.ListToTree(mullerTree);
-                        var firstGenMap = TreeBuilder.CountFirstGent(mullerPops);
-                        TreeBuilder.ConvertToBinaryNodes(firstGenMap, nodeTree, sample.Max(sc => sc.CloneId) + 1);
-                        files.WriteBinTree(nodeTree);
                     }
                     files.WriteCCF(CCF, popStates.Last().Alive);
                     files.StoreCopy(repeatId);
