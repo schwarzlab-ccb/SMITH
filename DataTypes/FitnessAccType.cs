@@ -1,4 +1,4 @@
-﻿namespace SimChA.DataTypes;
+﻿namespace SMITH.DataTypes;
 
 
 // Multiplicative, Additive, ETH paper

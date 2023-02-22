@@ -1,9 +1,9 @@
 ﻿// Created by Dr. Adam Streck, 2021, adam.streck@gmail.com
 
-using SimChA.Computation;
+using SMITH.Computation;
 using static System.String;
 
-namespace SimChA.DataTypes;
+namespace SMITH.DataTypes;
 
 public struct ResultSummary
 {

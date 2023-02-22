@@ -1,8 +1,8 @@
-﻿using SimChA.Computation;
-using SimChA.DataTypes;
+﻿using SMITH.Computation;
+using SMITH.DataTypes;
 using ExtremeBinDist = Extreme.Statistics.Distributions.BinomialDistribution;
 
-namespace SimChA.Simulation;
+namespace SMITH.Simulation;
 
 public class Simulator
 {

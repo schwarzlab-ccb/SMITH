@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace SimChA.IO;
+namespace SMITH.IO;
 
 public class CmdOptions
 {

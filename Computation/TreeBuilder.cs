@@ -1,7 +1,8 @@
 ﻿// Created by Dr. Adam Streck, 2021, adam.streck@gmail.com
 
-using SimChA.DataTypes;
-namespace SimChA.Computation;
+using SMITH.DataTypes;
+
+namespace SMITH.Computation;
 
 public static class TreeBuilder
 {

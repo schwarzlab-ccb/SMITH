@@ -1,4 +1,4 @@
-﻿namespace SimChA.DataTypes;
+﻿namespace SMITH.DataTypes;
 
 public class SubClone
 {

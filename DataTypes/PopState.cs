@@ -1,4 +1,6 @@
-﻿public struct PopState
+﻿namespace SMITH.DataTypes;
+
+public struct PopState
 {
     public long Alive;
     public long Necro;

@@ -1,6 +1,6 @@
 ﻿// Created by Dr. Adam Streck, 2021, adam.streck@gmail.com
 
-namespace SimChA.DataTypes;
+namespace SMITH.DataTypes;
 
 [Serializable]
 public struct SimParams

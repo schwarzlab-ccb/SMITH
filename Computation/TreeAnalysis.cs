@@ -1,6 +1,6 @@
-﻿using SimChA.DataTypes;
+﻿using SMITH.DataTypes;
 
-namespace SimChA.Computation;
+namespace SMITH.Computation;
 
 public static class TreeAnalysis
 {

@@ -1,9 +1,8 @@
-﻿using System.Diagnostics;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.Json;
-using SimChA.DataTypes;
+using SMITH.DataTypes;
 
-namespace SimChA.IO;
+namespace SMITH.IO;
 
 public class FileIO
 {

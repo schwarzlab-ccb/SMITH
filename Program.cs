@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics;
 using CommandLine;
-using SimChA.Computation;
-using SimChA.DataTypes;
-using SimChA.IO;
-using SimChA.Simulation;
+using SMITH.Computation;
+using SMITH.DataTypes;
+using SMITH.IO;
+using SMITH.Simulation;
 
 var options = Parser.Default.ParseArguments<CmdOptions>(args);
 options.WithNotParsed(o =>

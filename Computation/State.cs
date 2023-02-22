@@ -1,11 +1,11 @@
 ﻿// Created by Dr. Adam Streck, 2021, adam.streck@gmail.com
 
-using SimChA.DataTypes;
-using SimChA.Simulation;
+using SMITH.DataTypes;
+using SMITH.Simulation;
 
-namespace SimChA.Computation;
+namespace SMITH.Computation;
 
-public class State
+public static class State
 {
     public static ComputeState GetCompState(PopState state, Simulator simulator, SimParams simParams)
     {
