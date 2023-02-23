@@ -41,7 +41,6 @@ public class Simulator
         => type switch
         {
             FitnessAccType.Add => original + change,
-            FitnessAccType.Log => original + Math.Log(1 + change),
             FitnessAccType.Mul => original * (1 + change),
             FitnessAccType.Eth => Math.Clamp(original * (1 + change * (1 - original / MAX_FIT)), 0.0, MAX_FIT),
             _ => original

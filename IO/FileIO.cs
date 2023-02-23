@@ -50,11 +50,10 @@ public class FileIO
         CreateSummary();
     }
 
-    private string Timestamp { get; }
-    private string RootFolder { get; }
-    private string ExperimentFolder { get; }
-
-    private bool IsRepeated { get; }
+    public string Timestamp { get; }
+    public string RootFolder { get; }
+    public string ExperimentFolder { get; }
+    public bool IsRepeated { get; }
 
     public void WriteSubClones(IEnumerable<SubClone> subClones)
     {

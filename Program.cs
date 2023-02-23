@@ -124,6 +124,12 @@ try
     globalWatch.Stop();
 
     Console.WriteLine($"Total time: {TimeSpan.FromMilliseconds(globalWatch.ElapsedMilliseconds)}");
+    if (files.IsRepeated)
+    {
+        Console.WriteLine("Experiment ID:");
+        Console.WriteLine(files.Timestamp);
+    }
+    
 }
 catch (Exception e)
 {

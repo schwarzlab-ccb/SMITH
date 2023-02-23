@@ -18,6 +18,6 @@
   "FitnessEffect": 0,
   "Checkpoints": true,
   "CutOff": 0.000001,
-  "CloneSample": -1,
+  "CloneSample": 1000,
   "FishFrac": 0.001
 }
