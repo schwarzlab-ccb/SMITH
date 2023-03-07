@@ -170,6 +170,8 @@ The exception are the plotting data for the fish plots and individual trajectori
 Raw data was taken from [the Noble et al. 2022 GitHub repository](https://github.com/robjohnnoble/ModesOfEvolution).
 To create the `real_data.csv` run the script `smith/article_figures/scripts/combine_real_data.R`. Note that you have to see the variable `NOBLE_REPO_DIR` at the top of the script
 
+## Citation
+Please cite as: *Adam Streck, Tom L Kaufmann, Roland F Schwarz, SMITH: Spatially Constrained Stochastic Model for Simulation of Intra-Tumour Heterogeneity, Bioinformatics, 2023; https://doi.org/10.1093/bioinformatics/btad102*
 
 ## Contact
 Email questions, feature requests and bug reports to Adam Streck, adam.streck@mdc-berlin.de.
