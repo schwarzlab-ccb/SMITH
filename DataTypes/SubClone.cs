@@ -2,7 +2,7 @@
 
 public class SubClone
 {
-    public SubClone(int cloneId, int parentId, int generation, double fitness, int numberDrivers, long popSize)
+    public SubClone(int cloneId, int parentId, int generation, double fitness, uint numberDrivers, long popSize)
     {
         CloneId = cloneId;
         ParentId = parentId;
@@ -16,7 +16,7 @@ public class SubClone
     public int CloneId { get; }
     public int ParentId { get; }
     public double Fitness { get; }
-    public int NumberDrivers { get; }
+    public uint NumberDrivers { get; }
     private List<(long Alive, long Necro)> Cells { get; }
 
     public long AliveCount => Cells.Last().Alive;
@@ -30,7 +30,7 @@ public class SubClone
 
     public long LostCount { get; private set; }
 
-    public SubClone CreateChild(int newId, int generation, double fitness, int numberDrivers)
+    public SubClone CreateChild(int newId, int generation, double fitness, uint numberDrivers)
         => new(newId, CloneId, generation, fitness, numberDrivers, 1);
 
     public override string ToString()

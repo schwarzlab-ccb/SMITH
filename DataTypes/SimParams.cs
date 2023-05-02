@@ -7,8 +7,8 @@ public struct SimParams
 {
     // Simulator
     public int Seed;
-    public int StartMut;
-    public int StartPop;
+    public uint StartMut;
+    public uint StartPop;
     public uint Reps;
 
     // Experiment
@@ -16,7 +16,7 @@ public struct SimParams
     public int MaxSteps; // Stop when this many simulation steps are reached, can be negative to disable
     public int MaxClones; // Stop when this many clones are found, can be negative to disable
     public uint MinPop; // If the sample size of MinPop is not reach, simulation restarts
-    public int MaxTries; // Maximum number of tries. Note that this will cause incomplete results.
+    public int MaxTries; // Maximum number of tries. Note that this will cause incomplete results, can be negative to disable
     
     // Model
     public double Turnover;
@@ -36,4 +36,45 @@ public struct SimParams
     public double CutOff; // Minimum sample size compared to the total sample size for a clone to be considered
     public int CloneSample; // Limits the number of clones after cut-off, can be negative to disable
     public double FishFrac; // Minimum fraction of the population that must be sampled at any timepoint to be considered a clone
+
+    public string SanityCheck()
+    {
+        if (Turnover is <= 0 or > 1)
+        {
+            return "Turnover must be in (0, 1]";
+        }
+        if (MutationProb is < 0 or > 1)
+        {
+            return "Mutation probability must be in [0, 1]";
+        }
+        if (DriverProb is < 0 or > 1)
+        {
+            return "Driver probability must be in [0, 1]";
+        }
+        if (FitnessMean < 0)
+        {
+            return "Fitness mean must be non-negative";
+        }
+        if (ConfGlobal < 0)
+        {
+            return "ConfGlobal mean must be non-negative";
+        }
+        if (ConfLocal < 0)
+        {
+            return "ConfLocal mean must be non-negative";
+        }
+        if (CutOff is < 0 or >= 1)
+        {
+            return "CutOff must be in [0, 1)";
+        }
+        if (FishFrac is < 0 or >= 1)
+        {
+            return "CutOff must be in [0, 1)";
+        }
+        if (MaxPop >= int.MaxValue)
+        {
+            return $"Max population size must be less than {int.MaxValue}";
+        }
+        return "";
+    }
 }

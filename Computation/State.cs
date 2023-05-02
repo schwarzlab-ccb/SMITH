@@ -27,39 +27,7 @@ public static class State
         }
         return ComputeState.Running;
     }
-
-    public static SimParams GetDefaultSimParams() => new() {
-        // Function
-        FitnessAcc = FitnessAccType.Add,
-        FitnessDist = FitnessSampleType.Exponential,
-        FitnessEffect = FitnessEffectType.Birth,
-        Seed = new Random().Next(),
-        
-        // Experiment
-        MinPop = 1000,
-        MaxPop = 1_048_576_000,
-        MaxSteps = 1_000_000,
-        MaxClones = -1,
-        Reps = 1,
-        StartMut = 1,
-        StartPop = 1,
-        MaxTries = 1000,
-        
-        // Model
-        Turnover = 0.01,
-        MutationProb = 0.00002,
-        DriverProb = 1,
-        FitnessMean = .125,
-        ConfGlobal = .5,
-        ConfLocal = .125,
-
-        // Initialization
-        Checkpoints = true,
-        CloneSample = -1,
-        FishFrac = 0.01,
-        CutOff = 0.0001f,
-    };
-
+    
     public static string StateLog(int repeatId, int tryNo, Simulator simulator, SimParams simParams, List<PopState> popStates)
     {
         double prog = (double)popStates.Last().Tumor / simParams.MaxPop;

@@ -13,13 +13,12 @@ options.WithNotParsed(o =>
     Environment.Exit(1);
 });
 
-var simParams = options.Value.ConfigFile != ""
-    ? FileIO.SimParamsFromFile(options.Value.ConfigFile) 
-    : State.GetDefaultSimParams();
-
-if (simParams.MaxPop >= int.MaxValue)
+string paramsPath = options.Value.ConfigFile != "" ? options.Value.ConfigFile : "./sim_params.json";
+var simParams = FileIO.SimParamsFromFile(paramsPath);
+string checkResult = simParams.SanityCheck();
+if (checkResult != "")
 {
-    throw new ArgumentException($"Max population size must be less than {int.MaxValue}");
+    throw new Exception($"Failed sanity check with error: {checkResult}");
 }
 
 var random = new Random(simParams.Seed);
