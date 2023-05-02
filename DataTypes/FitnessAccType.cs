@@ -8,5 +8,5 @@ public enum FitnessAccType
 {
     Mul,
     Add,
-    Eth
+    Lim
 }

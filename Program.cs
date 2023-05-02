@@ -66,7 +66,7 @@ try
             {
                 // Analysis
                 double cutOff = popStates.Last().Alive * simParams.CutOff;
-                var aboveCutOff = simulator.Clones.Where(sc => sc.AliveCount > cutOff).ToList();
+                var aboveCutOff = simulator.Clones.Where(sc => sc.AliveCount >= cutOff).ToList();
                 var cloneSample = (simParams.CloneSample > 0 && simParams.CloneSample < aboveCutOff.Count
                     ? aboveCutOff.OrderByDescending(c => c.AliveCount).Take(simParams.CloneSample)
                     : aboveCutOff).ToList();

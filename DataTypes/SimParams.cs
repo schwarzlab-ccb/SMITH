@@ -28,13 +28,14 @@ public struct SimParams
 
     // Function    
     public FitnessAccType FitnessAcc;
-    public FitnessSampleType FitnessDist;
+    public FitnessDistType FitnessDist;
     public FitnessEffectType FitnessEffect;
 
     // Output
     public bool Checkpoints; // Store meta-results in summary at every cell doubling 
     public double CutOff; // Minimum sample size compared to the total sample size for a clone to be considered
     public int CloneSample; // Limits the number of clones after cut-off, can be negative to disable
+    public bool PlotFish; // Adds the fish data if true
     public double FishFrac; // Minimum fraction of the population that must be sampled at any timepoint to be considered a clone
 
     public string SanityCheck()
@@ -63,17 +64,17 @@ public struct SimParams
         {
             return "ConfLocal mean must be non-negative";
         }
-        if (CutOff is < 0 or >= 1)
+        if (CutOff is < 0 or > 1)
         {
-            return "CutOff must be in [0, 1)";
+            return "CutOff must be in [0, 1]";
         }
-        if (FishFrac is < 0 or >= 1)
+        if (FishFrac is < 0 or > 1)
         {
-            return "CutOff must be in [0, 1)";
+            return "CutOff must be in [0, 1]";
         }
         if (MaxPop >= int.MaxValue)
         {
-            return $"Max population size must be less than {int.MaxValue}";
+            return $"Max population size (MaxPop) must be less than {int.MaxValue}";
         }
         return "";
     }

@@ -42,7 +42,7 @@ public class Simulator
         {
             FitnessAccType.Add => original + change,
             FitnessAccType.Mul => original * (1 + change),
-            FitnessAccType.Eth => Math.Clamp(original * (1 + change * (1 - original / MAX_FIT)), 0.0, MAX_FIT),
+            FitnessAccType.Lim => Math.Clamp(original * (1 + change * (1 - original / MAX_FIT)), 0.0, MAX_FIT),
             _ => original
         };
 

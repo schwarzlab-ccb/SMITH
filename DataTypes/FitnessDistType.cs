@@ -3,7 +3,7 @@
 namespace SMITH.DataTypes;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum FitnessSampleType
+public enum FitnessDistType
 {
     Constant,
     Normal,

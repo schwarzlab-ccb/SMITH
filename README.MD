@@ -57,7 +57,7 @@ Use `dotnet run -- [options]` to specify any of the following:
 
 ```
   -O, --output    (Default: ./out) The path to the output files.
-  -C, --config    (Default: ) A json file with configuration of the experiment.
+  -C, --config    (Default: ./sim_params.json) A json file with configuration of the experiment.
   -N              (Default: false) Use newline in logs (useful for batch execution)
 ```
 
@@ -66,34 +66,36 @@ Use `dotnet run -- [options]` to specify any of the following:
 The following parameter values can be set in the configuration file:
 
 ### Simulation options
- * `FitnessAcc: [0,1,2]` The fitness accumulation across all mutations. Either multiplicative (0), additive (1), or asymptotic with the max value of 10 (2).
- * `FitnessDist: [0,1,2,3]` The fitness of a mutation is sampled from a distribution. Either constant (0), normal (1), exponential (2), or uniform (3).
- * `FitnessEffect: [0,1,2]` The effect of mutation on the fitness of the clone. Either birth (0), death (1), or both (2).
+For the fitness types a numerical value can be also used, e.g. `"FitnessAcc": 1` is equivalent to `"FitnessAcc": "Add"`.
+ * `FitnessAcc: ["Mul", "Add", "Lim"]` The fitness accumulation across all mutations. Either multiplicative (0), additive (1), or asymptotically limited with the max value of 10 (2).
+ * `FitnessDist: ["Constant", "Normal", "Exponential", "Uniform"]` The fitness of a mutation is sampled from a distribution. Either constant (0), normal (1), exponential (2), or uniform (3).
+ * `FitnessEffect: ["Birth", "Death", "Both"]` The effect of mutation on the fitness of the clone. Either birth (0), death (1), or both (2).
  * `Seed: int` The random seed for the simulation.
 
- ### Model
+### Model
 * `Turnover: [0.0-1.0]`  The fraction of cells dividing per step (should be considerably smaller than 1).
 * `MutationProb: [0.0-1.0]` The probability of a mutation per cell division.
-* `FitnessMean: [0.0-1.0]` The mean fitness increase per mutation.
-* `ConfGlobal: [0.0-1.0]` The global confinement of the population - the higher the confinement the stronger the competition between clones.
-* `ConfLocal: [0.0-1.0]` The local confinement of the population - the higher the confinement the stronger the restriction of the population of each clone.
+* `FitnessMean: unsigned double` The mean fitness increase per mutation.
+* `ConfGlobal: unsigned double` The global confinement of the population - the higher the confinement the stronger the competition between clones.
+* `ConfLocal: unsigned double` The local confinement of the population - the higher the confinement the stronger the restriction of the population of each clone.
 
- ### Initialization
+### Initialization
 * `StartMut: uint` The number of mutation of the cells in the first clone at the start.
 * `StartPop: uint` The number of cells in the the first clone at the start.
 
 ### Control variables
 * `MinPop: uint` The simulation resets if the population dies out before reaching this number.
 * `MaxPop: uint` The simulation stops at (or after) this population.
-* `MaxSteps: int` The simulation stops at this step. -1 means no limit.
-* `MaxClones: int` The simulation stops at this number of clones. -1 means no limit.
-* `MaxTries: int` The simulation stops if it fails to finish after this number of tries. -1 means no limit.
+* `MaxSteps: int` The simulation stops at this step. `-1` means no limit.
+* `MaxClones: int` The simulation stops at this number of clones. `-1` means no limit.
+* `MaxTries: int` The simulation stops if it fails to finish after this number of tries. `-1` means no limit.
 * `Reps: uint` How many times the simulation runs.
 
 ### Output
-* `CutOff: [0.0-1.0]` Only clones with the following fraction are considered in analysis (ignores microclones).
+* `CutOff: [0.0-1.0]` Only the clones that have at least this fraction of the alive population (e.g. `.01` means at least one percent of alive cells) are included in the output. 
 * `CloneSample: int` The number of clones to sample from the population, the clones are sorted by size in descending order, then first `CloneSample` clones are selected. This is ingored if the value is negative.
-* `FishFrac: [0.0-1.0]` Similar to `CutOff`, but used for Fish Plots.
+* `PlotFish: bool` Will include data for Fish Plots in the output. These are not calculated by default as it is storage-intensive.
+* `FishFrac: [0.0-1.0]` Similar to `CutOff`, but used for Fish Plots. Unline with `CutOff` a population is included in the output if the fraction has been attained at any step throughout the simulation.
 
 
 ## Test
