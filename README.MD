@@ -65,8 +65,10 @@ Use `dotnet run -- [options]` to specify any of the following:
 
 The following parameter values can be set in the configuration file:
 
-### Simulation options
+### Simulation options    
+
 For the fitness types a numerical value can be also used, e.g. `"FitnessAcc": 1` is equivalent to `"FitnessAcc": "Add"`.
+
  * `FitnessAcc: ["Mul", "Add", "Lim"]` The fitness accumulation across all mutations. Either multiplicative (0), additive (1), or asymptotically limited with the max value of 10 (2).
  * `FitnessDist: ["Constant", "Normal", "Exponential", "Uniform"]` The fitness of a mutation is sampled from a distribution. Either constant (0), normal (1), exponential (2), or uniform (3).
  * `FitnessEffect: ["Birth", "Death", "Both"]` The effect of mutation on the fitness of the clone. Either birth (0), death (1), or both (2).
