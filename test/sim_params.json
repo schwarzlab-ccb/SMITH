@@ -20,5 +20,6 @@
   "Checkpoints": true,
   "CutOff": 0.01,
   "CloneSample": -1,
+  "PlotFish": true,
   "FishFrac": 0.01
 }
