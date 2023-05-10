@@ -2,11 +2,12 @@
 
 public class Clone
 {
-    public Clone(int cloneId, int parentId, int generation, double fitness, uint driverCount, long popSize)
+    public Clone(int cloneId, int parentId, int generation, double fitness, uint drivers, uint passengers, long popSize)
     {
         CloneId = cloneId;
         ParentId = parentId;
-        DriverCount = driverCount;
+        DriverCount = drivers;
+        PassengersCount = passengers;
         Fitness = fitness;
         FirstGen = generation;
         Cells = new List<(long Alive, long Necro)> { (popSize, 0) };
@@ -17,6 +18,7 @@ public class Clone
     public int ParentId { get; }
     public double Fitness { get; }
     public uint DriverCount { get; }
+    public uint PassengersCount { get; }
     private List<(long Alive, long Necro)> Cells { get; }
 
     public long AliveCount => Cells.Last().Alive;
@@ -25,19 +27,20 @@ public class Clone
 
     public long CellCount => AliveCount + NecroCount;
 
-
     public int LastGen => FirstGen + Cells.Count;
 
     public long LostCount { get; private set; }
 
-    public Clone CreateChild(int newId, int generation, double fitness, uint numberDrivers)
-        => new(newId, CloneId, generation, fitness, numberDrivers, 1);
+    public uint MutCount => DriverCount + PassengersCount;
+
+    public Clone CreateChild(int newId, int generation, double fitness, uint drivers, uint passengers)
+        => new(newId, CloneId, generation, fitness, drivers, passengers, 1);
 
     public static string Header()
-        => "ID,Parent,Alive,Necrotic,Lost,Drivers,Fitness";
+        => "ID,Parent,Alive,Necrotic,Lost,Drivers,Passengers,Fitness";
 
     public override string ToString()
-        => $"{CloneId},{ParentId},{AliveCount},{NecroCount},{LostCount},{DriverCount},{Fitness}";
+        => $"{CloneId},{ParentId},{AliveCount},{NecroCount},{LostCount},{DriverCount},{PassengersCount},{Fitness}";
 
     public long AliveAtGen(int gen)
         => gen >= FirstGen && gen < LastGen ? Cells[gen - FirstGen].Alive : 0;

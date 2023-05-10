@@ -1,4 +1,0 @@
-ID:0, Parent:-1, Alive: 116515, Necrotic: 0, Lost: 584410, Drivers: 1, Fitness: 1.2
-ID:1, Parent:0, Alive: 149897, Necrotic: 0, Lost: 339690, Drivers: 2, Fitness: 1.44
-ID:5, Parent:1, Alive: 310270, Necrotic: 0, Lost: 426497, Drivers: 3, Fitness: 1.728
-ID:6, Parent:1, Alive: 423957, Necrotic: 0, Lost: 583948, Drivers: 3, Fitness: 1.728

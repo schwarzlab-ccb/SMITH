@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     vaf = pd.read_csv(args.input_file)
     plt.xlim([0.0,1.0])
-    plt.hist(vaf["ccf"], 20, weights=vaf["pop"])    
+    plt.hist(vaf["CCF"], 20, weights=vaf["Pop"])    
     plt.xlabel("CCF")
     plt.ylabel("total population")
     plt.savefig(os.path.join(output_folder, "CCF.png"))

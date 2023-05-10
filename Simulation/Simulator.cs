@@ -26,7 +26,7 @@ public class Simulator
             double sample = FitnessFunction.SampleFitness(simParams, rnd);
             initFit = AccFitness(initFit, sample, SimParams.FitnessAcc);
         }
-        var primeval = new Clone(0, -1, 0, initFit, SimParams.StartMut, SimParams.StartPop);
+        var primeval = new Clone(0, -1, 0, initFit, SimParams.StartMut, 0u, SimParams.StartPop);
         Clones = new List<Clone> { primeval };
     }
 
@@ -124,11 +124,12 @@ public class Simulator
 
             for (int mutationI = 0; mutationI < newMutantCount; mutationI++)
             {
-                double divChange = Rnd.NextDouble() < SimParams.DriverProb 
-                    ? FitnessFunction.SampleFitness(SimParams, Rnd) 
-                    : 0;
+                bool isDriver = Rnd.NextDouble() < SimParams.DriverProb;
+                double divChange = isDriver ? FitnessFunction.SampleFitness(SimParams, Rnd) : 0;
                 double newDivision = AccFitness(subClone.Fitness, divChange, SimParams.FitnessAcc);
-                var childClone = subClone.CreateChild(GetNewId(), StepNo, newDivision, subClone.DriverCount + 1);
+                uint newDrivers = subClone.DriverCount + (isDriver ? 1u : 0u);
+                uint newPassengers = subClone.PassengersCount + (isDriver ? 0u : 1u);
+                var childClone = subClone.CreateChild(GetNewId(), StepNo, newDivision, newDrivers, newPassengers);
                 newClones.Add(childClone);
             }
 

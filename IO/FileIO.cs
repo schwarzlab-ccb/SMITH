@@ -122,7 +122,7 @@ public class FileIO
         string adjPath = Path.Combine(Path.GetFullPath(RootFolder), ADJACENCY_DF_FILENAME);
 
         using var popFile = new StreamWriter(popPath);
-        popFile.WriteLine("Id,Step,Pop,Drivers");
+        popFile.WriteLine("Id,Step,Pop");
         int lastGen = subClones.Max(sc => sc.LastGen);
         foreach (var subClone in subClones)
         {
@@ -133,7 +133,7 @@ public class FileIO
                 long totalCells = subClone.AliveAtGen(gen);
                 if (totalCells > 0)
                 {
-                    popFile.WriteLine($"{subClone.CloneId},{gen},{totalCells},{subClone.DriverCount}");
+                    popFile.WriteLine($"{subClone.CloneId},{gen},{totalCells}");
                 }
             }
         }
@@ -158,7 +158,7 @@ public class FileIO
     {
         string outPath = Path.Combine(Path.GetFullPath(RootFolder), CCF_FILENAME);
         using var outputFile = new StreamWriter(outPath);
-        outputFile.WriteLine("id,pop,ccf");
+        outputFile.WriteLine("Id,Pop,CCF");
         foreach ((int id, long pop) in vaf)
         {
             if (id != -1)
