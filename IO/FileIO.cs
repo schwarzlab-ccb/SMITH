@@ -54,15 +54,18 @@ public class FileIO
     public string ExperimentFolder { get; }
     public bool IsRepeated { get; }
 
-    public void WriteClones(IEnumerable<Clone> clones, Dictionary<int, long> ccf, long alive)
+    public void WriteClones(IEnumerable<Clone> clones, Dictionary<int, long> ccf, long alive, Dictionary<int, (int source, int dist)> parentMap)
     {
         string outPath = Path.Combine(Path.GetFullPath(RootFolder), SUBCLONES_FILENAME);
         using var outputFile = new StreamWriter(outPath);
-        outputFile.WriteLine($"{Clone.Header()},CCF");
+        outputFile.WriteLine($"ID,Parent,Distance,Alive,Necrotic,Lost,Drivers,Passengers,Fitness,CCF");
         foreach (var clone in clones)
         {
             double frac = ccf[clone.CloneId] / (double) alive;
-            outputFile.WriteLine($"{clone},{frac:f4}");
+            var parent = parentMap.TryGetValue(clone.CloneId, out var value) ? value : (-1, 0);
+            outputFile.WriteLine($"{clone.CloneId},{parent.Item1},{parent.Item2},{clone.AliveCount}," +
+                                 $"{clone.NecroCount},{clone.LostCount},{clone.DriverCount},{clone.PassengersCount}," +
+                                 $"{clone.Fitness},{frac:f4}");
         }
     }
 
