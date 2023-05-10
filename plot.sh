@@ -9,8 +9,3 @@ pyfish $out/populations.csv $out/parent_tree.csv $out/fish.png -R $col -S $smoot
 pyfish $out/populations.csv $out/parent_tree.csv $out/fish_abs.png -R $col -S $smooth -a  
 echo "Plotting Clone Tree"
 dot -Tpng $out/clone_tree.dot > $out/clone_tree.png
-# echo "Plotting Bin Tree"
-# dot -Tpng $out/bin_tree.dot > $out/bin_tree.png
-# python3 scripts/dot_to_newick.py $out/bin_tree.dot
-# echo "plotting Metrics Overview"
-# python3 scripts/plot_metrics_single_experiment.py --input_folder $out 

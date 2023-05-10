@@ -73,18 +73,18 @@ try
                 var lcaTreeList = TreeBuilder.BuildLCAT(simulator.Clones, cloneSample);
                 var treeNodes = lcaTreeList.Nodes.Select(n => n.Id).ToList();
                 var sample = simulator.Clones.Where(sc => treeNodes.Contains(sc.CloneId)).ToList();
-                var CCF = TreeAnalysis.ComputeCCF(lcaTreeList);
+                var ccCount = TreeAnalysis.ComputeCCF(lcaTreeList);
                 
                 string time = TimeSpan.FromMilliseconds(watch.ElapsedMilliseconds).ToString();
                 var result = new ResultSummary(repeatId, checkpointId, simulator.StepNo, time,
-                    lcaTreeList, cloneSample, simulator.Clones, popStates.Last(), CCF);
+                    lcaTreeList, cloneSample, simulator.Clones, popStates.Last(), ccCount);
                 files.AddToSummary(result);
                 checkpointId++;
 
                 // Result
                 if (State.GetCompState(popStates.Last(), simulator, simParams) == ComputeState.Finished)
                 {
-                    files.WriteClones(sample);
+                    files.WriteClones(sample, ccCount, popStates.Last().Alive);
                     files.WriteDotTree(lcaTreeList);
                     var tree = TreeBuilder.ListToTree(lcaTreeList);
                     files.WriteNewickTree(tree);
@@ -93,7 +93,6 @@ try
                     {
                         files.WriteMullerDataFrames(mullerPops, mullerTree);
                     }
-                    files.WriteCCF(CCF, popStates.Last().Alive);
                     files.StoreCopy(repeatId);
                     Console.WriteLine($"Sim: {repeatId + 1}.{tryNo}/{simParams.Reps} result:".PadRight(160));
                     Console.WriteLine(result.ToText());

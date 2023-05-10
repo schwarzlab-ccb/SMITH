@@ -54,14 +54,15 @@ public class FileIO
     public string ExperimentFolder { get; }
     public bool IsRepeated { get; }
 
-    public void WriteClones(IEnumerable<Clone> clones)
+    public void WriteClones(IEnumerable<Clone> clones, Dictionary<int, long> ccf, long alive)
     {
         string outPath = Path.Combine(Path.GetFullPath(RootFolder), SUBCLONES_FILENAME);
         using var outputFile = new StreamWriter(outPath);
-        outputFile.WriteLine(Clone.Header());
+        outputFile.WriteLine($"{Clone.Header()},CCF");
         foreach (var clone in clones)
         {
-            outputFile.WriteLine(clone);
+            double frac = ccf[clone.CloneId] / (double) alive;
+            outputFile.WriteLine($"{clone},{frac:f4}");
         }
     }
 
@@ -153,21 +154,7 @@ public class FileIO
             adjFile.WriteLine($"-1,{subClones.First().CloneId}");
         }
     }
-
-    public void WriteCCF(Dictionary<int, long> vaf, long totalSize)
-    {
-        string outPath = Path.Combine(Path.GetFullPath(RootFolder), CCF_FILENAME);
-        using var outputFile = new StreamWriter(outPath);
-        outputFile.WriteLine("Id,Pop,CCF");
-        foreach ((int id, long pop) in vaf)
-        {
-            if (id != -1)
-            {
-                outputFile.WriteLine($"{id},{pop},{(double)pop / totalSize:F4}");
-            }
-        }
-    }
-
+    
     public void WriteSimParams(SimParams simParams)
     {
         string filePath = Path.Combine(Path.GetFullPath(ExperimentFolder), SIM_PARAMS_FILENAME);
