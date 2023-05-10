@@ -13,7 +13,6 @@ public class FileIO
     private const string POPULATIONS_DF_FILENAME = "populations.csv";
     private const string ADJACENCY_DF_FILENAME = "parent_tree.csv";
     private const string SIM_PARAMS_FILENAME = "sim_params.json";
-    private const string CCF_FILENAME = "ccf.csv";
     private const string SUMMARY_FILENAME = "summary.csv";
 
     public FileIO(string rootFolder, bool isRepeated)
@@ -58,11 +57,12 @@ public class FileIO
     {
         string outPath = Path.Combine(Path.GetFullPath(RootFolder), SUBCLONES_FILENAME);
         using var outputFile = new StreamWriter(outPath);
-        outputFile.WriteLine($"ID,Parent,Distance,Alive,Necrotic,Lost,Drivers,Passengers,Fitness,CCF");
+        outputFile.WriteLine("ID,ParentID,Distance,Alive,Necrotic,Lost,Drivers,Passengers,Fitness,CCF");
         foreach (var clone in clones)
         {
             double frac = ccf[clone.CloneId] / (double) alive;
-            var parent = parentMap.TryGetValue(clone.CloneId, out var value) ? value : (-1, 0);
+            // If no edge to parent is present, the clone is the root and parents itself.
+            var parent = parentMap.TryGetValue(clone.CloneId, out var value) ? value : (clone.CloneId, 0);
             outputFile.WriteLine($"{clone.CloneId},{parent.Item1},{parent.Item2},{clone.AliveCount}," +
                                  $"{clone.NecroCount},{clone.LostCount},{clone.DriverCount},{clone.PassengersCount}," +
                                  $"{clone.Fitness},{frac:f4}");
@@ -119,7 +119,6 @@ public class FileIO
         writer.Write(";");
     }
 
-    
     public void WriteMullerDataFrames(List<Clone> subClones, ListTree tree)
     {
         string popPath = Path.Combine(Path.GetFullPath(RootFolder), POPULATIONS_DF_FILENAME);
