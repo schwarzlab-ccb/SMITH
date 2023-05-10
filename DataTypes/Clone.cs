@@ -1,12 +1,12 @@
 ﻿namespace SMITH.DataTypes;
 
-public class SubClone
+public class Clone
 {
-    public SubClone(int cloneId, int parentId, int generation, double fitness, uint numberDrivers, long popSize)
+    public Clone(int cloneId, int parentId, int generation, double fitness, uint driverCount, long popSize)
     {
         CloneId = cloneId;
         ParentId = parentId;
-        NumberDrivers = numberDrivers;
+        DriverCount = driverCount;
         Fitness = fitness;
         FirstGen = generation;
         Cells = new List<(long Alive, long Necro)> { (popSize, 0) };
@@ -16,7 +16,7 @@ public class SubClone
     public int CloneId { get; }
     public int ParentId { get; }
     public double Fitness { get; }
-    public uint NumberDrivers { get; }
+    public uint DriverCount { get; }
     private List<(long Alive, long Necro)> Cells { get; }
 
     public long AliveCount => Cells.Last().Alive;
@@ -30,12 +30,14 @@ public class SubClone
 
     public long LostCount { get; private set; }
 
-    public SubClone CreateChild(int newId, int generation, double fitness, uint numberDrivers)
+    public Clone CreateChild(int newId, int generation, double fitness, uint numberDrivers)
         => new(newId, CloneId, generation, fitness, numberDrivers, 1);
 
+    public static string Header()
+        => "ID,Parent,Alive,Necrotic,Lost,Drivers,Fitness";
+
     public override string ToString()
-        => $"ID:{CloneId}, Parent:{ParentId}, Alive: {AliveCount}, Necrotic: {NecroCount}, Lost: {LostCount}, " +
-           $"Drivers: {NumberDrivers}, Fitness: {Fitness}";
+        => $"{CloneId},{ParentId},{AliveCount},{NecroCount},{LostCount},{DriverCount},{Fitness}";
 
     public long AliveAtGen(int gen)
         => gen >= FirstGen && gen < LastGen ? Cells[gen - FirstGen].Alive : 0;

@@ -10,7 +10,6 @@ public class FileIO
     private const string NEWICK_TREE_FILENAME = "clone_tree.new";
 
     private const string SUBCLONES_FILENAME = "clones.csv";
-
     private const string POPULATIONS_DF_FILENAME = "populations.csv";
     private const string ADJACENCY_DF_FILENAME = "parent_tree.csv";
     private const string SIM_PARAMS_FILENAME = "sim_params.json";
@@ -55,14 +54,14 @@ public class FileIO
     public string ExperimentFolder { get; }
     public bool IsRepeated { get; }
 
-    public void WriteSubClones(IEnumerable<SubClone> subClones)
+    public void WriteClones(IEnumerable<Clone> clones)
     {
         string outPath = Path.Combine(Path.GetFullPath(RootFolder), SUBCLONES_FILENAME);
         using var outputFile = new StreamWriter(outPath);
-
-        foreach (var subClone in subClones)
+        outputFile.WriteLine(Clone.Header());
+        foreach (var clone in clones)
         {
-            outputFile.WriteLine(subClone);
+            outputFile.WriteLine(clone);
         }
     }
 
@@ -117,7 +116,7 @@ public class FileIO
     }
 
     
-    public void WriteMullerDataFrames(List<SubClone> subClones, ListTree tree)
+    public void WriteMullerDataFrames(List<Clone> subClones, ListTree tree)
     {
         string popPath = Path.Combine(Path.GetFullPath(RootFolder), POPULATIONS_DF_FILENAME);
         string adjPath = Path.Combine(Path.GetFullPath(RootFolder), ADJACENCY_DF_FILENAME);
@@ -134,7 +133,7 @@ public class FileIO
                 long totalCells = subClone.AliveAtGen(gen);
                 if (totalCells > 0)
                 {
-                    popFile.WriteLine($"{subClone.CloneId},{gen},{totalCells},{subClone.NumberDrivers}");
+                    popFile.WriteLine($"{subClone.CloneId},{gen},{totalCells},{subClone.DriverCount}");
                 }
             }
         }
@@ -146,12 +145,12 @@ public class FileIO
         {
             foreach (var edge in tree.Edges)
             {
-                adjFile.WriteLine($"\t{edge.SourceId},{edge.TargetId}");
+                adjFile.WriteLine($"{edge.SourceId},{edge.TargetId}");
             }
         }
         else
         {
-            adjFile.WriteLine($"\t-1,{subClones.First().CloneId}");
+            adjFile.WriteLine($"-1,{subClones.First().CloneId}");
         }
     }
 

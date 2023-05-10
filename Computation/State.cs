@@ -42,7 +42,7 @@ public static class State
                $"Frac: {simulator.GlobalFrac:F2}";
     }
 
-    public static (List<SubClone> subClones, ListTree tree) GetMullerData(Simulator simulator, SimParams simParams, List<PopState> popStates)
+    public static (List<Clone> subClones, ListTree tree) GetMullerData(Simulator simulator, SimParams simParams, List<PopState> popStates)
     {
         if (simParams.PlotFish)
         {
@@ -59,6 +59,6 @@ public static class State
                 return (mullerPops, mullerTree);
             }
         }
-        return (new List<SubClone>(), new ListTree());
+        return (new List<Clone>(), new ListTree());
     }
 }

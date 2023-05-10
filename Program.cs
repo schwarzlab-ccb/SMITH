@@ -84,7 +84,7 @@ try
                 // Result
                 if (State.GetCompState(popStates.Last(), simulator, simParams) == ComputeState.Finished)
                 {
-                    files.WriteSubClones(sample);
+                    files.WriteClones(sample);
                     files.WriteDotTree(lcaTreeList);
                     var tree = TreeBuilder.ListToTree(lcaTreeList);
                     files.WriteNewickTree(tree);

@@ -6,7 +6,7 @@ namespace SMITH.Computation;
 
 public static class CellSampling
 {
-    public static PopState PopState(List<SubClone> populations)
+    public static PopState PopState(List<Clone> populations)
     {
         var popState = new PopState
         {

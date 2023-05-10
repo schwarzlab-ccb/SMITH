@@ -26,11 +26,11 @@ public class Simulator
             double sample = FitnessFunction.SampleFitness(simParams, rnd);
             initFit = AccFitness(initFit, sample, SimParams.FitnessAcc);
         }
-        var primeval = new SubClone(0, -1, 0, initFit, SimParams.StartMut, SimParams.StartPop);
-        Clones = new List<SubClone> { primeval };
+        var primeval = new Clone(0, -1, 0, initFit, SimParams.StartMut, SimParams.StartPop);
+        Clones = new List<Clone> { primeval };
     }
 
-    public List<SubClone> Clones { get; }
+    public List<Clone> Clones { get; }
     public SimParams SimParams { get; }
     private Random Rnd { get; }
     public double GlobalFrac { get; private set; }
@@ -85,7 +85,7 @@ public class Simulator
         AliveSC = 0;
         StepNo++;
 
-        List<SubClone> newClones = new();
+        List<Clone> newClones = new();
         var popState = CellSampling.PopState(Clones);
         
         double globalFree = CalcFree(popState.Alive + popState.Necro, SimParams.ConfGlobal);
@@ -128,7 +128,7 @@ public class Simulator
                     ? FitnessFunction.SampleFitness(SimParams, Rnd) 
                     : 0;
                 double newDivision = AccFitness(subClone.Fitness, divChange, SimParams.FitnessAcc);
-                var childClone = subClone.CreateChild(GetNewId(), StepNo, newDivision, subClone.NumberDrivers + 1);
+                var childClone = subClone.CreateChild(GetNewId(), StepNo, newDivision, subClone.DriverCount + 1);
                 newClones.Add(childClone);
             }
 

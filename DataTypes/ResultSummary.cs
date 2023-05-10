@@ -46,7 +46,7 @@ public struct ResultSummary
 
 
     public ResultSummary(int repeatId, int generationId, int stepNo, string timeElapsed, ListTree connectedTree,
-        List<SubClone> aboveCutOff, List<SubClone> clones, PopState popState, Dictionary<int, long> CCF)
+        List<Clone> aboveCutOff, List<Clone> clones, PopState popState, Dictionary<int, long> CCF)
     {
         RepeatId = repeatId;
         GenerationId = generationId;

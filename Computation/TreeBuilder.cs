@@ -6,13 +6,13 @@ namespace SMITH.Computation;
 
 public static class TreeBuilder
 {
-    public static Dictionary<int, int> CreateParentMap(IEnumerable<SubClone> subClones)
+    public static Dictionary<int, int> CreateParentMap(IEnumerable<Clone> subClones)
         => subClones.ToDictionary(sc => sc.CloneId, sc => sc.ParentId);
     
-    public static Dictionary<int, int> CountFirstGent(IEnumerable<SubClone> subClones)
+    public static Dictionary<int, int> CountFirstGent(IEnumerable<Clone> subClones)
         => subClones.ToDictionary(sc => sc.CloneId, sc => sc.FirstGen);
 
-    private static ListEdge FindEdgeToParent(Dictionary<int, int> parentMap, List<SubClone> selection, int id)
+    private static ListEdge FindEdgeToParent(Dictionary<int, int> parentMap, List<Clone> selection, int id)
     {
         int dist = 0;
         int source = id;
@@ -26,7 +26,7 @@ public static class TreeBuilder
         return new ListEdge { Distance = dist, SourceId = source, TargetId = id };
     }
 
-    private static List<int> FindInternalNodes(Dictionary<int, int> parentMap, List<SubClone> selection)
+    private static List<int> FindInternalNodes(Dictionary<int, int> parentMap, List<Clone> selection)
     {
         Dictionary<int, int> internalNodes = new();
 
@@ -50,7 +50,7 @@ public static class TreeBuilder
     }
     
     // Construct a parent tree with each child being either parent of a present predecessor, or -1 if none exists.
-    public static ListTree BuildCTree(List<SubClone> allSubClones, List<SubClone> selection)
+    public static ListTree BuildCTree(List<Clone> allSubClones, List<Clone> selection)
     {
         var parentMap = CreateParentMap(allSubClones);
         List<ListNode> nodes = new();
@@ -81,7 +81,7 @@ public static class TreeBuilder
         return new ListTree { RootId = rootId, Nodes = nodes, Edges = edges };
     }
 
-    private static ListEdge FindEdge(Dictionary<int, int> parentMap, List<SubClone> selection, List<int> internalNodes, int id)
+    private static ListEdge FindEdge(Dictionary<int, int> parentMap, List<Clone> selection, List<int> internalNodes, int id)
     {
         int dist = 0;
         int source = id;
@@ -95,7 +95,7 @@ public static class TreeBuilder
     }
 
     // Construct a parent tree with lowest common ancestor (LCA) for each pair of children
-    public static ListTree BuildLCAT(IEnumerable<SubClone> allSubClones, List<SubClone> selection)
+    public static ListTree BuildLCAT(IEnumerable<Clone> allSubClones, List<Clone> selection)
     {
         List<ListNode> nodes = new();
         List<ListEdge> edges = new();
