@@ -85,7 +85,9 @@ try
                 if (State.GetCompState(popStates.Last(), simulator, simParams) == ComputeState.Finished)
                 {
                     files.WriteSubClones(sample);
-                    files.WriteParentTree(lcaTreeList);
+                    files.WriteDotTree(lcaTreeList);
+                    var tree = TreeBuilder.ListToTree(lcaTreeList);
+                    files.WriteNewickTree(tree);
                     var (mullerPops, mullerTree) = State.GetMullerData(simulator, simParams, popStates);
                     if (mullerPops.Any())
                     {

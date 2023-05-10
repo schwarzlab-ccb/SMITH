@@ -136,7 +136,6 @@ Statistical / analytical eveluation of the simulation at individual stops. If ch
 
 An evolutionary tree with mutation distances and population sizes between the individual subclones. The graph is written in the [DOT format](https://graphviz.org/doc/info/lang.html).
 
-
 #### `parent_tree.new`
 
 Same as `parent_tree.dot`, but in the [Newick format](https://en.wikipedia.org/wiki/Newick_format)
@@ -145,7 +144,7 @@ Same as `parent_tree.dot`, but in the [Newick format](https://en.wikipedia.org/w
 
 Stores configuration parameters used for this simulation, including the random seed. If this file is provided on input, the exact same simulation will be executed.
 
-#### `subclones.out`  
+#### `clones.tsv`  
 
 Information about the individual subclones at the end of the simulation.
 

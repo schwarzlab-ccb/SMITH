@@ -6,10 +6,10 @@ namespace SMITH.IO;
 
 public class FileIO
 {
-    private const string CLONE_TREE_FILENAME = "clone_tree.dot";
-    private const string BIN_TREE_FILENAME = "bin_tree.dot";
+    private const string DOT_TREE_FILENAME = "clone_tree.dot";
+    private const string NEWICK_TREE_FILENAME = "clone_tree.new";
 
-    private const string SUBCLONES_FILENAME = "subclones.out";
+    private const string SUBCLONES_FILENAME = "clones.csv";
 
     private const string POPULATIONS_DF_FILENAME = "populations.csv";
     private const string ADJACENCY_DF_FILENAME = "parent_tree.csv";
@@ -66,9 +66,9 @@ public class FileIO
         }
     }
 
-    public void WriteParentTree(ListTree tree)
+    public void WriteDotTree(ListTree tree)
     {
-        string outPath = Path.Combine(Path.GetFullPath(RootFolder), CLONE_TREE_FILENAME);
+        string outPath = Path.Combine(Path.GetFullPath(RootFolder), DOT_TREE_FILENAME);
         using var outputFile = new StreamWriter(outPath);
 
         outputFile.WriteLine("Digraph SMITH {");
@@ -86,26 +86,37 @@ public class FileIO
         outputFile.WriteLine("}");
     }
 
-    private static void WriteBinNote(TreeNode treeNode, StreamWriter writer)
+    private void WriteNode(TreeNode node, StreamWriter writer)
     {
-        string fillStr = treeNode.Size == 0 ? "fillcolor=gray32, style=filled" : "";
-        writer.WriteLine($"\t{treeNode.Id} [label=\"{treeNode.Label}:{treeNode.Size}\"{fillStr}];");
-        foreach (var tuple in treeNode.Children)
+        if (node.Children.Count > 0)
         {
-            writer.WriteLine($"\t{treeNode.Id} -> {tuple.child.Id} [label=\"{tuple.distance}\"];");
-            WriteBinNote(tuple.child, writer);
+            writer.Write("(");
+            for (int i = 0; i < node.Children.Count; i++)
+            {
+                var (child, distance) = node.Children[i];
+                WriteNode(child, writer);
+                writer.Write(":" + distance);
+                // Write a comma unless this is the last child
+                if (i < node.Children.Count - 1)
+                {
+                    writer.Write(",");
+                }
+            }
+            writer.Write(")");
         }
+        writer.Write(node.Label);
     }
     
-    public void WriteBinTree(TreeNode binTree)
+    public void WriteNewickTree(TreeNode treeNode)
     {
-        string outPath = Path.Combine(Path.GetFullPath(RootFolder), BIN_TREE_FILENAME);
-        using var outputFile = new StreamWriter(outPath);
-        outputFile.WriteLine("Digraph BinTree {");
-        WriteBinNote(binTree, outputFile);
-        outputFile.WriteLine("}");
+        string outPath = Path.Combine(Path.GetFullPath(RootFolder), NEWICK_TREE_FILENAME);
+        using var writer = new StreamWriter(outPath);
+        WriteNode(treeNode, writer);
+        // Newick format requires a final semicolon
+        writer.Write(";");
     }
 
+    
     public void WriteMullerDataFrames(List<SubClone> subClones, ListTree tree)
     {
         string popPath = Path.Combine(Path.GetFullPath(RootFolder), POPULATIONS_DF_FILENAME);
