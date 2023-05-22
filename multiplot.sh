@@ -14,7 +14,6 @@ for d in */ ; do
     pyfish populations.csv parent_tree.csv fish_abs.png -R $col -S $smooth -a  
     echo "Plotting Clone Tree"
     dot -Tpng clone_tree.dot > clone_tree.png
-    python3 ../../../scripts/dot_to_newick.py clone_tree.dot
     cd ..
 done
 cd ..
