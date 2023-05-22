@@ -110,7 +110,8 @@ A test set with minimum simulation is provided. The test is conducted by output 
 
 ## Plot
 
-To plot you can use one of two simple scripts to use depending on whether the simulation was repeated (Reps > 1):
+To plot you can use one of two simple scripts to use depending on whether the simulation was repeated (Reps > 1):  
+  
 * `./plot.sh <out>` - this will plot the results from a non-repeated experiment. An optional out parameter can be used as an input folder. If not specified, the default output folder `./out` is used.
 * `./multiplot.sh out` - this will plot the results from a repeated experiment. A path to an experiment must be specified. Note that in case of repeated experiment, SMITH creates a folder with a timestamp, so for example the default output path for an experiment started on 2023-04-05 16:17:18 will be `./out/21_04_05_16_17_18` and the correct command would be `./multiplot.sh ./out/21_04_05_16_17_18`.
 
