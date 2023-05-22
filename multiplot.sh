@@ -12,7 +12,7 @@ for d in */ ; do
     smooth=2
     pyfish populations.csv parent_tree.csv fish.png -R $col -S $smooth
     pyfish populations.csv parent_tree.csv fish_abs.png -R $col -S $smooth -a  
-    echo "Plotting Clone Tree"
+    echo "Plotting Clone Tree"gi
     dot -Tpng clone_tree.dot > clone_tree.png
     cd ..
 done
