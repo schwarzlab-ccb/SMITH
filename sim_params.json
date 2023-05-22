@@ -18,8 +18,8 @@
   "FitnessDist": "Constant",
   "FitnessEffect": "Birth",
   "Checkpoints": true,
-  "CutOff": 0.01,
+  "CutOff": 0.0001,
   "CloneSample": -1,
-  "PlotFish": true,
+  "CalcFish": true,
   "FishFrac": 0.01
 }

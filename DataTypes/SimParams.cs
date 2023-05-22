@@ -35,7 +35,7 @@ public struct SimParams
     public bool Checkpoints; // Store meta-results in summary at every cell doubling 
     public double CutOff; // Minimum sample size compared to the total sample size for a clone to be considered
     public int CloneSample; // Limits the number of clones after cut-off, can be negative to disable
-    public bool PlotFish; // Adds the fish data if true
+    public bool CalcFish; // Adds the fish data if true
     public double FishFrac; // Minimum fraction of the population that must be sampled at any timepoint to be considered a clone
 
     public string SanityCheck()

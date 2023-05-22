@@ -44,7 +44,7 @@ public static class State
 
     public static (List<Clone> subClones, ListTree tree) GetMullerData(Simulator simulator, SimParams simParams, List<PopState> popStates)
     {
-        if (simParams.PlotFish)
+        if (simParams.CalcFish)
         {
             var mullerSelect = popStates.Select(pair => pair.Alive * simParams.FishFrac).ToList();
             int firstPop = mullerSelect.FindIndex(minPop => minPop > 0);

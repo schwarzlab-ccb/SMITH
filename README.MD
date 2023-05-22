@@ -46,7 +46,7 @@ The default execution is:
 git clone git@bitbucket.org:schwarzlab/smith.git
 cd smith
 dotnet run
-./plots.sh
+./plot.sh
 ```
 
 The results will be written to the folder `./out`
@@ -105,8 +105,14 @@ For the fitness types a numerical value can be also used, e.g. `"FitnessAcc": 1`
 A test set with minimum simulation is provided. The test is conducted by output comparison. Run:
 
 ```
-./plots.sh
+./test.sh
 ```
+
+## Plot
+
+To plot you can use one of two simple scripts to use depending on whether the simulation was repeated (Reps > 1):
+* `./plot.sh <out>` - this will plot the results from a non-repeated experiment. An optional out parameter can be used as an input folder. If not specified, the default output folder `./out` is used.
+* `./multiplot.sh out` - this will plot the results from a repeated experiment. A path to an experiment must be specified. Note that in case of repeated experiment, SMITH creates a folder with a timestamp, so for example the default output path for an experiment started on 2023-04-05 16:17:18 will be `./out/21_04_05_16_17_18` and the correct command would be `./multiplot.sh ./out/21_04_05_16_17_18`.
 
 ## Output
 
@@ -115,9 +121,6 @@ The following output was generated using the [demo configuration](./doc/doc_conf
 To reproduce the results run `dotnet run -- -C ./doc/doc_config.json`.
 
 The text files are primariliy used as source for plots shown below.
-
-#### `ccf.csv`
-Cancer cell fraction in the format `clone, population, ccf`.
 
 
 #### `parent_tree.csv` 
@@ -132,13 +135,13 @@ Lists population sizes at individual timepoints for each subclone.  Used for plo
 
 Statistical / analytical eveluation of the simulation at individual stops. If checkpoints are used, log2 sizes are considered as stops, starting from the minimum size. Otherwise only one output at the end of the simulation is printed.
 
-#### `parent_tree.dot`
+#### `clone_tree.dot`
 
 An evolutionary tree with mutation distances and population sizes between the individual subclones. The graph is written in the [DOT format](https://graphviz.org/doc/info/lang.html).
 
-#### `parent_tree.new`
+#### `clone_tree.new`
 
-Same as `parent_tree.dot`, but in the [Newick format](https://en.wikipedia.org/wiki/Newick_format)
+Same as `clone_tree.dot`, but in the [Newick format](https://en.wikipedia.org/wiki/Newick_format)
 
 #### `sim_params.json` 
 
@@ -148,7 +151,7 @@ Stores configuration parameters used for this simulation, including the random s
 
 Information about the individual subclones at the end of the simulation.
 
-### Plots (created by `./plots.sh`)
+### Plots
 
 #### `fish.png`, `fish_abs.png`  
 Fish plots generated using the [PyFish package](https://bitbucket.org/schwarzlab/pyfish): 
@@ -163,7 +166,7 @@ An evolutionary tree describing the individual sampled clones and their total po
 ![](./doc/img/clone_tree.png)
 
 ## Figures for Streck et al. 2023
-The main and supplementary figures for the 2023 publication (Streck, Kaufmann and Schwarz) are created using the notebooks in the `article_figures` directory.
+The main and supplementary figures for the 2023 publication (Streck, Kaufmann, and Schwarz) are created using the notebooks in the `article_figures` directory.
 
 Most plotting data is provided in `article_figures/data` and was created from raw data using `article_figures/scripts/create_plotting_data_from_raw.py`.
 
