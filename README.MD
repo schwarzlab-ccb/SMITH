@@ -96,7 +96,7 @@ For the fitness types a numerical value can be also used, e.g. `"FitnessAcc": 1`
 ### Output
 * `CutOff: [0.0-1.0]` Only the clones that have at least this fraction of the alive population (e.g. `.01` means at least one percent of alive cells) are included in the output. 
 * `CloneSample: int` The number of clones to sample from the population, the clones are sorted by size in descending order, then first `CloneSample` clones are selected. This is ingored if the value is negative.
-* `PlotFish: bool` Will include data for Fish Plots in the output. These are not calculated by default as it is storage-intensive.
+* `CalcFish: bool` Will include data for Fish Plots in the output. These are not calculated by default as it is storage-intensive.
 * `FishFrac: [0.0-1.0]` Similar to `CutOff`, but used for Fish Plots. Unline with `CutOff` a population is included in the output if the fraction has been attained at any step throughout the simulation.
 
 
