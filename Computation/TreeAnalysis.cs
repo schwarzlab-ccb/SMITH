@@ -6,31 +6,21 @@ public static class TreeAnalysis
 {
     private static long SubtreeCellCount(ListTree listTree, Dictionary<int, long> knownSizes, ListNode subtreeRoot)
     {
-        if (knownSizes.ContainsKey(subtreeRoot.Id))
+        if (!knownSizes.TryGetValue(subtreeRoot.Id, out long size))
         {
-            return knownSizes[subtreeRoot.Id];
+            size = subtreeRoot.Size + listTree.Edges
+                .Where(e => e.SourceId == subtreeRoot.Id)
+                .Select(e => SubtreeCellCount(listTree, knownSizes, listTree.Nodes.Find(n => n.Id == e.TargetId)))
+                .Sum();
+            knownSizes[subtreeRoot.Id] = size; 
         }
-        long size = subtreeRoot.Size + listTree.Edges
-            .Where(e => e.SourceId == subtreeRoot.Id)
-            .Select(e => SubtreeCellCount(listTree, knownSizes, listTree.Nodes.Find(n => n.Id == e.TargetId)))
-            .Sum();
-        knownSizes[subtreeRoot.Id] = size; 
         return size;
     }
 
     public static Dictionary<int, long> ComputeCCF(ListTree listTree)
     {
         var knownSizes = new Dictionary<int, long>();
-        var CCF = new Dictionary<int, long>();
-        foreach (var node in listTree.Nodes)
-        {
-            long size = SubtreeCellCount(listTree, knownSizes, node);
-            if (size > 0)
-            {
-                CCF[node.Id] = size;
-            }
-        }
-        return CCF;
+        return listTree.Nodes.ToDictionary(n => n.Id, n => SubtreeCellCount(listTree, knownSizes, n));
     }
 
     private static int CountNodes(Dictionary<int, List<int>> branches, TreeSizeData data, int id, int depth)
@@ -38,11 +28,11 @@ public static class TreeAnalysis
         var children = branches[id];
         if (children.Any())
         {
-            data.childCount += children.Count;
+            data.ChildCount += children.Count;
             return children.Select(c => CountNodes(branches, data, c, depth + 1)).Max();
         }
 
-        data.leafCount += 1;
+        data.LeafCount += 1;
         return depth;
     }
 
@@ -58,8 +48,8 @@ public static class TreeAnalysis
         var branches = TreeToBranches(listTree);
         int depth = CountNodes(branches, data, listTree.RootId, 0);
         int nodeCount = listTree.Nodes.Count;
-        int leafCount = data.leafCount;
-        float branching = data.childCount / (float)leafCount;
+        int leafCount = data.LeafCount;
+        float branching = data.ChildCount / (float)leafCount;
         return (nodeCount, leafCount, depth, branching);
     }
 
@@ -125,7 +115,7 @@ public static class TreeAnalysis
 
     private class TreeSizeData
     {
-        internal int childCount;
-        internal int leafCount;
+        internal int ChildCount;
+        internal int LeafCount;
     }
 }
