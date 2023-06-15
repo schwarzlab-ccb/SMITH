@@ -77,6 +77,7 @@ For the fitness types a numerical value can be also used, e.g. `"FitnessAcc": 1`
 ### Model
 * `Turnover: [0.0-1.0]`  The fraction of cells dividing per step (should be considerably smaller than 1).
 * `MutationProb: [0.0-1.0]` The probability of a mutation per cell division.
+* `DriverProb: [0.0-1.0]` For any mutation, the probability that it is a driver.
 * `FitnessMean: unsigned double` The mean fitness increase per mutation.
 * `ConfGlobal: unsigned double` The global confinement of the population - the higher the confinement the stronger the competition between clones.
 * `ConfLocal: unsigned double` The local confinement of the population - the higher the confinement the stronger the restriction of the population of each clone.
