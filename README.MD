@@ -138,6 +138,7 @@ Lists population sizes at individual timepoints for each subclone.  Used for plo
 Statistical / analytical eveluation of the simulation at individual stops. If checkpoints are used, log2 sizes are considered as stops, starting from the minimum size. Otherwise only one output at the end of the simulation is printed.
 
 Columns:
+
 * RepeatId: 0-indexed number of repetitions with different seeds, if the first run did not go through.
 * GenerationId: 0-indexed of the current line
 * Generations: 0-indexed number of generations (steps) that occured prior to this line
