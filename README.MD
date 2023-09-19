@@ -158,7 +158,7 @@ Columns:
 * TreeDepth: For the clone tree, its depth
 * NodeCount: For the clone tree, its number of nodes (incl. root)
 * LeafCount: For the clone tree, its number of leafs
-* Branching: For the clone tree, its branching
+* Branching: For the clone tree, its branching = (NodeCount - 1) / LeafCount 
 
 
 #### `clone_tree.dot`
