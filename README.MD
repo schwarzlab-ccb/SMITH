@@ -137,6 +137,29 @@ Lists population sizes at individual timepoints for each subclone.  Used for plo
 
 Statistical / analytical eveluation of the simulation at individual stops. If checkpoints are used, log2 sizes are considered as stops, starting from the minimum size. Otherwise only one output at the end of the simulation is printed.
 
+Columns:
+* RepeatId: 0-indexed number of repetitions with different seeds, if the first run did not go through.
+* GenerationId: 0-indexed of the current line
+* Generations: 0-indexed number of generations (steps) that occured prior to this line
+* Time: hour:minute:second.milliseconds
+* SubcloneSelect: How many clones are output (above cutoff)
+* SubcloneAlive: How many clones had at least 1 alive cell
+* SubcloneTotal: How many clones exist in total
+* CellSelectCount: How many cells are in the output clones
+* CellAliveCount: How many cells are alive in total
+* CellNecroCount: How many necrotic cells are in total
+* CellTumorCount: Alive+necrotic cells
+* CellLostCount: How many cells were lost (no longer part of tumour mass)
+* CellTotalCount: Alive+necrotic+lost cells
+* MeanDriversPerCell: Average number of drivers per alive cell in the select clones.
+* ClonalDiversity: The clonal diversity of the select clones (see https://doi.org/10.1093/bioinformatics/btad102)
+* TreeBalance: For the clone tree from select clones (see clone_tree.png below) its tree ballance
+* TreeDepth: For the clone tree, its depth
+* NodeCount: For the clone tree, its number of nodes (incl. root)
+* LeafCount: For the clone tree, its number of leafs
+* Branching: For the clone tree, its branching
+
+
 #### `clone_tree.dot`
 
 An evolutionary tree with mutation distances and population sizes between the individual subclones. The graph is written in the [DOT format](https://graphviz.org/doc/info/lang.html).
