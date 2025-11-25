@@ -1,11 +1,16 @@
+image: alpine/git
+
 pipelines:
   default:
     - step:
         name: Mirror to GitHub
         script:
-          # This pipe is an official tool from Atlassian to handle mirroring
-          - pipe: atlassian/git-mirror:0.6.1
-            variables:
-              TARGET_URL: "https://github.com/xstreck1/SMITH.git"
-              TARGET_USERNAME: "xstreck1"
-              TARGET_PASSWORD: $GITHUB_PAT # This pulls the variable we set in Step 2
+          # Clone the Bitbucket repo as a bare mirror
+          - git clone --mirror "$BITBUCKET_GIT_HTTP_ORIGIN" repo.git
+          - cd repo.git
+
+          # Add GitHub as a remote using the PAT
+          - git remote add github "https://xstreck1:${GITHUB_PAT}@github.com/xstreck1/smith.git"
+
+          # Push everything (branches, tags, etc.) to GitHub
+          - git push --mirror github
