@@ -1,0 +1,12 @@
+pipelines:
+  default:
+    - step:
+        name: Mirror to GitHub
+        script:
+          # This pipe is an official tool from Atlassian to handle mirroring
+          - pipe: atlassian/git-mirror:0.6.1
+            variables:
+              # Replace with your GitHub repo URL (keep the .git at the end)
+              TARGET_URL: "https://github.com/xstreck1/SMITH.git"
+              TARGET_USERNAME: "xstreck1"
+              TARGET_PASSWORD: $GITHUB_PAT # This pulls the variable we set in Step 2
