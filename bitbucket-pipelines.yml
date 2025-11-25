@@ -5,12 +5,8 @@ pipelines:
     - step:
         name: Mirror to GitHub
         script:
-          # Clone the Bitbucket repo as a bare mirror
           - git clone --mirror "$BITBUCKET_GIT_HTTP_ORIGIN" repo.git
           - cd repo.git
-
-          # Add GitHub as a remote using the PAT
-          - git remote add github "https://xstreck1:${GITHUB_PAT}@github.com/xstreck1/smith.git"
-
-          # Push everything (branches, tags, etc.) to GitHub
+          # PAT as the *username*, no extra password part
+          - git remote add github "https://${GITHUB_PAT}@github.com/xstreck1/smith.git"
           - git push --mirror github
