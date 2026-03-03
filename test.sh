@@ -1,16 +1,18 @@
+FAILED=0
 dotnet run -- -C test/test_params.json
 echo "$(tput setaf 7)"
 echo "------------------------------------------------------"
 echo "- COMPARE FILES --------------------------------------"
 echo "------------------------------------------------------"
-diff --strip-trailing-cr out/clone_tree.dot test/clone_tree.dot || echo "clone_tree.dot not matching"
-diff --strip-trailing-cr out/clone_tree.new test/clone_tree.new || echo "clone_tree.new not matching"
-diff --strip-trailing-cr out/parent_tree.csv test/parent_tree.csv || echo -e "$(tput setaf 1) \n - parent_tree.csv not matching"
-diff --strip-trailing-cr out/populations.csv test/populations.csv || echo -e "$(tput setaf 1) \n - populations.csv not matching"
-diff --strip-trailing-cr out/sim_params.json test/test_params.json || echo -e "$(tput setaf 1) \n - params not matching"
-diff --strip-trailing-cr out/clones.csv test/clones.csv || echo -e "$(tput setaf 1) \n - clones.csv not matching"
-diff --strip-trailing-cr out/summary.csv test/summary.csv -I "[0-9][0-9].[0-9]*" || echo -e "$(tput setaf 1) \n - summary.csv not matching" # Ignore time differences  
+diff --strip-trailing-cr out/clone_tree.dot test/clone_tree.dot || { echo "clone_tree.dot not matching"; FAILED=1; }
+diff --strip-trailing-cr out/clone_tree.new test/clone_tree.new || { echo "clone_tree.new not matching"; FAILED=1; }
+diff --strip-trailing-cr out/parent_tree.csv test/parent_tree.csv || { echo -e "$(tput setaf 1) \n - parent_tree.csv not matching"; FAILED=1; }
+diff --strip-trailing-cr out/populations.csv test/populations.csv || { echo -e "$(tput setaf 1) \n - populations.csv not matching"; FAILED=1; }
+diff --strip-trailing-cr out/sim_params.json test/test_params.json || { echo -e "$(tput setaf 1) \n - params not matching"; FAILED=1; }
+diff --strip-trailing-cr out/clones.csv test/clones.csv || { echo -e "$(tput setaf 1) \n - clones.csv not matching"; FAILED=1; }
+diff --strip-trailing-cr out/summary.csv test/summary.csv -I "[0-9][0-9].[0-9]*" || { echo -e "$(tput setaf 1) \n - summary.csv not matching"; FAILED=1; } # Ignore time differences
 echo "$(tput setaf 7)"
 echo "------------------------------------------------------"
 echo "- COMPARISON FINISHED --------------------------------"
 echo "------------------------------------------------------"
+exit $FAILED
