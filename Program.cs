@@ -76,7 +76,7 @@ try
                 var ccCount = TreeAnalysis.ComputeCCF(lcaTreeList);
                 
                 string time = TimeSpan.FromMilliseconds(watch.ElapsedMilliseconds).ToString();
-                var result = new ResultSummary(repeatId, checkpointId, simulator.StepNo, time,
+                var result = new ResultSummary(repeatId, tryNo, checkpointId, simulator.StepNo, time,
                     lcaTreeList, cloneSample, simulator.Clones, popStates.Last(), ccCount);
                 files.AddToSummary(result);
                 checkpointId++;
