@@ -16,7 +16,7 @@ from pyfish.core import *
 RESULTS_DIR = '../../results/experiments/results'
 FINAL_RESULTS_DIR = '../../results/experiments/final_results'
 
-plotting_params = {
+_plotting_params = {
     'WIDTH_FULL': 12,
     'WIDTH_HALF': 6,
     'HEIGHT_FULL': 18,
@@ -35,14 +35,14 @@ plotting_params = {
 
 def set_plotting_params():
     plt.rc('font', family='sans-serif')
-    plt.rc('font', size=plotting_params['FONTSIZE_MEDIUM'])
-    plt.rc('axes', titlesize=plotting_params['FONTSIZE_LARGE'])
-    plt.rc('axes', labelsize=plotting_params['FONTSIZE_MEDIUM'])
-    plt.rc('xtick', labelsize=plotting_params['FONTSIZE_SMALL'])
-    plt.rc('ytick', labelsize=plotting_params['FONTSIZE_SMALL'])
-    plt.rc('legend', fontsize=plotting_params['FONTSIZE_SMALL'])
+    plt.rc('font', size=_plotting_params['FONTSIZE_MEDIUM'])
+    plt.rc('axes', titlesize=_plotting_params['FONTSIZE_LARGE'])
+    plt.rc('axes', labelsize=_plotting_params['FONTSIZE_MEDIUM'])
+    plt.rc('xtick', labelsize=_plotting_params['FONTSIZE_SMALL'])
+    plt.rc('ytick', labelsize=_plotting_params['FONTSIZE_SMALL'])
+    plt.rc('legend', fontsize=_plotting_params['FONTSIZE_SMALL'])
     plt.rc('legend', frameon=False)
-    plt.rc('figure', titlesize=plotting_params['FONTSIZE_LARGE'])
+    plt.rc('figure', titlesize=_plotting_params['FONTSIZE_LARGE'])
 
     # Seaborn standard palette and theme
     sns.set_palette(sns.color_palette())
@@ -53,6 +53,10 @@ def set_plotting_params():
 
     plt.rcParams['axes.spines.right'] = False
     plt.rcParams['axes.spines.top'] = False
+
+
+def get_plotting_params():
+    return _plotting_params
 
 
 def stylize_axes(ax):
