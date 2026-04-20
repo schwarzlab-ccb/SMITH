@@ -96,7 +96,7 @@ public class FileIO
             writer.Write("(");
             for (int i = 0; i < node.Children.Count; i++)
             {
-                var (child, distance) = node.Children[i];
+                (var child, int distance) = node.Children[i];
                 WriteNode(child, writer);
                 writer.Write(":" + distance);
                 // Write a comma unless this is the last child
