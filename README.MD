@@ -103,7 +103,13 @@ For the fitness types a numerical value can be also used, e.g. `"FitnessAcc": 1`
 
 ## Test
 
-A test set with minimum simulation is provided. The test is conducted by output comparison. Run:
+Automated tests are available via `dotnet test`:
+
+```
+dotnet test tests/SMITH.Tests/SMITH.Tests.csproj
+```
+
+The legacy file-diff script is still available:
 
 ```
 ./test.sh
