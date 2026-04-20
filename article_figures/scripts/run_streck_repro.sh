@@ -8,7 +8,7 @@ FISH_CFG_DIR="$DATA_DIR/fish_plot_configs"
 TRAJ_CFG_DIR="$DATA_DIR/trajectories_configs"
 
 # Keep generated raw simulation runs in the default project output folder.
-RESULTS_DIR="$REPO_ROOT/out"
+RESULTS_DIR="$REPO_ROOT/out/results"
 ONLY="all"
 FORCE=0
 SKIP_SIM=0
@@ -22,8 +22,8 @@ Generate missing article figure data artifacts used by create_figures.ipynb:
   - article_figures/data/trajectories.pkl
 
 Options:
-  --results-dir <path>   Output folder for generated raw simulation runs.
-                                                 Default: $REPO_ROOT/out
+    --results-dir <path>   Output folder for generated raw simulation runs.
+                                                 Default: $REPO_ROOT/out/results
   --only <all|fish|trajectories>
                          Which dataset to build. Default: all
   --force                Re-run simulations even if output files exist.
@@ -129,16 +129,17 @@ else
 fi
 
 export STRECK_RESULTS_DIR="$RESULTS_DIR"
-export STRECK_DATA_DIR="$DATA_DIR"
-export STRECK_FISH_CFG_DIR="$FISH_CFG_DIR"
-export STRECK_TRAJ_CFG_DIR="$TRAJ_CFG_DIR"
-export STRECK_ONLY="$ONLY"
 
-python "$SCRIPT_DIR/build_repro_pickles.py" \
-    --results-dir "$RESULTS_DIR" \
-    --data-dir "$DATA_DIR" \
-    --fish-cfg-dir "$FISH_CFG_DIR" \
-    --traj-cfg-dir "$TRAJ_CFG_DIR" \
-    --only "$ONLY"
+if [[ "$ONLY" != "all" ]]; then
+    echo "Skipping pickle generation because --only=$ONLY was selected."
+    echo "Run with --only all (default) to rebuild article_figures/data/*.pkl."
+    echo "Done."
+    exit 0
+fi
+
+(
+    cd "$REPO_ROOT/article_figures"
+    python "scripts/create_plotting_data_from_raw.py"
+)
 
 echo "Done."

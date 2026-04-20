@@ -13,7 +13,7 @@ import matplotlib.transforms as mtransforms
 from pyfish import process_data, fish_plot
 from pyfish.core import *
 
-RESULTS_DIR = '../../results/experiments/results'
+RESULTS_DIR = '../out/results'
 FINAL_RESULTS_DIR = '../../results/experiments/final_results'
 
 _plotting_params = {

@@ -1,4 +1,4 @@
-# Run this script from the directory above smith/scripts/ to create the data files used for plotting
+# Run this script from article_figures/ to create the data files used for plotting.
 from plotting import *
 import os
 import sys
@@ -13,7 +13,7 @@ from pyfish.core import *
 sys.path.append('scripts/')
 
 
-RESULTS_DIR = '../../results/experiments/results'
+RESULTS_DIR = '../out/results'
 
 # Metrics over time
 cur_MutationProb = 1e-5
