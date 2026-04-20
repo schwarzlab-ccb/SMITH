@@ -1,5 +1,6 @@
 # Files 
 out/*
+tests/out/*
 in/*
 
 # Figures from notebooks

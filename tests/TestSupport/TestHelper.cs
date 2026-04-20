@@ -8,7 +8,7 @@ internal static class TestHelper
 {
     internal static string RepoRoot => Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../"));
 
-    internal static string FixtureFolder => Path.Combine(RepoRoot, "test");
+    internal static string FixtureFolder => Path.Combine(RepoRoot, "tests", "targets");
 
     internal static SimParams LoadFixtureParams()
     {
@@ -17,7 +17,7 @@ internal static class TestHelper
 
     internal static string CreateTempDirectory()
     {
-        string path = Path.Combine(Path.GetTempPath(), "smith-tests", Guid.NewGuid().ToString("N"));
+        string path = Path.Combine(RepoRoot, "tests", "out", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(path);
         return path;
     }

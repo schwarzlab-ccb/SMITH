@@ -112,7 +112,7 @@ dotnet test tests/SMITH.Tests/SMITH.Tests.csproj
 The legacy file-diff script is still available:
 
 ```
-./test.sh
+./tests/test.sh
 ```
 
 ## Plot
