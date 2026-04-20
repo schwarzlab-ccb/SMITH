@@ -26,9 +26,9 @@ The program has been tested on:
 
 ### Simulation
 
-The simulation code is written in **C# 8**. **.NET 5.0** or newer is required. We recommend installation using *Conda*:
+The simulation code is written in **C#**. **.NET 10** is required. We recommend installation using *Conda*:
 ```
-conda install -c conda-forge dotnet
+conda install -c conda-forge "dotnet>=10,<11"
 ``` 
 
 ### Data analysis
@@ -106,7 +106,7 @@ For the fitness types a numerical value can be also used, e.g. `"FitnessAcc": 1`
 Automated tests are available via `dotnet test`:
 
 ```
-dotnet test tests/SMITH.Tests/SMITH.Tests.csproj
+dotnet test tests/SMITH.Tests.csproj
 ```
 
 The legacy file-diff script is still available:
