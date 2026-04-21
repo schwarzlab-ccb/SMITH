@@ -1,5 +1,15 @@
 # %%
-# Run this script to create the data files used for plotting.
+def _enable_ipython_autoreload():
+    try:
+        from IPython import get_ipython
+        ip = get_ipython()
+        if ip is not None:
+            ip.run_line_magic('load_ext', 'autoreload')
+            ip.run_line_magic('autoreload', '2')
+    except Exception:
+        pass
+
+_enable_ipython_autoreload()
 
 import pickle
 import shutil
@@ -10,10 +20,14 @@ import Bio.Phylo
 from pyfish.core import *
 from plotting import *
 
+
+# %%
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 ARTICLE_FIGURES_DIR = SCRIPT_DIR.parent
+REPO_ROOT = ARTICLE_FIGURES_DIR.parent
 DATA_DIR = ARTICLE_FIGURES_DIR / 'data'
-RESULTS_DIR = ARTICLE_FIGURES_DIR / 'out' / 'results'
+RESULTS_DIR = REPO_ROOT / 'out' / 'results'
 
 # %%
 # Metrics over time
@@ -52,6 +66,9 @@ for cur_Confinement_global, cur_Confinement_local in zip(
     for i, r in enumerate(cur_samples):
         cur_folder = RESULTS_DIR / f'parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}_{int(r)+1}'
         full_population = pd.read_csv(cur_folder / 'populations.csv')
+        if 'Drivers' not in full_population.columns:
+            clones_df = pd.read_csv(cur_folder / 'clones.csv')[['ID', 'Drivers']].rename(columns={'ID': 'Id'})
+            full_population = full_population.merge(clones_df, on='Id', how='left')
         parent_tree_df = pd.read_csv(cur_folder / 'parent_tree.csv')
         fish_data = process_data(full_population, parent_tree_df, absolute=False, smooth=0)
         population_df = fish_data[0].groupby('Id').sum()
@@ -72,24 +89,32 @@ with open(DATA_DIR / 'trajectories.pkl', 'wb') as f:
 selection_confinement_global = [0, 0.0625, 0.125, 0.25, 0.5, 1]
 selection_confinement_local = [0, 0.0625, 0.125, 0.25]
 
-fitness_dist_data = load_final_fitness_revisions_all()
+try:
+    fitness_dist_data = load_final_fitness_revisions_all()
 
-fitness_dist_data = fitness_dist_data.loc[(fitness_dist_data['MutationProb'] == 1e-5)
-                                          & (fitness_dist_data['FitnessMean'] == 0.1)
-                                          & (fitness_dist_data['FitnessAcc'] == 'Add')
-                                          ]
+    fitness_dist_data = fitness_dist_data.loc[(fitness_dist_data['MutationProb'] == 1e-5)
+                                              & (fitness_dist_data['FitnessMean'] == 0.1)
+                                              & (fitness_dist_data['FitnessAcc'] == 'Add')
+                                              ]
 
-selection_confinement_global = [0, 0.0625, 0.125, 0.25, 0.5, 1]
-selection_confinement_local = [0, 0.0625, 0.125, 0.25]
+    selection_confinement_global = [0, 0.0625, 0.125, 0.25, 0.5, 1]
+    selection_confinement_local = [0, 0.0625, 0.125, 0.25]
 
-fitness_acc_data = load_final_fitness_revisions_all()
+    fitness_acc_data = load_final_fitness_revisions_all()
 
-fitness_acc_data = fitness_acc_data.loc[(fitness_acc_data['MutationProb'] == 1e-5)
-                                        & (fitness_acc_data['FitnessMean'] == 0.1)
-                                        & (fitness_acc_data['FitnessDist'] == 'Exponential')
-                                        ]
-fitness_acc_data['FitnessAcc'] = fitness_acc_data['FitnessAcc'].apply(
-    lambda x: {'ETH': 'Asy'}.get(x, x))
+    fitness_acc_data = fitness_acc_data.loc[(fitness_acc_data['MutationProb'] == 1e-5)
+                                            & (fitness_acc_data['FitnessMean'] == 0.1)
+                                            & (fitness_acc_data['FitnessDist'] == 'Exponential')
+                                            ]
+    fitness_acc_data['FitnessAcc'] = fitness_acc_data['FitnessAcc'].apply(
+        lambda x: {'ETH': 'Asy'}.get(x, x))
+except ValueError as e:
+    # Raw fitness summary files may be unavailable in local out/results.
+    # In that case, reuse the repository's precomputed plotting inputs.
+    if 'No objects to concatenate' not in str(e):
+        raise
+    fitness_dist_data = pd.read_pickle(DATA_DIR / 'fitness_dist_data.pkl')
+    fitness_acc_data = pd.read_pickle(DATA_DIR / 'fitness_acc_data.pkl')
 
 fitness_dist_data.to_pickle(DATA_DIR / 'fitness_dist_data.pkl')
 fitness_acc_data.to_pickle(DATA_DIR / 'fitness_acc_data.pkl')
@@ -97,6 +122,7 @@ fitness_acc_data.to_pickle(DATA_DIR / 'fitness_acc_data.pkl')
 
 # %%
 # Most representative runs per confinement combination
+
 cur_MutationProb = 1e-5
 cur_FitnessMean = 0.1
 
@@ -106,14 +132,14 @@ selected_confinement_data_df = selected_confinement_data_df.loc[~selected_confin
     'ClonalDiversity', 'MeanDriversPerCell']].isna().any(axis=1)]
 selected_confinement_data_df['index'] = selected_confinement_data_df.index
 
-confinement_data_df_grouped = selected_confinement_data_df.set_index(
-    ['Confinement_global', 'Confinement_local', 'RepeatId', 'index'])[['MeanDriversPerCell', 'ClonalDiversity']]
+group_means = selected_confinement_data_df.groupby(['Confinement_global', 'Confinement_local'])[
+    ['MeanDriversPerCell', 'ClonalDiversity']].transform('mean')
 
-confinement_data_df_mean = selected_confinement_data_df.groupby(['Confinement_global', 'Confinement_local'])[
-    ['MeanDriversPerCell', 'ClonalDiversity']].mean()
+sq_diff = ((selected_confinement_data_df[['MeanDriversPerCell', 'ClonalDiversity']] - group_means) ** 2).sum(axis=1)
+sq_diff.index = selected_confinement_data_df.set_index(
+    ['Confinement_global', 'Confinement_local', 'RepeatId', 'index']).index
 
-most_representative_runs = pd.DataFrame(((confinement_data_df_grouped - confinement_data_df_mean) ** 2)
-                                        .sum(axis=1)
+most_representative_runs = pd.DataFrame(sq_diff
                                         .sort_values()
                                         .groupby(['Confinement_global', 'Confinement_local'])
                                         .head(1)

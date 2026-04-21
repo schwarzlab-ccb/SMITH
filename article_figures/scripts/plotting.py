@@ -1,5 +1,7 @@
 import itertools
 import os
+import re
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -13,8 +15,52 @@ import matplotlib.transforms as mtransforms
 from pyfish import process_data, fish_plot
 from pyfish.core import *
 
-RESULTS_DIR = '../out/results'
-FINAL_RESULTS_DIR = '../../results/experiments/final_results'
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent.parent
+
+RESULTS_DIR = REPO_ROOT / 'out' / 'results'
+RESULTS_SUMMARY_DIR = RESULTS_DIR / 'results_summary'
+
+
+def _get_summary_dir():
+    # Preferred layout: out/results/results_summary/*.csv
+    if RESULTS_SUMMARY_DIR.exists():
+        return RESULTS_SUMMARY_DIR
+    # Backward-compatible layout: out/results/*.csv
+    return RESULTS_DIR
+
+
+def _get_parameter_run_summaries(cur_MutationProb, cur_FitnessMean, cur_Confinement_global, cur_Confinement_local):
+    pattern = (
+        f'parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_'
+        f'{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}_*'
+    )
+    runs = sorted([p for p in RESULTS_DIR.glob(pattern) if p.is_dir()])
+
+    data = []
+    for run_dir in runs:
+        summary_file = run_dir / 'summary.csv'
+        if not summary_file.is_file():
+            continue
+        run_suffix = run_dir.name.rsplit('_', 1)[-1]
+        try:
+            repeat_id = int(run_suffix) - 1
+        except ValueError:
+            repeat_id = None
+
+        cur = pd.read_csv(summary_file)
+        if repeat_id is not None:
+            cur['RepeatId'] = repeat_id
+        cur['MutationProb'] = cur_MutationProb
+        cur['FitnessMean'] = cur_FitnessMean
+        cur['Confinement_global'] = cur_Confinement_global
+        cur['Confinement_local'] = cur_Confinement_local
+        data.append(cur)
+
+    if not data:
+        return None
+
+    return pd.concat(data).reset_index(drop=True)
 
 _plotting_params = {
     'WIDTH_FULL': 12,
@@ -129,10 +175,14 @@ def load_final_confinement_revisions(absolute=False, selection_fish=[]):
         for cur_FitnessMean in range_FitnessMean:
             for cur_Confinement_global in range_Confinement_global:
                 for cur_Confinement_local in range_Confinement_local:
-                    cur_file = f'{FINAL_RESULTS_DIR}/results_summary/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}.csv'
-                    if not os.path.exists(cur_file):
-                        continue
-                    cur = pd.read_csv(cur_file)
+                    cur_file = _get_summary_dir() / f'parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}.csv'
+                    if cur_file.exists() and cur_file.is_file():
+                        cur = pd.read_csv(cur_file)
+                    else:
+                        cur = _get_parameter_run_summaries(cur_MutationProb, cur_FitnessMean,
+                                                           cur_Confinement_global, cur_Confinement_local)
+                        if cur is None:
+                            continue
                     cur = cur.loc[cur['GenerationId'] == target_generation]
                     cur['fraction_alive_cells'] = cur['CellAliveCount'] / (cur['CellTotalCount'])
                     cur['fraction_necro'] = cur['CellNecroCount'] / (cur['CellTotalCount'])
@@ -157,7 +207,7 @@ def load_final_confinement_revisions_all(absolute=False, selection_fish=[]):
     confinement_data_fish = []
     lines = []
 
-    cur_dir = f'{FINAL_RESULTS_DIR}/results_summary'
+    cur_dir = _get_summary_dir()
     target_generation = 20
 
     columns = [
@@ -166,27 +216,63 @@ def load_final_confinement_revisions_all(absolute=False, selection_fish=[]):
 
     long_results = pd.DataFrame(columns=columns)
 
-    for f in [x for x in os.listdir(cur_dir) if x[:5]=='param']:
-        cur_file = os.path.join(cur_dir, f)
-        if not os.path.exists(cur_file):
-            continue
+    consolidated = [x for x in os.listdir(cur_dir) if x.startswith('parameter_range_') and x.endswith('.csv')]
 
-        cur_MutationProb = float(f.split('_')[2])
-        cur_FitnessMean = float(f.split('_')[3])
-        cur_Confinement_global = float(f.split('_')[4])
-        cur_Confinement_local = float(f.split('_')[5].replace('.csv', ''))
+    if consolidated:
+        for f in consolidated:
+            cur_file = cur_dir / f
+            if not cur_file.exists() or not cur_file.is_file():
+                continue
 
-        cur = pd.read_csv(cur_file)
-        cur = cur.loc[cur['GenerationId'] == target_generation]
-        cur['fraction_alive_cells'] = cur['CellAliveCount'] / (cur['CellTotalCount'])
-        cur['fraction_necro'] = cur['CellNecroCount'] / (cur['CellTotalCount'])
+            cur_MutationProb = float(f.split('_')[2])
+            cur_FitnessMean = float(f.split('_')[3])
+            cur_Confinement_global = float(f.split('_')[4])
+            cur_Confinement_local = float(f.split('_')[5].replace('.csv', ''))
 
-        cur['MutationProb'] = cur_MutationProb
-        cur['FitnessMean'] = cur_FitnessMean
-        cur['Confinement_global'] = cur_Confinement_global
-        cur['Confinement_local'] = cur_Confinement_local
+            cur = pd.read_csv(cur_file)
+            cur = cur.loc[cur['GenerationId'] == target_generation]
+            cur['fraction_alive_cells'] = cur['CellAliveCount'] / (cur['CellTotalCount'])
+            cur['fraction_necro'] = cur['CellNecroCount'] / (cur['CellTotalCount'])
 
-        long_results = pd.concat([long_results, cur[columns].reset_index(drop=True)]).reset_index(drop=True)
+            cur['MutationProb'] = cur_MutationProb
+            cur['FitnessMean'] = cur_FitnessMean
+            cur['Confinement_global'] = cur_Confinement_global
+            cur['Confinement_local'] = cur_Confinement_local
+
+            long_results = pd.concat([long_results, cur[columns].reset_index(drop=True)]).reset_index(drop=True)
+    else:
+        run_pattern = re.compile(
+            r'^parameter_range_(\d+\.\d+)_(\d+\.\d+)_(\d+\.\d+)_(\d+\.\d+)_(\d+)$'
+        )
+        run_dirs = [x for x in os.listdir(RESULTS_DIR) if run_pattern.match(x)]
+
+        for d in run_dirs:
+            m = run_pattern.match(d)
+            if m is None:
+                continue
+
+            cur_MutationProb = float(m.group(1))
+            cur_FitnessMean = float(m.group(2))
+            cur_Confinement_global = float(m.group(3))
+            cur_Confinement_local = float(m.group(4))
+            cur_RepeatId = int(m.group(5)) - 1
+
+            cur_file = RESULTS_DIR / d / 'summary.csv'
+            if not cur_file.is_file():
+                continue
+
+            cur = pd.read_csv(cur_file)
+            cur = cur.loc[cur['GenerationId'] == target_generation]
+            cur['fraction_alive_cells'] = cur['CellAliveCount'] / (cur['CellTotalCount'])
+            cur['fraction_necro'] = cur['CellNecroCount'] / (cur['CellTotalCount'])
+
+            cur['MutationProb'] = cur_MutationProb
+            cur['FitnessMean'] = cur_FitnessMean
+            cur['Confinement_global'] = cur_Confinement_global
+            cur['Confinement_local'] = cur_Confinement_local
+            cur['RepeatId'] = cur_RepeatId
+
+            long_results = pd.concat([long_results, cur[columns].reset_index(drop=True)]).reset_index(drop=True)
 
     return long_results, confinement_data_fish, lines
 
@@ -212,8 +298,16 @@ def load_final_metrics_over_time_revisions(cur_MutationProb=0.0001,
                                           ):
     
     target_generation = 20
-    cur_file = f'{FINAL_RESULTS_DIR}/results_summary/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}.csv'
-    fitness_comparison_df = pd.read_csv(cur_file)
+    cur_file = _get_summary_dir() / f'parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}.csv'
+    if cur_file.exists() and cur_file.is_file():
+        fitness_comparison_df = pd.read_csv(cur_file)
+    else:
+        fitness_comparison_df = _get_parameter_run_summaries(cur_MutationProb, cur_FitnessMean,
+                                                             cur_Confinement_global, cur_Confinement_local)
+        if fitness_comparison_df is None:
+            raise FileNotFoundError(
+                f'No summary data found for parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f} '
+                f'in {RESULTS_SUMMARY_DIR} or {RESULTS_DIR}.')
 
     brackets = "{", "}"
     for m, mr in zip(["clonal diversity", "mean drivers per cell"], ['ClonalDiversity', 'MeanDriversPerCell']):
@@ -226,10 +320,10 @@ def load_final_metrics_over_time_revisions(cur_MutationProb=0.0001,
 
 def load_single_fish_data(cur_MutationProb, cur_FitnessMean, cur_Confinement_global, cur_Confinement_local, r):
 
-    cur_folder = f'{RESULTS_DIR}/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}_{int(r)+1}'
+    cur_folder = RESULTS_DIR / f'parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}_{int(r)+1}'
 
-    populations_df = pd.read_csv(f'{cur_folder}/populations.csv')
-    parent_tree_df = pd.read_csv(f'{cur_folder}/parent_tree.csv')
+    populations_df = pd.read_csv(cur_folder / 'populations.csv')
+    parent_tree_df = pd.read_csv(cur_folder / 'parent_tree.csv')
     fish_data = process_data(populations_df, parent_tree_df, absolute=False, smooth=0)
 
     return fish_data
@@ -243,12 +337,12 @@ def load_final_fitness_revisions_all():
     target_generation = 20
     
     all_results = []
-    cur_dir = f'{FINAL_RESULTS_DIR}/results_summary'
+    cur_dir = _get_summary_dir()
 
-    for f in [x for x in os.listdir(cur_dir) if x[:10]=='fitness_pa']:
-        cur_file = os.path.join(cur_dir, f)
-        # if not os.path.exists(cur_file):
-        #     continue
+    for f in [x for x in os.listdir(cur_dir) if x.startswith('fitness_pa') and x.endswith('.csv')]:
+        cur_file = cur_dir / f
+        if not cur_file.exists() or not cur_file.is_file():
+            continue
 
         cur_FitnessDist = float(f.split('_')[3])
         cur_FitnessAcc = float(f.split('_')[4])

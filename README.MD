@@ -216,23 +216,26 @@ Run the following commands from the repository root:
 # 1) Activate environment
 conda activate smith
 
-# 2) Build simulation binary
+# 2) Ensure required packages are installed (R core + Biopython)
+conda install -c conda-forge r-base biopython
+
+# 3) Build simulation binary
 dotnet build SMITH.sln -c Release
 
-# 3) Fetch Noble et al. 2022 source data next to this repo (../ModesOfEvolution)
+# 4) Fetch Noble et al. 2022 source data next to this repo (../ModesOfEvolution)
 git clone https://github.com/robjohnnoble/ModesOfEvolution ../ModesOfEvolution
 
-# 4) Build real_data.csv used by the article notebook inputs
+# 5) Build real_data.csv used by the article notebook inputs
 Rscript article_figures/scripts/combine_real_data.R
 
-# 5) Generate missing large raw runs + rebuild article_figures/data/*.pkl
+# 6) Generate missing large raw runs + rebuild article_figures/data/*.pkl
 #    (results are written to article_figures/out/results)
 bash article_figures/scripts/generate_article_runs.sh --results-dir article_figures/out/results
 
-# 6) Rebuild plotting data directly (optional; already done by step 5 when --only is not used)
+# 7) Rebuild plotting data directly (optional; already done by step 6 when --only is not used)
 python article_figures/scripts/create_plotting_data_from_raw.py
 
-# 7) Execute notebooks to regenerate figures
+# 8) Execute notebooks to regenerate figures
 jupyter nbconvert --to notebook --execute article_figures/plots_methods.ipynb --output plots_methods.executed.ipynb
 jupyter nbconvert --to notebook --execute article_figures/create_figures.ipynb --output create_figures.executed.ipynb
 ```
