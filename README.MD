@@ -208,6 +208,37 @@ Most plotting data is provided in `article_figures/data` and was created from ra
 
 The exception are the plotting data for the fish plots and individual trajectories which were excluded due to size restrictions (>100MB). The raw fish data for these simulation runs can be generated using the smith config files found in `smith/article_figures/data/fish_plot_configs` and `smith/article_figures/data/trajectories_configs`.
 
+### Recreate article figures from repo root (bash)
+
+Run the following commands from the repository root:
+
+```bash
+# 1) Activate environment
+conda activate smith
+
+# 2) Build simulation binary
+dotnet build SMITH.sln -c Release
+
+# 3) Fetch Noble et al. 2022 source data next to this repo (../ModesOfEvolution)
+git clone https://github.com/robjohnnoble/ModesOfEvolution ../ModesOfEvolution
+
+# 4) Build real_data.csv used by the article notebook inputs
+Rscript article_figures/scripts/combine_real_data.R
+
+# 5) Generate missing large raw runs + rebuild article_figures/data/*.pkl
+#    (results are written to article_figures/out/results)
+bash article_figures/scripts/generate_article_runs.sh --results-dir article_figures/out/results
+
+# 6) Rebuild plotting data directly (optional; already done by step 5 when --only is not used)
+python article_figures/scripts/create_plotting_data_from_raw.py
+
+# 7) Execute notebooks to regenerate figures
+jupyter nbconvert --to notebook --execute article_figures/plots_methods.ipynb --output plots_methods.executed.ipynb
+jupyter nbconvert --to notebook --execute article_figures/create_figures.ipynb --output create_figures.executed.ipynb
+```
+
+Figure outputs are written by the notebook workflow into the `article_figures/figures` and `article_figures/final_figures` folders.
+
 **Noble et al. 2022:**
 Raw data was taken from [the Noble et al. 2022 GitHub repository](https://github.com/robjohnnoble/ModesOfEvolution).
 To create the `real_data.csv` run the script `smith/article_figures/scripts/combine_real_data.R`. Note that you have to see the variable `NOBLE_REPO_DIR` at the top of the script

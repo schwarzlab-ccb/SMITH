@@ -1,20 +1,21 @@
-# Run this script from article_figures/ to create the data files used for plotting.
-from plotting import *
-import os
-import sys
-import pickle
-import subprocess
+# %%
+# Run this script to create the data files used for plotting.
 
+import pickle
+import shutil
+from pathlib import Path
 import pandas as pd
 import Bio.Phylo
+
 from pyfish.core import *
+from plotting import *
 
-# Local scripts
-sys.path.append('scripts/')
+SCRIPT_DIR = Path(__file__).resolve().parent
+ARTICLE_FIGURES_DIR = SCRIPT_DIR.parent
+DATA_DIR = ARTICLE_FIGURES_DIR / 'data'
+RESULTS_DIR = ARTICLE_FIGURES_DIR / 'out' / 'results'
 
-
-RESULTS_DIR = '../out/results'
-
+# %%
 # Metrics over time
 cur_MutationProb = 1e-5
 cur_FitnessMean = 0.1
@@ -22,7 +23,7 @@ cur_FitnessMean = 0.1
 confinement_data_df, confinement_data_fish, confinement_lines = load_final_confinement_revisions_all()
 confinement_data_df['Sweep'] = confinement_data_df['ClonalDiversity'] < 1.5
 confinement_data_df = confinement_data_df.drop(['fraction_necro', 'fraction_alive_cells'], axis=1)
-confinement_data_df.to_pickle('data/main_data.pkl')
+confinement_data_df.to_pickle(DATA_DIR / 'main_data.pkl')
 all_metrics_over_time = dict()
 
 for global_conf, local_conf in zip([0, 0.5, 0, 0.5], [0, 0, 0.0625, 0.25]):
@@ -30,10 +31,11 @@ for global_conf, local_conf in zip([0, 0.5, 0, 0.5], [0, 0, 0.0625, 0.25]):
         cur_MutationProb, cur_FitnessMean, global_conf, local_conf)
     all_metrics_over_time[(global_conf, local_conf)] = metrics_over_time
 
-with open('data/metrics_over_time.pkl', 'wb') as f:
+with open(DATA_DIR / 'metrics_over_time.pkl', 'wb') as f:
     pickle.dump(all_metrics_over_time, f)
 
 
+# %%
 # Individual trajectories
 example_trajectories = {
     (0, 0): [0, 25, 97, 74.],
@@ -48,24 +50,24 @@ for cur_Confinement_global, cur_Confinement_local in zip(
     cur_samples = example_trajectories[(cur_Confinement_global, cur_Confinement_local)]
 
     for i, r in enumerate(cur_samples):
-        cur_folder = f'{RESULTS_DIR}/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}_{int(r)+1}'
-        full_population = pd.read_csv(f'{cur_folder}/populations.csv')
-        parent_tree_df = pd.read_csv(f'{cur_folder}/parent_tree.csv')
+        cur_folder = RESULTS_DIR / f'parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}_{int(r)+1}'
+        full_population = pd.read_csv(cur_folder / 'populations.csv')
+        parent_tree_df = pd.read_csv(cur_folder / 'parent_tree.csv')
         fish_data = process_data(full_population, parent_tree_df, absolute=False, smooth=0)
         population_df = fish_data[0].groupby('Id').sum()
 
         trajectories[(cur_Confinement_global, cur_Confinement_local, i)
                      ] = (full_population, population_df)
 
-        subprocess.run(
-            ['cp',
-             f'{RESULTS_DIR}/parameter_range_{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}_{int(r)+1}/sim_params.json',
-             f'data/trajectories_configs/{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}_{int(r)+1}_sim_params.json'])
+        shutil.copy2(
+            cur_folder / 'sim_params.json',
+            DATA_DIR / 'trajectories_configs' / f'{cur_MutationProb:.6f}_{cur_FitnessMean:.6f}_{cur_Confinement_global:.6f}_{cur_Confinement_local:.6f}_{int(r)+1}_sim_params.json')
 
-with open('data/trajectories.pkl', 'wb') as f:
+with open(DATA_DIR / 'trajectories.pkl', 'wb') as f:
     pickle.dump(trajectories, f)
 
 
+# %%
 # Fitness distribution and accumulation data
 selection_confinement_global = [0, 0.0625, 0.125, 0.25, 0.5, 1]
 selection_confinement_local = [0, 0.0625, 0.125, 0.25]
@@ -89,10 +91,11 @@ fitness_acc_data = fitness_acc_data.loc[(fitness_acc_data['MutationProb'] == 1e-
 fitness_acc_data['FitnessAcc'] = fitness_acc_data['FitnessAcc'].apply(
     lambda x: {'ETH': 'Asy'}.get(x, x))
 
-fitness_dist_data.to_pickle('data/fitness_dist_data.pkl')
-fitness_acc_data.to_pickle('data/fitness_acc_data.pkl')
+fitness_dist_data.to_pickle(DATA_DIR / 'fitness_dist_data.pkl')
+fitness_acc_data.to_pickle(DATA_DIR / 'fitness_acc_data.pkl')
 
 
+# %%
 # Most representative runs per confinement combination
 cur_MutationProb = 1e-5
 cur_FitnessMean = 0.1
@@ -121,9 +124,10 @@ most_representative_runs = pd.DataFrame(((confinement_data_df_grouped - confinem
 
 most_representative_runs['MutationProb'] = cur_MutationProb
 most_representative_runs['FitnessMean'] = cur_FitnessMean
-most_representative_runs.to_pickle('data/most_representative_runs.pkl')
+most_representative_runs.to_pickle(DATA_DIR / 'most_representative_runs.pkl')
 
 
+# %%
 # Fish plot data
 fish_plot_data = dict()
 cur_selection_confinement_global = [0, 0.0625, 0.125, 0.5, 1, 2]
@@ -136,15 +140,16 @@ for cur_Confinement_global in cur_selection_confinement_global:
         fish_plot_data[(row['Confinement_global'], row['Confinement_local'])] = load_single_fish_data(
             *row[['MutationProb', 'FitnessMean', 'Confinement_global', 'Confinement_local', 'RepeatId']].values)
 
-        subprocess.run(
-            ['cp',
-             f'{RESULTS_DIR}/parameter_range_{row["MutationProb"]:.6f}_{row["FitnessMean"]:.6f}_{row["Confinement_global"]:.6f}_{row["Confinement_local"]:.6f}_{int(row["RepeatId"])+1}/sim_params.json',
-             f'data/fish_plot_configs//{row["MutationProb"]:.6f}_{row["FitnessMean"]:.6f}_{row["Confinement_global"]:.6f}_{row["Confinement_local"]:.6f}_{int(row["RepeatId"])+1}_sim_params.json'])
+        fish_config_folder = RESULTS_DIR / f'parameter_range_{row["MutationProb"]:.6f}_{row["FitnessMean"]:.6f}_{row["Confinement_global"]:.6f}_{row["Confinement_local"]:.6f}_{int(row["RepeatId"])+1}'
+        shutil.copy2(
+            fish_config_folder / 'sim_params.json',
+            DATA_DIR / 'fish_plot_configs' / f'{row["MutationProb"]:.6f}_{row["FitnessMean"]:.6f}_{row["Confinement_global"]:.6f}_{row["Confinement_local"]:.6f}_{int(row["RepeatId"])+1}_sim_params.json')
 
-with open('data/fish_plot_data.pkl', 'wb') as f:
+with open(DATA_DIR / 'fish_plot_data.pkl', 'wb') as f:
     pickle.dump(fish_plot_data, f)
 
 
+# %%
 # Tree data
 tree_data = dict()
 cur_selection_confinement_global = [0, 0.5, 0, 1, 0.5, 2]
@@ -152,9 +157,9 @@ cur_selection_confinement_local = [0, 0, 0.0625, 0.25, 0.125, 0.125]
 for cur_Confinement_global, cur_Confinement_local in zip(cur_selection_confinement_global, cur_selection_confinement_local):
     row = most_representative_runs.loc[(most_representative_runs['Confinement_global'] == cur_Confinement_global) & (
         most_representative_runs['Confinement_local'] == cur_Confinement_local)].iloc[0]
-    cur_folder = f"{RESULTS_DIR}/parameter_range_{row['MutationProb']:.6f}_{row['FitnessMean']:.6f}_{row['Confinement_global']:.6f}_{row['Confinement_local']:.6f}_{int(row['RepeatId'])+1}"
+    cur_folder = RESULTS_DIR / f"parameter_range_{row['MutationProb']:.6f}_{row['FitnessMean']:.6f}_{row['Confinement_global']:.6f}_{row['Confinement_local']:.6f}_{int(row['RepeatId'])+1}"
     # make sure to convert to newick format first using smith/scripts/dot_to_newick.py
-    tree = Bio.Phylo.read(os.path.join(cur_folder, 'bin_tree.new'), 'newick')
+    tree = Bio.Phylo.read(cur_folder / 'bin_tree.new', 'newick')
     normal_name = [x.name for x in tree.get_terminals() if x.name.split('-')[0] == '0'][0]
     tree.root_with_outgroup(normal_name)
 
@@ -166,21 +171,22 @@ for cur_Confinement_global, cur_Confinement_local in zip(cur_selection_confineme
 
     tree_data[(row['Confinement_global'], row['Confinement_local'])] = tree
 
-with open('data/tree_data.pkl', 'wb') as f:
+with open(DATA_DIR / 'tree_data.pkl', 'wb') as f:
     pickle.dump(tree_data, f)
 
 
+# %%
 # Noble et al. 2022 (real and similated data)
-NOBLE_REPO_DIR = '../../ModesOfEvolution'
-real_data = pd.read_csv(f"{NOBLE_REPO_DIR}/real_data.csv", index_col=0)
+NOBLE_REPO_DIR = ARTICLE_FIGURES_DIR.parent.parent / 'ModesOfEvolution'
+real_data = pd.read_csv(NOBLE_REPO_DIR / 'real_data.csv', index_col=0)
 
 real_data['type'] = 'solid'
 real_data.loc[real_data['dataset'] == 'AML', 'type'] = 'non-spatial'
 real_data = real_data.loc[real_data['minimal'] == 0]
 real_data = real_data[['dataset', 'n', 'D']]
 
-noble_data_for_metric_plots = pd.read_csv(f"{NOBLE_REPO_DIR}/dataForMetricPlots.csv")
-noble_combined_cases = pd.read_csv(f"{NOBLE_REPO_DIR}/DivMutation_Allcombined_cases.csv", sep=" ")
+noble_data_for_metric_plots = pd.read_csv(NOBLE_REPO_DIR / 'dataForMetricPlots.csv')
+noble_combined_cases = pd.read_csv(NOBLE_REPO_DIR / 'DivMutation_Allcombined_cases.csv', sep=" ")
 
 noble_data_for_metric_plots['label'] = 'invasive_glandular'
 noble_data_for_metric_plots['Drivers'] += 1
@@ -194,5 +200,5 @@ noble_combined = pd.concat([noble_data_for_metric_plots,
                            noble_combined_cases.loc[noble_combined_cases['label'] == 'non-spatial']])
 noble_combined['Sweep'] = noble_combined['DriverDiversity'] < 1.5
 
-real_data.to_pickle('data/noble_2022_real_data.pkl')
-noble_combined.to_pickle('data/noble_2022_simulations.pkl')
+real_data.to_pickle(DATA_DIR / 'noble_2022_real_data.pkl')
+noble_combined.to_pickle(DATA_DIR / 'noble_2022_simulations.pkl')
