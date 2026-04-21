@@ -136,34 +136,81 @@ public static class TreeBuilder
         return root;
     }
 
+    public static TreeNode CloneTree(TreeNode tree)
+    {
+        var copy = new TreeNode(tree.Id, tree.Size, tree.Label);
+        foreach (var (child, distance) in tree.Children)
+        {
+            copy.Children.Add((CloneTree(child), distance));
+        }
+
+        return copy;
+    }
+
+    private static int AppearanceOrder(Dictionary<int, int> firstGen, int cloneId)
+        => firstGen.TryGetValue(cloneId, out int value) ? value : int.MaxValue;
+
+    private static int FindMaxNodeId(TreeNode tree)
+    {
+        int maxId = tree.Id;
+        foreach (var (child, _) in tree.Children)
+        {
+            maxId = Math.Max(maxId, FindMaxNodeId(child));
+        }
+
+        return maxId;
+    }
+
+    private static int ConvertToBifrucatingNodes(Dictionary<int, int> firstGen, TreeNode tree, int nextFreeId)
+    {
+        if (tree.Children.Count > 1)
+        {
+            var orderedChildren = tree.Children
+                .OrderBy(c => AppearanceOrder(firstGen, c.child.Id))
+                .ThenBy(c => c.child.Id)
+                .ToList();
+
+            if (orderedChildren.Count > 2)
+            {
+                // Convert multifurcation into a chain: (child:1, self:0) in appearance order.
+                TreeNode chainNode = tree;
+                for (int i = 0; i < orderedChildren.Count; i++)
+                {
+                    var child = orderedChildren[i].child;
+                    bool isLast = i == orderedChildren.Count - 1;
+                    if (isLast)
+                    {
+                        chainNode.Children = new List<(TreeNode child, int distance)> { (child, 1) };
+                        break;
+                    }
+
+                    var selfNode = new TreeNode(nextFreeId++, 0, tree.Label);
+                    chainNode.Children = new List<(TreeNode child, int distance)> { (child, 1), (selfNode, 0) };
+                    chainNode = selfNode;
+                }
+            }
+            else
+            {
+                tree.Children = orderedChildren;
+            }
+        }
+
+        foreach (var (child, _) in tree.Children)
+        {
+            nextFreeId = ConvertToBifrucatingNodes(firstGen, child, nextFreeId);
+        }
+
+        return nextFreeId;
+    }
+
+    public static void ConvertToBifrucatingNodes(Dictionary<int, int> firstGen, TreeNode tree)
+    {
+        int nextFreeId = FindMaxNodeId(tree) + 1;
+        ConvertToBifrucatingNodes(firstGen, tree, nextFreeId);
+    }
+
     public static int ConvertToBinaryNodes(Dictionary<int, int> firstGen, TreeNode tree, int minFreeId)
     {
-        // Keep LCA if empty
-        if (tree.Children.Count == 2 && tree.Size == 0)
-        {
-            minFreeId = ConvertToBinaryNodes(firstGen, tree.Children[0].child, minFreeId + 1);
-            minFreeId = ConvertToBinaryNodes(firstGen, tree.Children[1].child, minFreeId + 1);
-        }
-        // Split the self and add oldest child
-        else if (tree.Children.Count > 1)
-        {
-            tree.Children.Sort((c, d) => firstGen[c.child.Id]);
-            var firstChild = tree.Children[0];
-            var restChildren = tree.Children.Skip(1).ToList();
-            var copy = new TreeNode(minFreeId, 0)
-            {
-                Label = tree.Label,
-                Children = restChildren
-            };
-            tree.Children = new List<(TreeNode child, int dist)> { (firstChild.child, firstChild.distance), (copy, 0) };
-            minFreeId = ConvertToBinaryNodes(firstGen, tree.Children[0].child, minFreeId + 1);
-            minFreeId = ConvertToBinaryNodes(firstGen, tree.Children[1].child, minFreeId + 1);
-        }
-        // Continue the traversal
-        else if (tree.Children.Count == 1)
-        {
-            minFreeId = ConvertToBinaryNodes(firstGen, tree.Children[0].child, minFreeId + 1);
-        }
-        return minFreeId;
+        return ConvertToBifrucatingNodes(firstGen, tree, minFreeId);
     }
 }

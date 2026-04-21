@@ -15,4 +15,8 @@ public class CmdOptions
     [Option('N', Required = false, Default = false,
         HelpText = "Use newline in logs (useful for batch execution)")]
     public bool Newline { get; set; }
+
+    [Option('B', "bifrucating", Required = false, Default = false,
+        HelpText = "Keep clone_tree and additionally write bifrucating bin_tree outputs.")]
+    public bool Bifrucating { get; set; }
 }

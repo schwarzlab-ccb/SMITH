@@ -11,13 +11,15 @@ public class SimulationRunner
     private readonly FileIO _files;
     private readonly Random _random;
     private readonly bool _logNewline;
+    private readonly bool _bifrucating;
 
-    public SimulationRunner(SimParams simParams, FileIO files, Random random, bool logNewline)
+    public SimulationRunner(SimParams simParams, FileIO files, Random random, bool logNewline, bool bifrucating)
     {
         _simParams = simParams;
         _files = files;
         _random = random;
         _logNewline = logNewline;
+        _bifrucating = bifrucating;
     }
 
     public void RunAll()
@@ -104,7 +106,8 @@ public class SimulationRunner
                         _simParams,
                         popStates,
                         repeatId,
-                        tryNo);
+                        tryNo,
+                        _bifrucating);
                 }
             }
         } while (compState == ComputeState.Running);

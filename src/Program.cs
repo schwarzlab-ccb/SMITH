@@ -39,7 +39,7 @@ catch (Exception e)
 
 try
 {
-    var runner = new SimulationRunner(simParams, files, random, options.Newline);
+    var runner = new SimulationRunner(simParams, files, random, options.Newline, options.Bifrucating);
     runner.RunAll();
 }
 catch (Exception e)
