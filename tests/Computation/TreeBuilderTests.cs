@@ -27,23 +27,31 @@ public class TreeBuilderTests
             [3] = 20
         };
 
+        TreeBuilder.LabelTreeNodesWithAppearance(firstGen, root);
         TreeBuilder.ConvertToBifrucatingNodes(firstGen, root);
+
+        Assert.Equal("0-0", root.Label);
 
         Assert.Equal(2, root.Children.Count);
         Assert.Equal(2, root.Children[0].child.Id);
         Assert.Equal(1, root.Children[0].distance);
+        Assert.Equal("2-10", root.Children[0].child.Label);
         Assert.Equal(0, root.Children[1].distance);
 
         var self1 = root.Children[1].child;
+        Assert.Equal("0-0", self1.Label);
         Assert.Equal(2, self1.Children.Count);
         Assert.Equal(3, self1.Children[0].child.Id);
         Assert.Equal(1, self1.Children[0].distance);
+        Assert.Equal("3-20", self1.Children[0].child.Label);
         Assert.Equal(0, self1.Children[1].distance);
 
         var self2 = self1.Children[1].child;
+        Assert.Equal("0-0", self2.Label);
         Assert.Single(self2.Children);
         Assert.Equal(1, self2.Children[0].child.Id);
         Assert.Equal(1, self2.Children[0].distance);
+        Assert.Equal("1-30", self2.Children[0].child.Label);
     }
 }
 

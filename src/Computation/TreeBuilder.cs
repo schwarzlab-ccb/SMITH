@@ -150,6 +150,25 @@ public static class TreeBuilder
     private static int AppearanceOrder(Dictionary<int, int> firstGen, int cloneId)
         => firstGen.TryGetValue(cloneId, out int value) ? value : int.MaxValue;
 
+    private static int AppearanceStep(Dictionary<int, int> firstGen, int cloneId)
+    {
+        if (cloneId == 0)
+        {
+            return 0;
+        }
+
+        return firstGen.TryGetValue(cloneId, out int value) ? value : 0;
+    }
+
+    public static void LabelTreeNodesWithAppearance(Dictionary<int, int> firstGen, TreeNode tree)
+    {
+        tree.Label = $"{tree.Id}-{AppearanceStep(firstGen, tree.Id)}";
+        foreach (var (child, _) in tree.Children)
+        {
+            LabelTreeNodesWithAppearance(firstGen, child);
+        }
+    }
+
     private static int FindMaxNodeId(TreeNode tree)
     {
         int maxId = tree.Id;
