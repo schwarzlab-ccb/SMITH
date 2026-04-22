@@ -19,9 +19,8 @@ public static class SimulationResultOutput
 
         if (bifrucating)
         {
-            var firstGen = TreeBuilder.CountFirstGent(simulator.Clones);
+            var firstGen = TreeBuilder.CountFirstGent(sample);
             var binTree = TreeBuilder.CloneTree(tree);
-            TreeBuilder.LabelTreeNodesWithAppearance(firstGen, binTree);
             TreeBuilder.ConvertToBifrucatingNodes(firstGen, binTree);
             files.WriteBinDotTree(binTree);
             files.WriteBinNewickTree(binTree);
