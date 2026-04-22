@@ -1,16 +1,4 @@
 # %%
-def _enable_ipython_autoreload():
-    try:
-        from IPython import get_ipython
-        ip = get_ipython()
-        if ip is not None:
-            ip.run_line_magic('load_ext', 'autoreload')
-            ip.run_line_magic('autoreload', '2')
-    except Exception:
-        pass
-
-_enable_ipython_autoreload()
-
 import pickle
 import shutil
 from pathlib import Path
@@ -23,7 +11,13 @@ from plotting import *
 
 # %%
 
-SCRIPT_DIR = Path(__file__).resolve().parent
+# Handle both script and interactive execution
+try:
+    SCRIPT_DIR = Path(__file__).resolve().parent
+except NameError:
+    # Running in interactive environment (Jupyter/IPython)
+    SCRIPT_DIR = Path.cwd()
+
 ARTICLE_FIGURES_DIR = SCRIPT_DIR.parent
 REPO_ROOT = ARTICLE_FIGURES_DIR.parent
 DATA_DIR = ARTICLE_FIGURES_DIR / 'data'
