@@ -16,6 +16,11 @@ article_figures/data/trajectories.pkl
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
+# Nextflow
+.nextflow/
+.nextflow.log*
+work/
+
 # IPython
 profile_default/
 ipython_config.py

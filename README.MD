@@ -242,10 +242,10 @@ Rscript article_figures/scripts/combine_real_data.R
 
 # 6) Generate missing large raw runs + rebuild article_figures/data/*.pkl
 #    (results are written to article_figures/out/results)
-bash article_figures/scripts/generate_article_runs.sh --results-dir article_figures/out/results
+nextflow run article_figures --results_dir article_figures/out/results
 
 # 7) Rebuild plotting data directly (optional; already done by step 6 when --only is not used)
-python article_figures/scripts/create_plotting_data_from_raw.py
+STRECK_RESULTS_DIR=article_figures/out/results python article_figures/scripts/create_plotting_data_from_raw.py
 
 # 8) Execute notebooks to regenerate figures
 jupyter nbconvert --to notebook --execute article_figures/plots_methods.ipynb --output plots_methods.executed.ipynb

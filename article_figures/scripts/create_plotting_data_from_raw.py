@@ -21,7 +21,7 @@ except NameError:
 ARTICLE_FIGURES_DIR = SCRIPT_DIR.parent
 REPO_ROOT = ARTICLE_FIGURES_DIR.parent
 DATA_DIR = ARTICLE_FIGURES_DIR / 'data'
-RESULTS_DIR = REPO_ROOT / 'out' / 'results'
+RESULTS_DIR = Path(os.environ.get('STRECK_RESULTS_DIR', str(REPO_ROOT / 'out' / 'results'))).resolve()
 
 # %%
 # Metrics over time
