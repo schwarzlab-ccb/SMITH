@@ -93,8 +93,14 @@ public class SimulationRunnerRegressionTests
 
             Assert.True(File.Exists(Path.Combine(outDir, "bin_tree.dot")));
             Assert.True(File.Exists(Path.Combine(outDir, "bin_tree.new")));
-            Assert.NotEmpty(File.ReadAllText(Path.Combine(outDir, "bin_tree.dot")));
-            Assert.NotEmpty(File.ReadAllText(Path.Combine(outDir, "bin_tree.new")));
+
+            string binDot = File.ReadAllText(Path.Combine(outDir, "bin_tree.dot"));
+            string binNewick = File.ReadAllText(Path.Combine(outDir, "bin_tree.new"));
+            Assert.NotEmpty(binDot);
+            Assert.NotEmpty(binNewick);
+
+            Assert.Matches("label=\"-?\\d+-\\d+\"", binDot);
+            Assert.Matches("-?\\d+-\\d+;", binNewick);
         }
         finally
         {

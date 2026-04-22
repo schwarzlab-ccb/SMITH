@@ -174,10 +174,22 @@ Columns:
 #### `clone_tree.dot`
 
 An evolutionary tree with mutation distances and population sizes between the individual subclones. The graph is written in the [DOT format](https://graphviz.org/doc/info/lang.html).
+Node labels are written as `[cloneid]-[population_size]`.
 
 #### `clone_tree.new`
 
 Same as `clone_tree.dot`, but in the [Newick format](https://en.wikipedia.org/wiki/Newick_format)
+with node labels written as `[cloneid]-[population_size]`.
+
+#### `bin_tree.dot`
+
+Binary (bifurcating) version of the clone tree in DOT format. Generated when bifurcating output is enabled.
+Node labels are written as `[cloneid]-[population_size]`.
+
+#### `bin_tree.new`
+
+Binary (bifurcating) version of the clone tree in Newick format. Generated when bifurcating output is enabled.
+Node labels are written as `[cloneid]-[population_size]`.
 
 #### `sim_params.json` 
 

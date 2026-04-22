@@ -27,8 +27,8 @@ internal static class TestHelper
         Assert.True(File.Exists(expectedPath), $"Expected fixture file does not exist: {expectedPath}");
         Assert.True(File.Exists(actualPath), $"Expected output file does not exist: {actualPath}");
 
-        string expected = File.ReadAllText(expectedPath).Replace("\r\n", "\n");
-        string actual = File.ReadAllText(actualPath).Replace("\r\n", "\n");
+        string expected = File.ReadAllText(expectedPath).Replace("\r\n", "\n").TrimEnd();
+        string actual = File.ReadAllText(actualPath).Replace("\r\n", "\n").TrimEnd();
         Assert.Equal(expected, actual);
     }
 

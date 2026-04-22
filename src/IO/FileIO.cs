@@ -17,6 +17,9 @@ public class FileIO
     private const string SIM_PARAMS_FILENAME = "sim_params.json";
     private const string SUMMARY_FILENAME = "summary.csv";
 
+    private static string FormatNodeLabel(int id, long size)
+        => $"{id}-{size}";
+
     public FileIO(string rootFolder, bool isRepeated)
     {
         Timestamp = DateTime.Now.ToString("yy_MM_dd_HH_mm_ss");
@@ -80,7 +83,7 @@ public class FileIO
         foreach (var node in tree.Nodes)
         {
             double size = Math.Round(.25 * (1 + Math.Log(1 + node.Size)), 2);
-            outputFile.WriteLine($"\t{node.Id} [label=\"{node.Id}:{node.Size}\", width={size}, height={size * .6}];");
+            outputFile.WriteLine($"\t{node.Id} [label=\"{FormatNodeLabel(node.Id, node.Size)}\", width={size}, height={size * .6}];");
         }
 
         foreach (var edge in tree.Edges)
@@ -94,7 +97,7 @@ public class FileIO
     private static void WriteDotNode(TreeNode node, StreamWriter outputFile)
     {
         double size = Math.Round(.25 * (1 + Math.Log(1 + node.Size)), 2);
-        outputFile.WriteLine($"\t{node.Id} [label=\"{node.Label}:{node.Size}\", width={size}, height={size * .6}];");
+        outputFile.WriteLine($"\t{node.Id} [label=\"{FormatNodeLabel(node.Id, node.Size)}\", width={size}, height={size * .6}];");
         foreach (var (child, distance) in node.Children)
         {
             WriteDotNode(child, outputFile);
@@ -133,7 +136,7 @@ public class FileIO
             }
             writer.Write(")");
         }
-        writer.Write(node.Label);
+        writer.Write(FormatNodeLabel(node.Id, node.Size));
     }
     
     private void WriteNewickTree(TreeNode treeNode, string fileName)
