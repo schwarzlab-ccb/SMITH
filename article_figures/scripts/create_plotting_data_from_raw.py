@@ -180,22 +180,25 @@ with open(DATA_DIR / 'fish_plot_data.pkl', 'wb') as f:
 tree_data = dict()
 cur_selection_confinement_global = [0, 0.5, 0, 1, 0.5, 2]
 cur_selection_confinement_local = [0, 0, 0.0625, 0.25, 0.125, 0.125]
-for cur_Confinement_global, cur_Confinement_local in zip(cur_selection_confinement_global, cur_selection_confinement_local):
-    row = most_representative_runs.loc[(most_representative_runs['Confinement_global'] == cur_Confinement_global) & (
-        most_representative_runs['Confinement_local'] == cur_Confinement_local)].iloc[0]
-    cur_folder = RESULTS_DIR / f"parameter_range_{row['MutationProb']:.6f}_{row['FitnessMean']:.6f}_{row['Confinement_global']:.6f}_{row['Confinement_local']:.6f}_{int(row['RepeatId'])+1}"
-    # make sure to convert to newick format first using smith/scripts/dot_to_newick.py
-    tree = Bio.Phylo.read(cur_folder / 'bin_tree.new', 'newick')
-    normal_name = [x.name for x in tree.get_terminals() if x.name.split('-')[0] == '0'][0]
-    tree.root_with_outgroup(normal_name)
+try:
+    for cur_Confinement_global, cur_Confinement_local in zip(cur_selection_confinement_global, cur_selection_confinement_local):
+        row = most_representative_runs.loc[(most_representative_runs['Confinement_global'] == cur_Confinement_global) & (
+            most_representative_runs['Confinement_local'] == cur_Confinement_local)].iloc[0]
+        cur_folder = RESULTS_DIR / f"parameter_range_{row['MutationProb']:.6f}_{row['FitnessMean']:.6f}_{row['Confinement_global']:.6f}_{row['Confinement_local']:.6f}_{int(row['RepeatId'])+1}"
+        tree = Bio.Phylo.read(cur_folder / 'bin_tree.new', 'newick')
+        normal_name = [x.name for x in tree.get_terminals() if x.name.split('-')[0] == '0'][0]
+        tree.root_with_outgroup(normal_name)
 
-    for clade in tree.get_nonterminals():
-        if clade.name is not None and int(clade.name.split('-')[0]) not in fish_plot_data[(row['Confinement_global'], row['Confinement_local'])][0].index:
-            ancestor = tree.get_path(clade)[-2]
-            ancestor.clades.remove(clade)
-            ancestor.clades.extend(clade.clades)
+        for clade in tree.get_nonterminals():
+            if clade.name is not None and int(clade.name.split('-')[0]) not in fish_plot_data[(row['Confinement_global'], row['Confinement_local'])][0].index:
+                ancestor = tree.get_path(clade)[-2]
+                ancestor.clades.remove(clade)
+                ancestor.clades.extend(clade.clades)
 
-    tree_data[(row['Confinement_global'], row['Confinement_local'])] = tree
+        tree_data[(row['Confinement_global'], row['Confinement_local'])] = tree
+except FileNotFoundError:
+    with open(DATA_DIR / 'tree_data.pkl', 'rb') as f:
+        tree_data = pickle.load(f)
 
 with open(DATA_DIR / 'tree_data.pkl', 'wb') as f:
     pickle.dump(tree_data, f)
@@ -204,27 +207,31 @@ with open(DATA_DIR / 'tree_data.pkl', 'wb') as f:
 # %%
 # Noble et al. 2022 (real and similated data)
 NOBLE_REPO_DIR = ARTICLE_FIGURES_DIR.parent.parent / 'ModesOfEvolution'
-real_data = pd.read_csv(NOBLE_REPO_DIR / 'real_data.csv', index_col=0)
+try:
+    real_data = pd.read_csv(NOBLE_REPO_DIR / 'real_data.csv', index_col=0)
 
-real_data['type'] = 'solid'
-real_data.loc[real_data['dataset'] == 'AML', 'type'] = 'non-spatial'
-real_data = real_data.loc[real_data['minimal'] == 0]
-real_data = real_data[['dataset', 'n', 'D']]
+    real_data['type'] = 'solid'
+    real_data.loc[real_data['dataset'] == 'AML', 'type'] = 'non-spatial'
+    real_data = real_data.loc[real_data['minimal'] == 0]
+    real_data = real_data[['dataset', 'n', 'D']]
 
-noble_data_for_metric_plots = pd.read_csv(NOBLE_REPO_DIR / 'dataForMetricPlots.csv')
-noble_combined_cases = pd.read_csv(NOBLE_REPO_DIR / 'DivMutation_Allcombined_cases.csv', sep=" ")
+    noble_data_for_metric_plots = pd.read_csv(NOBLE_REPO_DIR / 'dataForMetricPlots.csv')
+    noble_combined_cases = pd.read_csv(NOBLE_REPO_DIR / 'DivMutation_Allcombined_cases.csv', sep=" ")
 
-noble_data_for_metric_plots['label'] = 'invasive_glandular'
-noble_data_for_metric_plots['Drivers'] += 1
-noble_combined_cases['Drivers'] += 1
-case_dict = {"caseA": "non-spatial", "caseB": "gland fission", "caseC": "invasive glandular",
-             "caseD_new": "boundary growth", "neutral": "neutral"}
-noble_combined_cases['label'] = noble_combined_cases['case'].map(case_dict)
-noble_combined_cases['DriverDiversity'] = noble_combined_cases['Diversity']
+    noble_data_for_metric_plots['label'] = 'invasive_glandular'
+    noble_data_for_metric_plots['Drivers'] += 1
+    noble_combined_cases['Drivers'] += 1
+    case_dict = {"caseA": "non-spatial", "caseB": "gland fission", "caseC": "invasive glandular",
+                 "caseD_new": "boundary growth", "neutral": "neutral"}
+    noble_combined_cases['label'] = noble_combined_cases['case'].map(case_dict)
+    noble_combined_cases['DriverDiversity'] = noble_combined_cases['Diversity']
 
-noble_combined = pd.concat([noble_data_for_metric_plots,
-                           noble_combined_cases.loc[noble_combined_cases['label'] == 'non-spatial']])
-noble_combined['Sweep'] = noble_combined['DriverDiversity'] < 1.5
+    noble_combined = pd.concat([noble_data_for_metric_plots,
+                               noble_combined_cases.loc[noble_combined_cases['label'] == 'non-spatial']])
+    noble_combined['Sweep'] = noble_combined['DriverDiversity'] < 1.5
+except FileNotFoundError:
+    real_data = pd.read_pickle(DATA_DIR / 'noble_2022_real_data.pkl')
+    noble_combined = pd.read_pickle(DATA_DIR / 'noble_2022_simulations.pkl')
 
 real_data.to_pickle(DATA_DIR / 'noble_2022_real_data.pkl')
 noble_combined.to_pickle(DATA_DIR / 'noble_2022_simulations.pkl')

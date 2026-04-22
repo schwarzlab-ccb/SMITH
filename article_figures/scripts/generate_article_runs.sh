@@ -12,6 +12,8 @@ RESULTS_DIR="$REPO_ROOT/out/results"
 ONLY="all"
 FORCE=0
 SKIP_SIM=0
+PYTHON_CMD=(python)
+DOTNET_CMD=(dotnet)
 
 usage() {
     cat <<EOF
@@ -75,14 +77,42 @@ if [[ ! -d "$FISH_CFG_DIR" || ! -d "$TRAJ_CFG_DIR" ]]; then
     exit 1
 fi
 
-if ! command -v python >/dev/null 2>&1; then
-    echo "python is required but was not found in PATH." >&2
+if ! command -v python >/dev/null 2>&1 && ! command -v conda >/dev/null 2>&1; then
+    echo "Neither python nor conda was found in PATH." >&2
     exit 1
 fi
 
-if [[ "$SKIP_SIM" -eq 0 ]] && ! command -v dotnet >/dev/null 2>&1; then
-    echo "dotnet is required to run simulations but was not found in PATH." >&2
-    exit 1
+if ! "${PYTHON_CMD[@]}" -c "import pyfish.core" >/dev/null 2>&1; then
+    if command -v conda >/dev/null 2>&1 && conda run -n smith python -c "import pyfish.core" >/dev/null 2>&1; then
+        PYTHON_CMD=(conda run -n smith python)
+        echo "Using conda env 'smith' for Python (pyfish)."
+    else
+        echo "pyfish could not be imported. Install dependencies with:" >&2
+        echo "  conda env create --file SMITH.yml && conda activate smith" >&2
+        echo "or ensure the current Python can import pyfish.core." >&2
+        exit 1
+    fi
+fi
+
+if [[ "$SKIP_SIM" -eq 0 ]]; then
+    dotnet_major=0
+    if command -v dotnet >/dev/null 2>&1; then
+        dotnet_version="$(dotnet --version 2>/dev/null || true)"
+        if [[ "$dotnet_version" =~ ^([0-9]+)\. ]]; then
+            dotnet_major="${BASH_REMATCH[1]}"
+        fi
+    fi
+
+    if [[ "$dotnet_major" -lt 10 ]]; then
+        if command -v conda >/dev/null 2>&1 && conda run -n smith dotnet --version >/dev/null 2>&1; then
+            DOTNET_CMD=(conda run -n smith dotnet)
+            echo "Using conda env 'smith' for dotnet (requires .NET 10)."
+        else
+            echo "dotnet >= 10 is required to run simulations." >&2
+            echo "Install dependencies with: conda env create --file SMITH.yml" >&2
+            exit 1
+        fi
+    fi
 fi
 
 mkdir -p "$RESULTS_DIR"
@@ -113,7 +143,7 @@ run_config_dir() {
 
         mkdir -p "$out_dir"
         echo "[run ] $name"
-        dotnet run --project "$REPO_ROOT/SMITH.csproj" -- -C "$cfg" -O "$out_dir" -N
+        "${DOTNET_CMD[@]}" run --project "$REPO_ROOT/SMITH.csproj" -- -C "$cfg" -O "$out_dir" -N
     done
 }
 
@@ -139,7 +169,7 @@ fi
 
 (
     cd "$REPO_ROOT/article_figures"
-    python "scripts/create_plotting_data_from_raw.py"
+    "${PYTHON_CMD[@]}" "scripts/create_plotting_data_from_raw.py"
 )
 
 echo "Done."
