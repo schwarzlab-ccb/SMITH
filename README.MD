@@ -220,6 +220,32 @@ Most plotting data is provided in `article_figures/data` and was created from ra
 
 The exception are the plotting data for the fish plots and individual trajectories which were excluded due to size restrictions (>100MB). The raw fish data for these simulation runs can be generated using the smith config files found in `smith/article_figures/data/fish_plot_configs` and `smith/article_figures/data/trajectories_configs`.
 
+### Nextflow simulation workflow (`article_figures/main.nf`)
+
+The workflow is invoked via `nextflow run article_figures` and drives all simulation steps needed for the article. It exposes two named sub-workflows selected with the `--only` flag:
+
+| `--only` value | Workflow | Description |
+|---|---|---|
+| `fish` | `REPRESENTATIVE_RUNS` | Runs the fish-plot configs from `data/fish_plot_configs/` |
+| `trajectories` | `REPRESENTATIVE_RUNS` | Runs the trajectory configs from `data/trajectories_configs/` |
+| `all` *(default)* | `REPRESENTATIVE_RUNS` | Runs both `fish` and `trajectories` |
+| `grid` | `PARAMETER_GRID_SEARCH` | Runs the confinement parameter grid search |
+
+**`REPRESENTATIVE_RUNS`** reads pre-existing `*_sim_params.json` config files from the two data directories and launches one simulation task per file. Results land in `<results_dir>/parameter_range_<stub>/`.
+
+**`PARAMETER_GRID_SEARCH`** implements the fitting procedure from Section 2.9 of Streck et al. 2023. It sweeps all 36 combinations of global and local confinement (`hconf, hlocal ∈ {0, 0.125, 0.25, 0.5, 1, 2}`) with 100 stochastic replicates each (3 600 tasks total). Configs are generated inline with fixed defaults from the paper (`MutationProb = 2×10⁻⁵`, `FitnessMean = 0.1`, `FitnessDist = Exponential`). Results land in `<results_dir>/grid_search_<hconf>_<hlocal>_<rep>/`. Fish-plot output is disabled for the grid runs since only `MeanDriversPerCell` and `ClonalDiversity` from `summary.csv` are needed for model fitting.
+
+Both workflows skip tasks whose output directory already contains the expected output files, so re-runs are safe and incremental.
+
+**Common flags:**
+
+```bash
+nextflow run article_figures \
+  --only grid \                        # which workflow to run
+  --results_dir /path/to/out/results \ # where to write simulation output (default: out/results)
+  --max_forks 8                        # cap on parallel tasks (default: nCPU)
+```
+
 ### Recreate article figures from repo root (bash)
 
 Run the following commands from the repository root:
@@ -240,11 +266,13 @@ git clone https://github.com/robjohnnoble/ModesOfEvolution ../ModesOfEvolution
 # 5) Build real_data.csv used by the article notebook inputs
 Rscript article_figures/scripts/combine_real_data.R
 
-# 6) Generate missing large raw runs + rebuild article_figures/data/*.pkl
+# 6) Run missing simulations (fish plots + trajectories)
 #    (results are written to article_figures/out/results)
 nextflow run article_figures --results_dir article_figures/out/results
 
-# 7) Rebuild plotting data directly (optional; already done by step 6 when --only is not used)
+# 7) Rebuild article_figures/data/*.pkl from the raw simulation output
+#    (required after step 6 if you want to regenerate the pkl files;
+#     skip if the pre-computed pkl files already in the repo are sufficient)
 STRECK_RESULTS_DIR=article_figures/out/results python article_figures/scripts/create_plotting_data_from_raw.py
 
 # 8) Execute notebooks to regenerate figures
