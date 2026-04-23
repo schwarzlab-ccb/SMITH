@@ -1,7 +1,6 @@
 nextflow.enable.dsl=2
 
 def onlySelection = params.containsKey('only') ? params.only.toString() : 'all'
-def forceRuns = (params.containsKey('force') ? params.force : false).toString().toBoolean()
 def parallelism = (params.containsKey('max_forks') ? params.max_forks : Runtime.runtime.availableProcessors()) as int
 def repoRoot = projectDir.parent.toString()
 def articleFiguresDir = projectDir.toString()
@@ -67,7 +66,8 @@ process RUN_SIMULATION {
     }
 
     out_dir="${resultsDir}/parameter_range_${run_stub}"
-    if [[ "${forceRuns}" != "true" && -f "\$out_dir/populations.csv" && -f "\$out_dir/parent_tree.csv" ]]; then
+    echo "[start] ${cfg.getName()}"
+    if [[ -f "\$out_dir/populations.csv" && -f "\$out_dir/parent_tree.csv" ]]; then
         echo "[skip] ${cfg.getName()} (existing outputs found)"
         exit 0
     fi
