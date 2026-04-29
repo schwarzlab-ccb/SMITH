@@ -8,7 +8,7 @@ public class FileIO
 {
     private static string PopSuffix(int popId) => popId == 0 ? "" : $"_{popId}";
 
-    private static string SUBCLONES_FILENAME(int popId) => $"clones{PopSuffix(popId)}.csv";
+    private const string SUBCLONES_FILENAME = "clones.csv";
     private static string DOT_TREE_FILENAME(int popId) => $"clone_tree{PopSuffix(popId)}.dot";
     private static string NEWICK_TREE_FILENAME(int popId) => $"clone_tree{PopSuffix(popId)}.new";
     private static string BIN_DOT_TREE_FILENAME(int popId) => $"bin_tree{PopSuffix(popId)}.dot";
@@ -61,15 +61,18 @@ public class FileIO
 
     public void WriteClones(IEnumerable<Clone> clones, Dictionary<int, long> ccf, long alive, Dictionary<int, (int source, int dist)> parentMap, int popId = 0)
     {
-        string outPath = Path.Combine(Path.GetFullPath(RootFolder), SUBCLONES_FILENAME(popId));
-        using var outputFile = new StreamWriter(outPath);
-        outputFile.WriteLine("ID,ParentID,Distance,Alive,Necrotic,Lost,Drivers,Passengers,Fitness,CCF");
+        string outPath = Path.Combine(Path.GetFullPath(RootFolder), SUBCLONES_FILENAME);
+        bool append = popId > 0;
+        using var outputFile = new StreamWriter(outPath, append);
+        if (!append)
+        {
+            outputFile.WriteLine("PopulationId,ID,ParentID,Distance,Alive,Necrotic,Lost,Drivers,Passengers,Fitness,CCF");
+        }
         foreach (var clone in clones)
         {
             double frac = ccf[clone.CloneId] / (double) alive;
-            // If no edge to parent is present, the clone is the root and parents itself.
             var parent = parentMap.TryGetValue(clone.CloneId, out var value) ? value : (clone.CloneId, 0);
-            outputFile.WriteLine($"{clone.CloneId},{parent.Item1},{parent.Item2},{clone.AliveCount}," +
+            outputFile.WriteLine($"{popId},{clone.CloneId},{parent.Item1},{parent.Item2},{clone.AliveCount}," +
                                  $"{clone.NecroCount},{clone.LostCount},{clone.DriverCount},{clone.PassengersCount}," +
                                  $"{clone.Fitness},{frac:f4}");
         }
