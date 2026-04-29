@@ -26,7 +26,7 @@ public static class TreeBuilder
         return new ListEdge { Distance = dist, SourceId = source, TargetId = id };
     }
 
-    private static List<int> FindInternalNodes(Dictionary<int, int> parentMap, List<Clone> selection)
+    private static List<int> FindInternalNodes(Dictionary<int, int> parentMap, List<Clone> selection, int rootId)
     {
         Dictionary<int, int> internalNodes = new();
 
@@ -46,7 +46,7 @@ public static class TreeBuilder
             }
         }
 
-        return internalNodes.Where(n => n.Value > 0 || n.Key == 0).Select(n => n.Key).ToList();
+        return internalNodes.Where(n => n.Value > 0 || n.Key == rootId).Select(n => n.Key).ToList();
     }
     
     // Construct a parent tree with each child being either parent of a present predecessor, or -1 if none exists.
@@ -99,9 +99,11 @@ public static class TreeBuilder
     {
         List<ListNode> nodes = new();
         List<ListEdge> edges = new();
-        
-        var parentMap = CreateParentMap(allSubClones);
-        var internalNodes = FindInternalNodes(parentMap, selection);
+
+        var allClonesList = allSubClones as List<Clone> ?? allSubClones.ToList();
+        var parentMap = CreateParentMap(allClonesList);
+        int rootId = allClonesList.First(sc => sc.ParentId == -1).CloneId;
+        var internalNodes = FindInternalNodes(parentMap, selection, rootId);
 
         foreach (var subClone in selection)
         {
@@ -115,7 +117,7 @@ public static class TreeBuilder
             edges.Add(FindEdge(parentMap, selection, internalNodes, internalNode));
         }
 
-        return new ListTree { RootId = 0, Nodes = nodes, Edges = edges.Where(e => e.TargetId != 0).ToList() };
+        return new ListTree { RootId = rootId, Nodes = nodes, Edges = edges.Where(e => e.TargetId != rootId).ToList() };
     }
 
     private static void WalkTheTree(ListTree listTree, TreeNode currentNode)
