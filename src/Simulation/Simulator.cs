@@ -122,19 +122,27 @@ public class Simulator
             // Mutate some of the cells
             int newMutantCount = ExtremeBinDist.Sample(Rnd, newCellsCount, SimParams.MutationProb);
 
+            int driverMutantCount = 0;
+            uint passengerMutantCount = 0;
             for (int mutationI = 0; mutationI < newMutantCount; mutationI++)
             {
-                bool isDriver = Rnd.NextDouble() < SimParams.DriverProb;
-                double divChange = isDriver ? FitnessFunction.SampleFitness(SimParams, Rnd) : 0;
-                double newDivision = AccFitness(subClone.Fitness, divChange, SimParams.FitnessAcc);
-                uint newDrivers = subClone.DriverCount + (isDriver ? 1u : 0u);
-                uint newPassengers = subClone.PassengersCount + (isDriver ? 0u : 1u);
-                var childClone = subClone.CreateChild(GetNewId(), StepNo, newDivision, newDrivers, newPassengers);
-                newClones.Add(childClone);
+                if (Rnd.NextDouble() < SimParams.DriverProb)
+                {
+                    double divChange = FitnessFunction.SampleFitness(SimParams, Rnd);
+                    double newDivision = AccFitness(subClone.Fitness, divChange, SimParams.FitnessAcc);
+                    var childClone = subClone.CreateChild(GetNewId(), StepNo, newDivision, subClone.DriverCount + 1u, subClone.PassengersCount);
+                    newClones.Add(childClone);
+                    driverMutantCount++;
+                }
+                else
+                {
+                    passengerMutantCount++;
+                }
             }
+            subClone.AddPassengers(passengerMutantCount);
 
             subClone.NewGen(
-                (uint)(subClone.AliveCount + newCellsCount - newMutantCount - newDead),
+                (uint)(subClone.AliveCount + newCellsCount - driverMutantCount - newDead),
                 (uint)(subClone.NecroCount + newNecrotic),
                 (uint)disappeared);
         }

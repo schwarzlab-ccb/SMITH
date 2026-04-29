@@ -18,7 +18,7 @@ public class Clone
     public int ParentId { get; }
     public double Fitness { get; }
     public uint DriverCount { get; }
-    public uint PassengersCount { get; }
+    public uint PassengersCount { get; private set; }
     private List<(long Alive, long Necro)> Cells { get; }
 
     public long AliveCount => Cells.Last().Alive;
@@ -32,6 +32,8 @@ public class Clone
     public long LostCount { get; private set; }
 
     public uint MutCount => DriverCount + PassengersCount;
+
+    public void AddPassengers(uint count) => PassengersCount += count;
 
     public Clone CreateChild(int newId, int generation, double fitness, uint drivers, uint passengers)
         => new(newId, CloneId, generation, fitness, drivers, passengers, 1);
