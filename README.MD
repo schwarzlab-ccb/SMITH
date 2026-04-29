@@ -292,7 +292,7 @@ To create the `real_data.csv` run the script `smith/article_figures/scripts/comb
 Please cite as: *Adam Streck, Tom L Kaufmann, Roland F Schwarz, SMITH: Spatially Constrained Stochastic Model for Simulation of Intra-Tumour Heterogeneity, Bioinformatics, 2023; https://doi.org/10.1093/bioinformatics/btad102*
 
 ## Contact
-Email questions, feature requests and bug reports to Adam Streck, adam.streck@mdc-berlin.de.
+Email questions, feature requests and bug reports to Adam Streck, adam.streck@iccb-cologne.org.
 
 ## License
 SMITH is available under the MIT License.

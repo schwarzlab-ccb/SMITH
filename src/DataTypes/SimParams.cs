@@ -26,7 +26,11 @@ public struct SimParams
     public double ConfGlobal;
     public double ConfLocal; 
 
-    // Function    
+    // Metastasis
+    public double MetastasisBeta;  // coefficient: p = Beta * |populations|^Alpha
+    public double MetastasisAlpha; // exponent:    p = Beta * |populations|^Alpha
+
+    // Function
     public FitnessAccType FitnessAcc;
     public FitnessDistType FitnessDist;
     public FitnessEffectType FitnessEffect;
@@ -63,6 +67,10 @@ public struct SimParams
         if (ConfLocal < 0)
         {
             return "ConfLocal mean must be non-negative";
+        }
+        if (MetastasisBeta < 0)
+        {
+            return "MetastasisBeta must be non-negative";
         }
         if (CutOff is < 0 or > 1)
         {

@@ -2,6 +2,7 @@
 out/*
 tests/out/*
 in/*
+ref/*
 
 # Figures from notebooks
 notebooks

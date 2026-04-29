@@ -6,14 +6,15 @@ namespace SMITH.Computation;
 
 public static class CellSampling
 {
-    public static PopState PopState(List<Clone> populations)
+    public static PopState PopState(IEnumerable<Clone> population)
     {
-        var popState = new PopState
+        var popState = new PopState();
+        foreach (var sc in population)
         {
-            Alive = populations.Sum(sc => sc.AliveCount),
-            Necro = populations.Sum(sc => sc.NecroCount),
-            Lost = populations.Sum(sc => sc.LostCount),
-        };
+            popState.Alive += sc.AliveCount;
+            popState.Necro += sc.NecroCount;
+            popState.Lost += sc.LostCount;
+        }
         popState.Tumor = popState.Alive + popState.Necro;
         popState.Total = popState.Tumor + popState.Lost;
         return popState;

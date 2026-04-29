@@ -1,4 +1,4 @@
-﻿using SMITH.Computation;
+using SMITH.Computation;
 using SMITH.DataTypes;
 using ExtremeBinDist = Extreme.Statistics.Distributions.BinomialDistribution;
 
@@ -27,17 +27,22 @@ public class Simulator
             initFit = AccFitness(initFit, sample, SimParams.FitnessAcc);
         }
         var primeval = new Clone(0, -1, 0, initFit, SimParams.StartMut, 0u, SimParams.StartPop);
-        Clones = new List<Clone> { primeval };
+        Populations = new List<List<Clone>> { new List<Clone> { primeval } };
     }
 
-    public List<Clone> Clones { get; }
+    public List<List<Clone>> Populations { get; }
+    public IEnumerable<Clone> AllClones => Populations.SelectMany(p => p);
+    public int TotalCloneCount => Populations.Sum(p => p.Count);
+
     public SimParams SimParams { get; }
     private Random Rnd { get; }
-    public double GlobalFrac { get; private set; }
+
+    private double[] _globalFracs = Array.Empty<double>();
+    public double GlobalFrac => _globalFracs.Length > 0 ? _globalFracs[0] : 1.0;
 
     private int GetNewId() => ++newId;
 
-    private static double AccFitness(double original, double change, FitnessAccType type) 
+    private static double AccFitness(double original, double change, FitnessAccType type)
         => type switch
         {
             FitnessAccType.Add => original + change,
@@ -53,7 +58,7 @@ public class Simulator
             FitnessEffectType.Both => (fitness + 1) / 2,
             _ => throw new ArgumentOutOfRangeException(nameof(effect), effect, null)
         };
-    
+
     private static double GetDeath(double fitness, FitnessEffectType effect)
         => effect switch {
             FitnessEffectType.Death => 1 / fitness,
@@ -77,68 +82,88 @@ public class Simulator
         return totalPop;
     }
 
-    private static double CalcFraction(long aliveCount, double freeCount) => 
+    private static double CalcFraction(long aliveCount, double freeCount) =>
         aliveCount > freeCount && aliveCount > 0 ? Math.Clamp(freeCount / aliveCount, 0.0, 1.0) : 1.0;
 
     public void Step()
     {
         AliveSC = 0;
         StepNo++;
+        _globalFracs = new double[Populations.Count];
+        var newPopulations = new List<List<Clone>>();
 
-        List<Clone> newClones = new();
-        var popState = CellSampling.PopState(Clones);
-        
-        double globalFree = CalcFree(popState.Alive + popState.Necro, SimParams.ConfGlobal);
-        GlobalFrac = CalcFraction(popState.Alive, globalFree);
-        
-        foreach (var subClone in Clones.Where(sc => sc.AliveCount > 0))
+        for (int popIdx = 0; popIdx < Populations.Count; popIdx++)
         {
-            AliveSC++;
+            var population = Populations[popIdx];
+            List<Clone> newClones = new();
+            var popState = CellSampling.PopState(population);
 
-            double localFree = CalcFree(subClone.CellCount, SimParams.ConfLocal);
-            double cloneFrac = CalcFraction(subClone.AliveCount, localFree) * GlobalFrac;
+            double globalFree = CalcFree(popState.Alive + popState.Necro, SimParams.ConfGlobal);
+            _globalFracs[popIdx] = CalcFraction(popState.Alive, globalFree);
+            double globalFrac = _globalFracs[popIdx];
 
-            // Kill cells
-            double deathFit = GetDeath(subClone.Fitness, SimParams.FitnessEffect);
-            int newDead = ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, deathFit * SimParams.Turnover);
-            int disappeared = ExtremeBinDist.Sample(Rnd, newDead, cloneFrac);
-            int newNecrotic = newDead - disappeared;
+            double pMet = SimParams.MetastasisBeta > 0
+                ? Math.Min(SimParams.MetastasisBeta * Math.Pow(Populations.Count + newPopulations.Count, SimParams.MetastasisAlpha), 1.0)
+                : 0.0;
 
-            // Create new cells
-            double birthFit = GetBirth(subClone.Fitness, SimParams.FitnessEffect);
-            double birthProb = Math.Clamp(birthFit * SimParams.Turnover, 0.0, 1.0);
-            int newCellsCount;
-            if (subClone.AliveCount > 1_000_000_000)
+            foreach (var subClone in population.Where(sc => sc.AliveCount > 0))
             {
-                double frac = 1_000_000_000.0 / subClone.AliveCount;
-                newCellsCount = (int)(ExtremeBinDist.Sample(Rnd, (int) (frac * subClone.AliveCount), birthProb * cloneFrac) / frac);
-            }
-            else
-            {
-                newCellsCount = ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, birthProb * cloneFrac);
-            }
-                
+                AliveSC++;
 
-            // Mutate some of the cells
-            int newMutantCount = ExtremeBinDist.Sample(Rnd, newCellsCount, SimParams.MutationProb);
+                double localFree = CalcFree(subClone.CellCount, SimParams.ConfLocal);
+                double cloneFrac = CalcFraction(subClone.AliveCount, localFree) * globalFrac;
 
-            for (int mutationI = 0; mutationI < newMutantCount; mutationI++)
-            {
-                bool isDriver = Rnd.NextDouble() < SimParams.DriverProb;
-                double divChange = isDriver ? FitnessFunction.SampleFitness(SimParams, Rnd) : 0;
-                double newDivision = AccFitness(subClone.Fitness, divChange, SimParams.FitnessAcc);
-                uint newDrivers = subClone.DriverCount + (isDriver ? 1u : 0u);
-                uint newPassengers = subClone.PassengersCount + (isDriver ? 0u : 1u);
-                var childClone = subClone.CreateChild(GetNewId(), StepNo, newDivision, newDrivers, newPassengers);
-                newClones.Add(childClone);
+                // Kill cells
+                double deathFit = GetDeath(subClone.Fitness, SimParams.FitnessEffect);
+                int newDead = ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, deathFit * SimParams.Turnover);
+                int disappeared = ExtremeBinDist.Sample(Rnd, newDead, cloneFrac);
+                int newNecrotic = newDead - disappeared;
+
+                // Create new cells
+                double birthFit = GetBirth(subClone.Fitness, SimParams.FitnessEffect);
+                double birthProb = Math.Clamp(birthFit * SimParams.Turnover, 0.0, 1.0);
+                int newCellsCount;
+                if (subClone.AliveCount > 1_000_000_000)
+                {
+                    double frac = 1_000_000_000.0 / subClone.AliveCount;
+                    newCellsCount = (int)(ExtremeBinDist.Sample(Rnd, (int)(frac * subClone.AliveCount), birthProb * cloneFrac) / frac);
+                }
+                else
+                {
+                    newCellsCount = ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, birthProb * cloneFrac);
+                }
+
+                // Each new cell has probability pMet of seeding a new population
+                int metCount = pMet > 0 ? ExtremeBinDist.Sample(Rnd, newCellsCount, pMet) : 0;
+                for (int m = 0; m < metCount; m++)
+                {
+                    var seed = new Clone(GetNewId(), -1, StepNo, subClone.Fitness, subClone.DriverCount, subClone.PassengersCount, 1);
+                    newPopulations.Add(new List<Clone> { seed });
+                }
+
+                // Mutate some of the cells
+                int newMutantCount = ExtremeBinDist.Sample(Rnd, newCellsCount, SimParams.MutationProb);
+
+                for (int mutationI = 0; mutationI < newMutantCount; mutationI++)
+                {
+                    bool isDriver = Rnd.NextDouble() < SimParams.DriverProb;
+                    double divChange = isDriver ? FitnessFunction.SampleFitness(SimParams, Rnd) : 0;
+                    double newDivision = AccFitness(subClone.Fitness, divChange, SimParams.FitnessAcc);
+                    uint newDrivers = subClone.DriverCount + (isDriver ? 1u : 0u);
+                    uint newPassengers = subClone.PassengersCount + (isDriver ? 0u : 1u);
+                    var childClone = subClone.CreateChild(GetNewId(), StepNo, newDivision, newDrivers, newPassengers);
+                    newClones.Add(childClone);
+                }
+
+                subClone.NewGen(
+                    (uint)(subClone.AliveCount + newCellsCount - newMutantCount - newDead - metCount),
+                    (uint)(subClone.NecroCount + newNecrotic),
+                    (uint)disappeared);
             }
 
-            subClone.NewGen(
-                (uint)(subClone.AliveCount + newCellsCount - newMutantCount - newDead),
-                (uint)(subClone.NecroCount + newNecrotic),
-                (uint)disappeared);
+            population.AddRange(newClones);
         }
 
-        Clones.AddRange(newClones);
+        Populations.AddRange(newPopulations);
     }
 }

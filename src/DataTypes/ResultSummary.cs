@@ -7,6 +7,7 @@ namespace SMITH.DataTypes;
 
 public struct ResultSummary
 {
+    public int PopulationId;
     public int RepeatId;
     public int TryNo;
     public int GenerationId;
@@ -46,9 +47,10 @@ public struct ResultSummary
             Header().Split(",").Zip(ToString().Split(","), (label, val) => $"{label}: {val}"));
 
 
-    public ResultSummary(int repeatId, int tryNo, int generationId, int stepNo, string timeElapsed, ListTree connectedTree,
+    public ResultSummary(int populationId, int repeatId, int tryNo, int generationId, int stepNo, string timeElapsed, ListTree connectedTree,
         List<Clone> aboveCutOff, List<Clone> clones, PopState popState, Dictionary<int, long> CCF)
     {
+        PopulationId = populationId;
         RepeatId = repeatId;
         TryNo = tryNo;
         GenerationId = generationId;

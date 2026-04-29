@@ -1,4 +1,4 @@
-﻿using SMITH.Computation;
+using SMITH.Computation;
 using SMITH.Simulation;
 using SMITH.Tests.TestSupport;
 using Xunit;
@@ -15,13 +15,14 @@ public class SimulationAnalysisTests
         simParams.CloneSample = 3;
 
         var simulator = new Simulator(simParams, new Random(simParams.Seed));
-        var popState = CellSampling.PopState(simulator.Clones);
+        var primaryPop = simulator.Populations[0];
+        var popState = CellSampling.PopState(primaryPop);
 
         // Step until we have enough clones to test sampling behavior.
-        while (simulator.Clones.Count < 8 && simulator.StepNo < 2000)
+        while (primaryPop.Count < 8 && simulator.StepNo < 2000)
         {
             simulator.Step();
-            popState = CellSampling.PopState(simulator.Clones);
+            popState = CellSampling.PopState(primaryPop);
             if (State.GetCompState(popState, simulator, simParams) != ComputeState.Running)
             {
                 break;
@@ -32,12 +33,14 @@ public class SimulationAnalysisTests
             repeatId: 0,
             tryNo: 0,
             checkpointId: 0,
-            simulator: simulator,
+            populationId: 0,
+            stepNo: simulator.StepNo,
+            population: primaryPop,
             simParams: simParams,
             popState: popState,
             elapsed: TimeSpan.Zero);
 
-        int expectedSelected = Math.Min(simParams.CloneSample, simulator.Clones.Count);
+        int expectedSelected = Math.Min(simParams.CloneSample, primaryPop.Count);
         Assert.Equal(expectedSelected, summary.SubcloneSelect);
 
         var treeNodeIds = lcaTree.Nodes.Select(n => n.Id).ToHashSet();
@@ -47,4 +50,3 @@ public class SimulationAnalysisTests
         Assert.All(lcaTree.Nodes, node => Assert.True(ccf.ContainsKey(node.Id), $"Missing CCF entry for node {node.Id}"));
     }
 }
-

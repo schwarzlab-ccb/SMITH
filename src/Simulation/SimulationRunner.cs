@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using SMITH.Computation;
 using SMITH.DataTypes;
 using SMITH.IO;
@@ -64,52 +64,49 @@ public class SimulationRunner
 
         var simulator = new Simulator(_simParams, _random);
         var checkpoints = Utility.CreateCheckpoints(_simParams);
-        var popStates = new List<PopState> { CellSampling.PopState(simulator.Clones) };
+        var popStates = new List<PopState> { CellSampling.PopState(simulator.AllClones) };
 
         ComputeState compState;
         do
         {
             simulator.Step();
-            var popState = CellSampling.PopState(simulator.Clones);
-            popStates.Add(popState);
+            var allPopState = CellSampling.PopState(simulator.AllClones);
+            popStates.Add(allPopState);
 
             int lastLineLength = lastLine.Length;
             lastLine = State.StateLog(repeatId, tryNo, simulator, _simParams, popStates);
             Console.Write(lastLine.PadRight(lastLineLength) + (_logNewline ? "\n" : "\r"));
 
-            compState = State.GetCompState(popState, simulator, _simParams);
+            compState = State.GetCompState(allPopState, simulator, _simParams);
             bool checkpointReached = checkpoints.Any()
                                    && checkpointId < checkpoints.Count
-                                   && popState.Tumor > checkpoints[checkpointId];
+                                   && allPopState.Tumor > checkpoints[checkpointId];
+
             if (compState == ComputeState.Finished || checkpointReached)
             {
-                var elapsed =
-                    TimeSpan.FromMilliseconds(watch.ElapsedMilliseconds);
-                var (result, lcaTreeList, sample, ccCount) = SimulationAnalysis.AnalyzeCheckpoint(
-                    repeatId,
-                    tryNo,
-                    checkpointId,
-                    simulator,
-                    _simParams,
-                    popState,elapsed);
-                _files.AddToSummary(result);
+                var elapsed = TimeSpan.FromMilliseconds(watch.ElapsedMilliseconds);
+
+                for (int popIdx = 0; popIdx < simulator.Populations.Count; popIdx++)
+                {
+                    var pop = simulator.Populations[popIdx];
+                    var popState = CellSampling.PopState(pop);
+                    var (result, lcaTreeList, sample, ccCount) = SimulationAnalysis.AnalyzeCheckpoint(
+                        repeatId, tryNo, checkpointId, popIdx, simulator.StepNo, pop, _simParams, popState, elapsed);
+                    _files.AddToSummary(result);
+
+                    if (compState == ComputeState.Finished)
+                    {
+                        SimulationResultOutput.WriteFinishedOutputs(
+                            _files, result, lcaTreeList, sample, ccCount, popState.Alive,
+                            simulator.Populations[0], _simParams, popStates, repeatId, tryNo, _bifrucating, popIdx);
+                    }
+                }
+
                 checkpointId++;
 
                 if (compState == ComputeState.Finished)
                 {
-                    SimulationResultOutput.WriteFinishedOutputs(
-                        _files,
-                        result,
-                        lcaTreeList,
-                        sample,
-                        ccCount,
-                        popState.Alive,
-                        simulator,
-                        _simParams,
-                        popStates,
-                        repeatId,
-                        tryNo,
-                        _bifrucating);
+                    _files.StoreCopy(repeatId);
                 }
             }
         } while (compState == ComputeState.Running);
@@ -117,4 +114,3 @@ public class SimulationRunner
         return compState;
     }
 }
-

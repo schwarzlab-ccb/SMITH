@@ -6,12 +6,13 @@ namespace SMITH.IO;
 
 public class FileIO
 {
-    private const string DOT_TREE_FILENAME = "clone_tree.dot";
-    private const string NEWICK_TREE_FILENAME = "clone_tree.new";
-    private const string BIN_DOT_TREE_FILENAME = "bin_tree.dot";
-    private const string BIN_NEWICK_TREE_FILENAME = "bin_tree.new";
+    private static string PopSuffix(int popId) => popId == 0 ? "" : $"_{popId}";
 
-    private const string SUBCLONES_FILENAME = "clones.csv";
+    private static string SUBCLONES_FILENAME(int popId) => $"clones{PopSuffix(popId)}.csv";
+    private static string DOT_TREE_FILENAME(int popId) => $"clone_tree{PopSuffix(popId)}.dot";
+    private static string NEWICK_TREE_FILENAME(int popId) => $"clone_tree{PopSuffix(popId)}.new";
+    private static string BIN_DOT_TREE_FILENAME(int popId) => $"bin_tree{PopSuffix(popId)}.dot";
+    private static string BIN_NEWICK_TREE_FILENAME(int popId) => $"bin_tree{PopSuffix(popId)}.new";
     private const string POPULATIONS_DF_FILENAME = "populations.csv";
     private const string ADJACENCY_DF_FILENAME = "parent_tree.csv";
     private const string SIM_PARAMS_FILENAME = "sim_params.json";
@@ -58,9 +59,9 @@ public class FileIO
     public string ExperimentFolder { get; }
     public bool IsRepeated { get; }
 
-    public void WriteClones(IEnumerable<Clone> clones, Dictionary<int, long> ccf, long alive, Dictionary<int, (int source, int dist)> parentMap)
+    public void WriteClones(IEnumerable<Clone> clones, Dictionary<int, long> ccf, long alive, Dictionary<int, (int source, int dist)> parentMap, int popId = 0)
     {
-        string outPath = Path.Combine(Path.GetFullPath(RootFolder), SUBCLONES_FILENAME);
+        string outPath = Path.Combine(Path.GetFullPath(RootFolder), SUBCLONES_FILENAME(popId));
         using var outputFile = new StreamWriter(outPath);
         outputFile.WriteLine("ID,ParentID,Distance,Alive,Necrotic,Lost,Drivers,Passengers,Fitness,CCF");
         foreach (var clone in clones)
@@ -74,9 +75,9 @@ public class FileIO
         }
     }
 
-    public void WriteDotTree(ListTree tree)
+    public void WriteDotTree(ListTree tree, int popId = 0)
     {
-        string outPath = Path.Combine(Path.GetFullPath(RootFolder), DOT_TREE_FILENAME);
+        string outPath = Path.Combine(Path.GetFullPath(RootFolder), DOT_TREE_FILENAME(popId));
         using var outputFile = new StreamWriter(outPath);
 
         outputFile.WriteLine("Digraph SMITH {");
@@ -105,7 +106,7 @@ public class FileIO
         }
     }
 
-    private void WriteDotTree(TreeNode tree, string fileName)
+    private void WriteDotTreeByName(TreeNode tree, string fileName)
     {
         string outPath = Path.Combine(Path.GetFullPath(RootFolder), fileName);
         using var outputFile = new StreamWriter(outPath);
@@ -115,8 +116,8 @@ public class FileIO
         outputFile.WriteLine("}");
     }
 
-    public void WriteBinDotTree(TreeNode tree)
-        => WriteDotTree(tree, BIN_DOT_TREE_FILENAME);
+    public void WriteBinDotTree(TreeNode tree, int popId = 0)
+        => WriteDotTreeByName(tree, BIN_DOT_TREE_FILENAME(popId));
 
     private void WriteNode(TreeNode node, StreamWriter writer)
     {
@@ -139,7 +140,7 @@ public class FileIO
         writer.Write(FormatNodeLabel(node.Id, node.Size));
     }
     
-    private void WriteNewickTree(TreeNode treeNode, string fileName)
+    private void WriteNewickTreeByName(TreeNode treeNode, string fileName)
     {
         string outPath = Path.Combine(Path.GetFullPath(RootFolder), fileName);
         using var writer = new StreamWriter(outPath);
@@ -148,11 +149,11 @@ public class FileIO
         writer.Write(";");
     }
 
-    public void WriteNewickTree(TreeNode treeNode)
-        => WriteNewickTree(treeNode, NEWICK_TREE_FILENAME);
+    public void WriteNewickTree(TreeNode treeNode, int popId = 0)
+        => WriteNewickTreeByName(treeNode, NEWICK_TREE_FILENAME(popId));
 
-    public void WriteBinNewickTree(TreeNode treeNode)
-        => WriteNewickTree(treeNode, BIN_NEWICK_TREE_FILENAME);
+    public void WriteBinNewickTree(TreeNode treeNode, int popId = 0)
+        => WriteNewickTreeByName(treeNode, BIN_NEWICK_TREE_FILENAME(popId));
 
     public void WriteMullerDataFrames(List<Clone> subClones, ListTree tree)
     {
