@@ -1,3 +1,5 @@
+![Build & Test](https://github.com/ICCB-Cologne/SMITH/actions/workflows/dotnet-test.yml/badge.svg)
+
 # SMITH: Stochastic Model of Intra-Tumor Heterogeneity
 
 SMITH is a tool for fast stochastic simulation of evolution of subclones within a solid tumor. 
