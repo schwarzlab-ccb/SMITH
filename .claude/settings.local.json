@@ -4,7 +4,8 @@
       "Bash(dotnet build *)",
       "Bash(dotnet test *)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(dotnet run *)"
     ]
   }
 }

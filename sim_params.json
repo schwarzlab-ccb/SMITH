@@ -14,6 +14,7 @@
   "FitnessMean": 0.1,
   "ConfGlobal": 0,
   "ConfLocal": 0,
+  "MetastasisAlpha": 0.0,
   "FitnessAcc": "Add",
   "FitnessDist": "Constant",
   "FitnessEffect": "Birth",

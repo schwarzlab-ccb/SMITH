@@ -102,9 +102,9 @@ public class Simulator
             _globalFracs[popIdx] = CalcFraction(popState.Alive, globalFree);
             double globalFrac = _globalFracs[popIdx];
 
-            double pMet = SimParams.MetastasisBeta > 0
-                ? Math.Min(SimParams.MetastasisBeta * Math.Pow(Populations.Count + newPopulations.Count, SimParams.MetastasisAlpha), 1.0)
-                : 0.0;
+            double pMet = SimParams.MetastasisAlpha > 0
+                ? Math.Max(Math.Pow(SimParams.MetastasisAlpha, Populations.Count + newPopulations.Count), 0)
+                : 0;
 
             foreach (var subClone in population.Where(sc => sc.AliveCount > 0))
             {
