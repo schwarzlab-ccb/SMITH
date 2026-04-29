@@ -30,6 +30,7 @@ public class SimulationAnalysisTests
 
         var (summary, lcaTree, sample, ccf) = SimulationAnalysis.AnalyzeCheckpoint(
             repeatId: 0,
+            tryNo: 0,
             checkpointId: 0,
             simulator: simulator,
             simParams: simParams,

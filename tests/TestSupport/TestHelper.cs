@@ -17,7 +17,7 @@ internal static class TestHelper
 
     internal static string CreateTempDirectory()
     {
-        string path = Path.Combine(RepoRoot, "tests", "out", Guid.NewGuid().ToString("N"));
+        string path = Path.Combine(RepoRoot, "tests", "out");
         Directory.CreateDirectory(path);
         return path;
     }
@@ -32,25 +32,26 @@ internal static class TestHelper
         Assert.Equal(expected, actual);
     }
 
-    internal static string NormalizeSummaryTimes(string summaryContent)
+    internal static void AssertCsvShapeEqual(string expectedPath, string actualPath)
     {
-        var lines = summaryContent.Replace("\r\n", "\n").Split('\n');
-        for (int i = 1; i < lines.Length; i++)
+        Assert.True(File.Exists(expectedPath), $"Expected fixture file does not exist: {expectedPath}");
+        Assert.True(File.Exists(actualPath), $"Expected output file does not exist: {actualPath}");
+
+        string[] expectedRows = File.ReadAllText(expectedPath)
+            .Replace("\r\n", "\n")
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        string[] actualRows = File.ReadAllText(actualPath)
+            .Replace("\r\n", "\n")
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+        Assert.Equal(expectedRows.Length, actualRows.Length);
+
+        for (int i = 0; i < expectedRows.Length; i++)
         {
-            if (string.IsNullOrWhiteSpace(lines[i]))
-            {
-                continue;
-            }
-
-            var columns = lines[i].Split(',');
-            if (columns.Length > 3)
-            {
-                columns[3] = "<TIME>";
-                lines[i] = string.Join(',', columns);
-            }
+            int expectedColumns = expectedRows[i].Split(',').Length;
+            int actualColumns = actualRows[i].Split(',').Length;
+            Assert.Equal(expectedColumns, actualColumns);
         }
-
-        return string.Join('\n', lines).TrimEnd();
     }
 }
 

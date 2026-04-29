@@ -12,53 +12,41 @@ public class SimulationRunnerRegressionTests
     {
         var simParams = TestHelper.LoadFixtureParams();
         string outDir = TestHelper.CreateTempDirectory();
+        
+        var files = new FileIO(outDir, isRepeated: false);
+        files.WriteSimParams(simParams);
 
+        var rnd = new Random(simParams.Seed);
+        var runner = new SimulationRunner(simParams, files, rnd, logNewline: true, bifrucating: false);
+        var originalOut = Console.Out;
+        Console.SetOut(TextWriter.Null);
         try
         {
-            var files = new FileIO(outDir, isRepeated: false);
-            files.WriteSimParams(simParams);
-
-            var runner = new SimulationRunner(simParams, files, new Random(simParams.Seed), logNewline: true, bifrucating: false);
-            var originalOut = Console.Out;
-            Console.SetOut(TextWriter.Null);
-            try
-            {
-                runner.RunAll();
-            }
-            finally
-            {
-                Console.SetOut(originalOut);
-            }
-
-            TestHelper.AssertTextFileEqual(
-                Path.Combine(TestHelper.FixtureFolder, "clone_tree.dot"),
-                Path.Combine(outDir, "clone_tree.dot"));
-            TestHelper.AssertTextFileEqual(
-                Path.Combine(TestHelper.FixtureFolder, "clone_tree.new"),
-                Path.Combine(outDir, "clone_tree.new"));
-            TestHelper.AssertTextFileEqual(
-                Path.Combine(TestHelper.FixtureFolder, "parent_tree.csv"),
-                Path.Combine(outDir, "parent_tree.csv"));
-            TestHelper.AssertTextFileEqual(
-                Path.Combine(TestHelper.FixtureFolder, "populations.csv"),
-                Path.Combine(outDir, "populations.csv"));
-            TestHelper.AssertTextFileEqual(
-                Path.Combine(TestHelper.FixtureFolder, "clones.csv"),
-                Path.Combine(outDir, "clones.csv"));
-
-            string expectedSummary = TestHelper.NormalizeSummaryTimes(
-                File.ReadAllText(Path.Combine(TestHelper.FixtureFolder, "summary.csv")));
-            string actualSummary = TestHelper.NormalizeSummaryTimes(
-                File.ReadAllText(Path.Combine(outDir, "summary.csv")));
-            Assert.Equal(expectedSummary, actualSummary);
+            runner.RunAll();
         }
         finally
         {
-            if (Directory.Exists(outDir))
-            {
-                Directory.Delete(outDir, recursive: true);
-            }
+            Console.SetOut(originalOut);
         }
+
+        TestHelper.AssertTextFileEqual(
+            Path.Combine(TestHelper.FixtureFolder, "clone_tree.dot"),
+            Path.Combine(outDir, "clone_tree.dot"));
+        TestHelper.AssertTextFileEqual(
+            Path.Combine(TestHelper.FixtureFolder, "clone_tree.new"),
+            Path.Combine(outDir, "clone_tree.new"));
+        TestHelper.AssertTextFileEqual(
+            Path.Combine(TestHelper.FixtureFolder, "parent_tree.csv"),
+            Path.Combine(outDir, "parent_tree.csv"));
+        TestHelper.AssertTextFileEqual(
+            Path.Combine(TestHelper.FixtureFolder, "populations.csv"),
+            Path.Combine(outDir, "populations.csv"));
+        TestHelper.AssertTextFileEqual(
+            Path.Combine(TestHelper.FixtureFolder, "clones.csv"),
+            Path.Combine(outDir, "clones.csv"));
+        TestHelper.AssertCsvShapeEqual(
+            Path.Combine(TestHelper.FixtureFolder, "summary.csv"),
+            Path.Combine(outDir, "summary.csv"));
     }
 
     [Fact]

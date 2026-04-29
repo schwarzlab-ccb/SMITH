@@ -83,13 +83,15 @@ public class SimulationRunner
                                    && popState.Tumor > checkpoints[checkpointId];
             if (compState == ComputeState.Finished || checkpointReached)
             {
+                var elapsed =
+                    TimeSpan.FromMilliseconds(watch.ElapsedMilliseconds);
                 var (result, lcaTreeList, sample, ccCount) = SimulationAnalysis.AnalyzeCheckpoint(
                     repeatId,
+                    tryNo,
                     checkpointId,
                     simulator,
                     _simParams,
-                    popState,
-                    TimeSpan.FromMilliseconds(watch.ElapsedMilliseconds));
+                    popState,elapsed);
                 _files.AddToSummary(result);
                 checkpointId++;
 

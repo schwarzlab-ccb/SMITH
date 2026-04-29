@@ -6,7 +6,7 @@ namespace SMITH.Computation;
 public static class SimulationAnalysis
 {
     public static (ResultSummary Summary, ListTree LcaTree, List<Clone> Sample, Dictionary<int, long> Ccf)
-        AnalyzeCheckpoint(int repeatId, int checkpointId, Simulator simulator, SimParams simParams, PopState popState,
+        AnalyzeCheckpoint(int repeatId, int tryNo, int checkpointId, Simulator simulator, SimParams simParams, PopState popState,
             TimeSpan elapsed)
     {
         double cutOff = popState.Alive * simParams.CutOff;
@@ -21,7 +21,7 @@ public static class SimulationAnalysis
         var ccCount = TreeAnalysis.ComputeCCF(lcaTreeList);
 
         string time = elapsed.ToString();
-        var result = new ResultSummary(repeatId, checkpointId, simulator.StepNo, time,
+        var result = new ResultSummary(repeatId, tryNo, checkpointId, simulator.StepNo, time,
             lcaTreeList, cloneSample, simulator.Clones, popState, ccCount);
 
         return (result, lcaTreeList, sample, ccCount);
