@@ -1,0 +1,22 @@
+{
+  "StartMut": 1,
+  "StartPop": 1,
+  "Reps": 1,
+  "MaxPop": 1048576000,
+  "MaxSteps": 1000000,
+  "MaxClones": -1,
+  "MinPop": 1000,
+  "MaxTries": 10000,
+  "Turnover": 0.01,
+  "MutationProb": 2e-05,
+  "DriverProb": 1,
+  "FitnessMean": 0.1,
+  "FitnessAcc": "Add",
+  "FitnessDist": "Exponential",
+  "FitnessEffect": "Birth",
+  "Checkpoints": true,
+  "CutOff": 1e-09,
+  "CloneSample": -1,
+  "CalcFish": false,
+  "FishFrac": 0.001
+}

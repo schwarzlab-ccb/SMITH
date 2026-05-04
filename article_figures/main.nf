@@ -1,185 +1,104 @@
 nextflow.enable.dsl=2
 
-def onlySelection = params.containsKey('only') ? params.only.toString() : 'all'
-def parallelism = (params.containsKey('max_forks') ? params.max_forks : Runtime.runtime.availableProcessors()) as int
 def repoRoot = projectDir.parent.toString()
 def articleFiguresDir = projectDir.toString()
 def resultsDir = (params.containsKey('results_dir') ? params.results_dir : "${projectDir.parent}/out/results").toString()
 
-def collectConfigRecords(String label, String cfgDirPath) {
-    def cfgDir = new File(cfgDirPath)
+def collectConfigRecords(List<String> cfgDirPaths) {
+    def seen = new LinkedHashSet<String>()
+    def records = []
 
-    if (!cfgDir.isDirectory()) {
-        throw new IllegalArgumentException("Config directory not found: ${cfgDirPath}")
+    cfgDirPaths.each { cfgDirPath ->
+        def cfgDir = new File(cfgDirPath)
+        if (!cfgDir.isDirectory()) {
+            throw new IllegalArgumentException("Config directory not found: ${cfgDirPath}")
+        }
+        cfgDir.listFiles()
+            .findAll { it.isFile() && it.name.endsWith('_sim_params.json') }
+            .sort { it.name }
+            .each { cfg ->
+                def runStub = cfg.name - '_sim_params.json'
+                if (seen.add(runStub)) {
+                    records << [runStub, cfg.absolutePath]
+                }
+            }
     }
-
-    def cfgs = cfgDir
-        .listFiles()
-        .findAll { it.isFile() && it.name.endsWith('_sim_params.json') }
-        .sort { it.name }
-
-    return cfgs.collect { cfg ->
-        def runStub = cfg.name - '_sim_params.json'
-        [label, runStub, cfg.absolutePath]
-    }
-}
-
-if (!(onlySelection in ['all', 'fish', 'trajectories', 'grid'])) {
-    throw new IllegalArgumentException("Invalid value for --only: ${onlySelection}")
-}
-
-if (parallelism < 1) {
-    throw new IllegalArgumentException("--max_forks must be at least 1")
+    return records
 }
 
 process RUN_SIMULATION {
-    tag "${label}:${run_stub}"
-    maxForks parallelism
-
     input:
-    tuple val(label), val(run_stub), path(cfg)
-
-    output:
-    val(run_stub)
+    val(config_records)
 
     script:
+    def commands = config_records.collect { runStub, cfgPath ->
+        def cfgName = new File(cfgPath).name
+        """
+    out_dir=\"${resultsDir}/parameter_range_${runStub}\"
+    echo \"[start] ${cfgName}\"
+    if [[ -f \"${'$'}out_dir/populations.csv\" && -f \"${'$'}out_dir/parent_tree.csv\" ]]; then
+        echo \"[skip] ${cfgName} (existing outputs found)\"
+    else
+        mkdir -p \"${'$'}out_dir\"
+        echo \"[run ] ${cfgName}\"
+        \"${repoRoot}/bin/Release/net10.0/publish/SMITH\" -C \"${cfgPath}\" -O \"${'$'}out_dir\" -N
+    fi
+        """.stripIndent().trim()
+    }.join('\n\n')
     """
     set -euo pipefail
 
-    run_dotnet() {
-        if command -v dotnet >/dev/null 2>&1; then
-            local version
-            version="\$(dotnet --version 2>/dev/null || true)"
-            if [[ "\$version" =~ ^([0-9]+)\\. ]] && (( \${BASH_REMATCH[1]} >= 10 )); then
-                dotnet "\$@"
-                return
-            fi
-        fi
-
-        if command -v conda >/dev/null 2>&1 && conda run -n smith dotnet --version >/dev/null 2>&1; then
-            conda run -n smith dotnet "\$@"
-            return
-        fi
-
-        echo "dotnet >= 10 is required to run simulations." >&2
-        exit 1
-    }
-
-    out_dir="${resultsDir}/parameter_range_${run_stub}"
-    echo "[start] ${cfg.getName()}"
-    if [[ -f "\$out_dir/populations.csv" && -f "\$out_dir/parent_tree.csv" ]]; then
-        echo "[skip] ${cfg.getName()} (existing outputs found)"
-        exit 0
-    fi
-
-    mkdir -p "\$out_dir"
-    echo "[run ] ${cfg.getName()}"
-    run_dotnet run --project "${repoRoot}/SMITH.csproj" -- -C "${cfg}" -O "\$out_dir" -N
+    ${commands}
     """
 }
 
 process RUN_GRID_SIMULATION {
-    tag "grid:g${conf_global}:l${conf_local}:r${rep_idx}"
-    maxForks parallelism
-
     input:
-    tuple val(conf_global), val(conf_local), val(rep_idx)
-
-    output:
-    tuple val(conf_global), val(conf_local), val(rep_idx)
+    val(combinations)
 
     script:
-    def runStub = String.format("%.3f_%.3f_%03d", conf_global as double, conf_local as double, rep_idx as int)
-    def seed = "grid_${runStub}".hashCode() & 0x7FFFFFFF
-    def outDir = "${resultsDir}/grid_search_${runStub}"
-    def configJson = """{
-  "Seed": ${seed},
-  "StartMut": 1,
-  "StartPop": 1,
-  "Reps": 1,
-  "MaxPop": 1048576000,
-  "MaxSteps": 1000000,
-  "MaxClones": -1,
-  "MinPop": 1000,
-  "MaxTries": 10000,
-  "Turnover": 0.01,
-  "MutationProb": 2E-05,
-  "DriverProb": 1,
-  "FitnessMean": 0.1,
-  "ConfGlobal": ${conf_global},
-  "ConfLocal": ${conf_local},
-  "FitnessAcc": "Add",
-  "FitnessDist": "Exponential",
-  "FitnessEffect": "Birth",
-  "Checkpoints": true,
-  "CutOff": 1E-09,
-  "CloneSample": -1,
-  "CalcFish": false,
-  "FishFrac": 0.001
-}"""
+    def commands = combinations.collect { confGlobal, confLocal, repIdx, seed ->
+        def runStub = String.format("%.3f_%.3f_%03d", confGlobal as double, confLocal as double, repIdx as int)
+        def outDir = "${resultsDir}/grid_search_${runStub}"
+        """
+    out_dir=\"${outDir}\"
+    echo \"[start] grid g=${confGlobal} l=${confLocal} r=${repIdx}\"
+    if [[ -f \"${'$'}out_dir/populations.csv\" ]]; then
+        echo \"[skip] (existing outputs found)\"
+    else
+        mkdir -p \"${'$'}out_dir\"
+        jq --argjson seed ${seed} \\
+           --argjson confGlobal ${confGlobal} \\
+           --argjson confLocal ${confLocal} \\
+           '. + {\"Seed\": ${'$'}seed, \"ConfGlobal\": ${'$'}confGlobal, \"ConfLocal\": ${'$'}confLocal}' \\
+           \"${articleFiguresDir}/article_config.json\" > \"${'$'}out_dir/config.json\"
+        echo \"[run ] grid g=${confGlobal} l=${confLocal} r=${repIdx}\"
+        \"${repoRoot}/bin/Release/net10.0/publish/SMITH\" -C \"${'$'}out_dir/config.json\" -O \"${'$'}out_dir\" -N
+    fi
+        """.stripIndent().trim()
+    }.join('\n\n')
     """
     set -euo pipefail
 
-    run_dotnet() {
-        if command -v dotnet >/dev/null 2>&1; then
-            local version
-            version="\$(dotnet --version 2>/dev/null || true)"
-            if [[ "\$version" =~ ^([0-9]+)\\. ]] && (( \${BASH_REMATCH[1]} >= 10 )); then
-                dotnet "\$@"
-                return
-            fi
-        fi
-
-        if command -v conda >/dev/null 2>&1 && conda run -n smith dotnet --version >/dev/null 2>&1; then
-            conda run -n smith dotnet "\$@"
-            return
-        fi
-
-        echo "dotnet >= 10 is required to run simulations." >&2
-        exit 1
-    }
-
-    out_dir="${outDir}"
-    echo "[start] grid g=${conf_global} l=${conf_local} r=${rep_idx}"
-    if [[ -f "\$out_dir/populations.csv" ]]; then
-        echo "[skip] (existing outputs found)"
-        exit 0
-    fi
-
-    mkdir -p "\$out_dir"
-    cat > config.json << 'GRID_CONFIG_EOF'
-${configJson}
-GRID_CONFIG_EOF
-
-    echo "[run ] grid g=${conf_global} l=${conf_local} r=${rep_idx}"
-    run_dotnet run --project "${repoRoot}/SMITH.csproj" -- -C config.json -O "\$out_dir" -N
+    ${commands}
     """
 }
 
 workflow REPRESENTATIVE_RUNS {
-    def configRecords = []
-
-    if (onlySelection in ['all', 'fish']) {
-        configRecords.addAll(collectConfigRecords('fish', "${articleFiguresDir}/data/fish_plot_configs"))
-    }
-
-    if (onlySelection in ['all', 'trajectories']) {
-        configRecords.addAll(collectConfigRecords('trajectory', "${articleFiguresDir}/data/trajectories_configs"))
-    }
+    def configRecords = collectConfigRecords([
+        "${articleFiguresDir}/data/fish_plot_configs",
+        "${articleFiguresDir}/data/trajectories_configs"
+    ])
 
     if (configRecords.isEmpty()) {
-        throw new IllegalStateException('No config files found for the selected dataset(s).')
+        throw new IllegalStateException('No config files found.')
     }
 
-    log.info "Queueing ${configRecords.size()} simulation tasks with maxForks=${parallelism}."
+    log.info "Queueing ${configRecords.size()} simulation runs in one batch job."
 
-    def completedRuns = RUN_SIMULATION(
-        Channel
-            .fromList(configRecords)
-            .map { label, runStub, cfgPath -> tuple(label, runStub, file(cfgPath)) }
-    ).collect()
-
-    completedRuns.view { runs -> "Completed simulation stage for ${runs.size()} runs." }
+    RUN_SIMULATION(
+        Channel.value(configRecords)
+    )
 }
 
 workflow PARAMETER_GRID_SEARCH {
@@ -191,26 +110,21 @@ workflow PARAMETER_GRID_SEARCH {
     confValues.each { g ->
         confValues.each { l ->
             (1..nReplicates).each { r ->
-                combinations << [g, l, r]
+                def runStub = String.format("%.3f_%.3f_%03d", g as double, l as double, r as int)
+                def seed = "grid_${runStub}".hashCode() & 0x7FFFFFFF
+                combinations << [g, l, r, seed]
             }
         }
     }
 
-    log.info "Queueing ${combinations.size()} grid search tasks (${confValues.size()}×${confValues.size()} confinement grid × ${nReplicates} replicates) with maxForks=${parallelism}."
+    log.info "Queueing ${combinations.size()} grid search tasks in one batch job."
 
-    def completedRuns = RUN_GRID_SIMULATION(
-        Channel.fromList(combinations)
-    ).collect()
-
-    completedRuns.view { runs -> "Completed grid search stage for ${runs.size()} runs." }
+    RUN_GRID_SIMULATION(
+        Channel.value(combinations)
+    )
 }
 
 workflow {
-    if (onlySelection in ['all', 'fish', 'trajectories']) {
-        REPRESENTATIVE_RUNS()
-    }
-
-    if (onlySelection == 'grid') {
-        PARAMETER_GRID_SEARCH()
-    }
+    REPRESENTATIVE_RUNS()
+    PARAMETER_GRID_SEARCH()
 }
