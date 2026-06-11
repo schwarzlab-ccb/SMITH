@@ -62,14 +62,14 @@ public class FileIO
     {
         string outPath = Path.Combine(Path.GetFullPath(RootFolder), SUBCLONES_FILENAME);
         using var outputFile = new StreamWriter(outPath);
-        outputFile.WriteLine("ID,ParentID,Distance,Alive,Necrotic,Lost,Drivers,Passengers,Fitness,CCF");
+        outputFile.WriteLine("ID,ParentID,FirstGen,Distance,Alive,Necrotic,Lost,Drivers,Passengers,Fitness,CCF");
         foreach (var clone in clones)
         {
             double frac = ccf[clone.CloneId] / (double) alive;
             // If no edge to parent is present, the clone is the root and parents itself.
             var parent = parentMap.TryGetValue(clone.CloneId, out var value) ? value : (clone.CloneId, 0);
             int distance = -1;
-            outputFile.WriteLine($"{clone.CloneId},{parent.Item1},{clone.Distance},{clone.AliveCount}," +
+            outputFile.WriteLine($"{clone.CloneId},{parent.Item1},{clone.FirstGen},{clone.Distance},{clone.AliveCount}," +
                                  $"{clone.NecroCount},{clone.LostCount},{clone.DriverCount},{clone.PassengersCount}," +
                                  $"{clone.Fitness},{frac:f4}");
         }
