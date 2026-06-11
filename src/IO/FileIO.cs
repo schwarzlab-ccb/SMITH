@@ -68,7 +68,8 @@ public class FileIO
             double frac = ccf[clone.CloneId] / (double) alive;
             // If no edge to parent is present, the clone is the root and parents itself.
             var parent = parentMap.TryGetValue(clone.CloneId, out var value) ? value : (clone.CloneId, 0);
-            outputFile.WriteLine($"{clone.CloneId},{parent.Item1},{parent.Item2},{clone.AliveCount}," +
+            int distance = -1;
+            outputFile.WriteLine($"{clone.CloneId},{parent.Item1},{clone.Distance},{clone.AliveCount}," +
                                  $"{clone.NecroCount},{clone.LostCount},{clone.DriverCount},{clone.PassengersCount}," +
                                  $"{clone.Fitness},{frac:f4}");
         }

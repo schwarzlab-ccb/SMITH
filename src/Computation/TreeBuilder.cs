@@ -6,20 +6,24 @@ namespace SMITH.Computation;
 
 public static class TreeBuilder
 {
-    public static Dictionary<int, int> CreateParentMap(IEnumerable<Clone> subClones)
+    private static Dictionary<int, int> CreateParentMap(IEnumerable<Clone> subClones)
         => subClones.ToDictionary(sc => sc.CloneId, sc => sc.ParentId);
+
+    private static Dictionary<int, int> CreateDistanceMap(IEnumerable<Clone> subClones)
+        => subClones.ToDictionary(sc => sc.CloneId, sc => Convert.ToInt32(sc.Distance));
     
     public static Dictionary<int, int> CountFirstGent(IEnumerable<Clone> subClones)
         => subClones.ToDictionary(sc => sc.CloneId, sc => sc.FirstGen);
 
-    private static ListEdge FindEdgeToParent(Dictionary<int, int> parentMap, List<Clone> selection, int id)
+    private static ListEdge FindEdgeToParent(Dictionary<int, int> parentMap, Dictionary<int, int> distanceMap,
+        List<Clone> selection, int id)
     {
         int dist = 0;
         int source = id;
 
         do
         {
-            dist++;
+            dist += distanceMap[source];
             source = parentMap[source];
         } while (selection.All(sc => sc.CloneId != source) && source != -1);
 
@@ -53,6 +57,7 @@ public static class TreeBuilder
     public static ListTree BuildCTree(List<Clone> allSubClones, List<Clone> selection)
     {
         var parentMap = CreateParentMap(allSubClones);
+        var distanceMap = CreateDistanceMap(allSubClones);
         List<ListNode> nodes = new();
         List<ListEdge> edges = new();
         int rootId = -1;
@@ -60,7 +65,7 @@ public static class TreeBuilder
         foreach (var subClone in selection)
         {
             nodes.Add(new ListNode { Id = subClone.CloneId, Size = subClone.AliveCount });
-            edges.Add(FindEdgeToParent(parentMap, selection, subClone.CloneId));
+            edges.Add(FindEdgeToParent(parentMap, distanceMap, selection, subClone.CloneId));
         }
 
         if (edges.Count(e => e.SourceId == -1) > 1)
@@ -81,13 +86,14 @@ public static class TreeBuilder
         return new ListTree { RootId = rootId, Nodes = nodes, Edges = edges };
     }
 
-    private static ListEdge FindEdge(Dictionary<int, int> parentMap, List<Clone> selection, List<int> internalNodes, int id)
+    private static ListEdge FindEdge(Dictionary<int, int> parentMap, Dictionary<int, int> distanceMap,
+        List<Clone> selection, List<int> internalNodes, int id)
     {
         int dist = 0;
         int source = id;
         do
         {
-            dist++;
+            dist += distanceMap[source];
             source = parentMap[source];
         } while (source != -1 && selection.All(sc => sc.CloneId != source) && internalNodes.All(n => n != source));
 
@@ -99,20 +105,22 @@ public static class TreeBuilder
     {
         List<ListNode> nodes = new();
         List<ListEdge> edges = new();
+        var subClones = allSubClones.ToList();
         
-        var parentMap = CreateParentMap(allSubClones);
+        var parentMap = CreateParentMap(subClones);
+        var distanceMap = CreateDistanceMap(subClones);
         var internalNodes = FindInternalNodes(parentMap, selection);
 
         foreach (var subClone in selection)
         {
             nodes.Add(new ListNode { Id = subClone.CloneId, Size = subClone.AliveCount });
-            edges.Add(FindEdge(parentMap, selection, internalNodes, subClone.CloneId));
+            edges.Add(FindEdge(parentMap, distanceMap, selection, internalNodes, subClone.CloneId));
         }
 
         foreach (int internalNode in internalNodes)
         {
             nodes.Add(new ListNode { Id = internalNode, Size = 0 });
-            edges.Add(FindEdge(parentMap, selection, internalNodes, internalNode));
+            edges.Add(FindEdge(parentMap, distanceMap, selection, internalNodes, internalNode));
         }
 
         return new ListTree { RootId = 0, Nodes = nodes, Edges = edges.Where(e => e.TargetId != 0).ToList() };

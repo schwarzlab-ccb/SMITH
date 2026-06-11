@@ -2,18 +2,10 @@
 
 namespace SMITH.DataTypes;
 
-public class TreeNode
+public class TreeNode(int id, long size, string label = "")
 {
-    public int Id;
-    public long Size;
-    public string Label;
-    public List<(TreeNode child, int distance)> Children;
-
-    public TreeNode(int id, long size, string label = "")
-    {
-        Id = id;
-        Size = size;
-        Label = label == "" ? id.ToString() : label;
-        Children = new List<(TreeNode, int)>();
-    }
+    public readonly int Id = id;
+    public readonly long Size = size;
+    public readonly string Label = label == "" ? id.ToString() : label;
+    public List<(TreeNode child, int distance)> Children = [];
 }

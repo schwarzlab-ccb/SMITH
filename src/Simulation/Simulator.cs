@@ -26,12 +26,13 @@ public class Simulator
             double sample = FitnessFunction.SampleFitness(simParams, rnd);
             initFit = AccFitness(initFit, sample, SimParams.FitnessAcc);
         }
-        var primeval = new Clone(0, -1, 0, initFit, SimParams.StartMut, 0u, SimParams.StartPop);
-        Clones = new List<Clone> { primeval };
+        uint passengerMutantCount = CalcPassengers(SimParams.DriverProb / SimParams.StartMut );
+        var primeval = new Clone(0, -1, 0, initFit, SimParams.StartMut, passengerMutantCount, passengerMutantCount + SimParams.StartMut, SimParams.StartPop);
+        Clones = [primeval];
     }
 
     public List<Clone> Clones { get; }
-    public SimParams SimParams { get; }
+    private SimParams SimParams { get; }
     private Random Rnd { get; }
     public double GlobalFrac { get; private set; }
 
@@ -79,13 +80,16 @@ public class Simulator
 
     private static double CalcFraction(long aliveCount, double freeCount) => 
         aliveCount > freeCount && aliveCount > 0 ? Math.Clamp(freeCount / aliveCount, 0.0, 1.0) : 1.0;
-
+    
+    private uint CalcPassengers(double mean) 
+     =>  (uint) Math.Max(0, Math.Round((double) Extreme.Statistics.Distributions.GeometricDistribution.Sample(Rnd, mean)));
+    
     public void Step()
     {
         AliveSC = 0;
         StepNo++;
 
-        List<Clone> newClones = new();
+        List<Clone> newClones = [];
         var popState = CellSampling.PopState(Clones);
         
         double globalFree = CalcFree(popState.Alive + popState.Necro, SimParams.ConfGlobal);
@@ -120,26 +124,18 @@ public class Simulator
                 
 
             // Mutate some of the cells
-            int newMutantCount = ExtremeBinDist.Sample(Rnd, newCellsCount, SimParams.MutationProb);
+            int newMutantCount = ExtremeBinDist.Sample(Rnd, newCellsCount, SimParams.MutationProb * SimParams.DriverProb);
 
             int driverMutantCount = 0;
-            uint passengerMutantCount = 0;
             for (int mutationI = 0; mutationI < newMutantCount; mutationI++)
             {
-                if (Rnd.NextDouble() < SimParams.DriverProb)
-                {
-                    double divChange = FitnessFunction.SampleFitness(SimParams, Rnd);
-                    double newDivision = AccFitness(subClone.Fitness, divChange, SimParams.FitnessAcc);
-                    var childClone = subClone.CreateChild(GetNewId(), StepNo, newDivision, subClone.DriverCount + 1u, subClone.PassengersCount);
-                    newClones.Add(childClone);
-                    driverMutantCount++;
-                }
-                else
-                {
-                    passengerMutantCount++;
-                }
+                double divChange = FitnessFunction.SampleFitness(SimParams, Rnd);
+                double newDivision = AccFitness(subClone.Fitness, divChange, SimParams.FitnessAcc);
+                uint passengerMutantCount = CalcPassengers(SimParams.DriverProb);
+                var childClone = subClone.CreateChild(GetNewId(), StepNo, newDivision, subClone.DriverCount + 1u, subClone.PassengersCount + passengerMutantCount, passengerMutantCount + 1);
+                newClones.Add(childClone);
+                driverMutantCount++;
             }
-            subClone.AddPassengers(passengerMutantCount);
 
             subClone.NewGen(
                 (uint)(subClone.AliveCount + newCellsCount - driverMutantCount - newDead),

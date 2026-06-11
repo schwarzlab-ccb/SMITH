@@ -1,25 +1,23 @@
 ﻿namespace SMITH.DataTypes;
 
-public class Clone
+public class Clone(
+    int cloneId,
+    int parentId,
+    int generation,
+    double fitness,
+    uint drivers,
+    uint passengers,
+    uint distance,
+    long popSize)
 {
-    public Clone(int cloneId, int parentId, int generation, double fitness, uint drivers, uint passengers, long popSize)
-    {
-        CloneId = cloneId;
-        ParentId = parentId;
-        DriverCount = drivers;
-        PassengersCount = passengers;
-        Fitness = fitness;
-        FirstGen = generation;
-        Cells = new List<(long Alive, long Necro)> { (popSize, 0) };
-    }
-
-    public int FirstGen { get; }
-    public int CloneId { get; }
-    public int ParentId { get; }
-    public double Fitness { get; }
-    public uint DriverCount { get; }
-    public uint PassengersCount { get; private set; }
-    private List<(long Alive, long Necro)> Cells { get; }
+    public int FirstGen { get; } = generation;
+    public int CloneId { get; } = cloneId;
+    public int ParentId { get; } = parentId;
+    public double Fitness { get; } = fitness;
+    public uint DriverCount { get; } = drivers;
+    public uint Distance { get;  } = distance;
+    public uint PassengersCount { get; private set; } = passengers;
+    private List<(long Alive, long Necro)> Cells { get; } = [(popSize, 0)];
 
     public long AliveCount => Cells.Last().Alive;
 
@@ -31,18 +29,20 @@ public class Clone
 
     public long LostCount { get; private set; }
 
-    public uint MutCount => DriverCount + PassengersCount;
+    public uint MutCount 
+        => DriverCount + PassengersCount;
 
-    public void AddPassengers(uint count) => PassengersCount += count;
+    public void AddPassengers(uint count) 
+        => PassengersCount += count;
 
-    public Clone CreateChild(int newId, int generation, double fitness, uint drivers, uint passengers)
-        => new(newId, CloneId, generation, fitness, drivers, passengers, 1);
+    public Clone CreateChild(int newId, int generation, double fitness, uint drivers, uint passengers, uint distance)
+        => new(newId, CloneId, generation, fitness, drivers, passengers, distance, 1);
 
     public static string Header()
-        => "ID,Parent,Alive,Necrotic,Lost,Drivers,Passengers,Fitness";
+        => "ID,Parent,Distance,Alive,Necrotic,Lost,Drivers,Passengers,Fitness";
 
     public override string ToString()
-        => $"{CloneId},{ParentId},{AliveCount},{NecroCount},{LostCount},{DriverCount},{PassengersCount},{Fitness}";
+        => $"{CloneId},{ParentId},{Distance},{AliveCount},{NecroCount},{LostCount},{DriverCount},{PassengersCount},{Fitness}";
 
     public long AliveAtGen(int gen)
         => gen >= FirstGen && gen < LastGen ? Cells[gen - FirstGen].Alive : 0;

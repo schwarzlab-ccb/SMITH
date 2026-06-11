@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.2.0] - 2026-06-11
+
+### Changed
+- Tree edge distances in `TreeBuilder` now accumulate lineage distance from each traversed `Clone.Distance` value instead of counting ancestor hops (`+1`).
+- This affects both collapsed parent trees (`BuildCTree`) and LCA trees (`BuildLCAT`) so branch lengths reflect stored clone distances.
+- Regression fixture targets in `tests/targets` were refreshed to match current simulation outputs after the tree-distance update.
+
+### Added
+- Regression tests in `tests/Computation/TreeBuilderTests.cs` for distance accumulation in both parent-tree and LCA-tree construction.
+
 ## [1.1.0] - 2026-04-22
 
 ### Added
