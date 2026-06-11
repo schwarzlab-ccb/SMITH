@@ -17,7 +17,7 @@ public class SimulationRunnerRegressionTests
         files.WriteSimParams(simParams);
 
         var rnd = new Random(simParams.Seed);
-        var runner = new SimulationRunner(simParams, files, rnd, logNewline: true, bifrucating: false);
+        var runner = new SimulationRunner(simParams, files, rnd, logNewline: true);
         var originalOut = Console.Out;
         Console.SetOut(TextWriter.Null);
         try
@@ -47,56 +47,6 @@ public class SimulationRunnerRegressionTests
         TestHelper.AssertCsvShapeEqual(
             Path.Combine(TestHelper.FixtureFolder, "summary.csv"),
             Path.Combine(outDir, "summary.csv"));
-    }
-
-    [Fact]
-    public void RunAll_WithBifrucatingFlag_KeepsCloneTree_AndAddsBinTree()
-    {
-        var simParams = TestHelper.LoadFixtureParams();
-        string outDir = TestHelper.CreateTempDirectory();
-
-        try
-        {
-            var files = new FileIO(outDir, isRepeated: false);
-            files.WriteSimParams(simParams);
-
-            var runner = new SimulationRunner(simParams, files, new Random(simParams.Seed), logNewline: true, bifrucating: true);
-            var originalOut = Console.Out;
-            Console.SetOut(TextWriter.Null);
-            try
-            {
-                runner.RunAll();
-            }
-            finally
-            {
-                Console.SetOut(originalOut);
-            }
-
-            TestHelper.AssertTextFileEqual(
-                Path.Combine(TestHelper.FixtureFolder, "clone_tree.dot"),
-                Path.Combine(outDir, "clone_tree.dot"));
-            TestHelper.AssertTextFileEqual(
-                Path.Combine(TestHelper.FixtureFolder, "clone_tree.new"),
-                Path.Combine(outDir, "clone_tree.new"));
-
-            Assert.True(File.Exists(Path.Combine(outDir, "bin_tree.dot")));
-            Assert.True(File.Exists(Path.Combine(outDir, "bin_tree.new")));
-
-            string binDot = File.ReadAllText(Path.Combine(outDir, "bin_tree.dot"));
-            string binNewick = File.ReadAllText(Path.Combine(outDir, "bin_tree.new"));
-            Assert.NotEmpty(binDot);
-            Assert.NotEmpty(binNewick);
-
-            Assert.Matches("label=\"-?\\d+-\\d+\"", binDot);
-            Assert.Matches("-?\\d+-\\d+;", binNewick);
-        }
-        finally
-        {
-            if (Directory.Exists(outDir))
-            {
-                Directory.Delete(outDir, recursive: true);
-            }
-        }
     }
 }
 

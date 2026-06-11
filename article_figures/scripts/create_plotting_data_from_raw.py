@@ -179,7 +179,7 @@ try:
         row = most_representative_runs.loc[(most_representative_runs['Confinement_global'] == cur_Confinement_global) & (
             most_representative_runs['Confinement_local'] == cur_Confinement_local)].iloc[0]
         cur_folder = RESULTS_DIR / f"parameter_range_{row['MutationProb']:.6f}_{row['FitnessMean']:.6f}_{row['Confinement_global']:.6f}_{row['Confinement_local']:.6f}_{int(row['RepeatId'])+1}"
-        tree = Bio.Phylo.read(cur_folder / 'bin_tree.new', 'newick')
+        tree = Bio.Phylo.read(cur_folder / 'clone_tree.new', 'newick')
         normal_name = [x.name for x in tree.get_terminals() if x.name.split('-')[0] == '0'][0]
         tree.root_with_outgroup(normal_name)
 

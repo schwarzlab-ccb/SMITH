@@ -8,8 +8,6 @@ public class FileIO
 {
     private const string DOT_TREE_FILENAME = "clone_tree.dot";
     private const string NEWICK_TREE_FILENAME = "clone_tree.new";
-    private const string BIN_DOT_TREE_FILENAME = "bin_tree.dot";
-    private const string BIN_NEWICK_TREE_FILENAME = "bin_tree.new";
 
     private const string SUBCLONES_FILENAME = "clones.csv";
     private const string POPULATIONS_DF_FILENAME = "populations.csv";
@@ -95,30 +93,6 @@ public class FileIO
         outputFile.WriteLine("}");
     }
 
-    private static void WriteDotNode(TreeNode node, StreamWriter outputFile)
-    {
-        double size = Math.Round(.25 * (1 + Math.Log(1 + node.Size)), 2);
-        outputFile.WriteLine($"\t{node.Id} [label=\"{FormatNodeLabel(node.Id, node.Size)}\", width={size}, height={size * .6}];");
-        foreach (var (child, distance) in node.Children)
-        {
-            WriteDotNode(child, outputFile);
-            outputFile.WriteLine($"\t{node.Id} -> {child.Id} [label=\"{distance}\"];");
-        }
-    }
-
-    private void WriteDotTree(TreeNode tree, string fileName)
-    {
-        string outPath = Path.Combine(Path.GetFullPath(RootFolder), fileName);
-        using var outputFile = new StreamWriter(outPath);
-
-        outputFile.WriteLine("Digraph SMITH {");
-        WriteDotNode(tree, outputFile);
-        outputFile.WriteLine("}");
-    }
-
-    public void WriteBinDotTree(TreeNode tree)
-        => WriteDotTree(tree, BIN_DOT_TREE_FILENAME);
-
     private void WriteNode(TreeNode node, StreamWriter writer)
     {
         if (node.Children.Count > 0)
@@ -151,9 +125,6 @@ public class FileIO
 
     public void WriteNewickTree(TreeNode treeNode)
         => WriteNewickTree(treeNode, NEWICK_TREE_FILENAME);
-
-    public void WriteBinNewickTree(TreeNode treeNode)
-        => WriteNewickTree(treeNode, BIN_NEWICK_TREE_FILENAME);
 
     public void WriteMullerDataFrames(List<Clone> subClones, ListTree tree)
     {

@@ -7,10 +7,15 @@ All notable changes to this project are documented in this file.
 ### Changed
 - Tree edge distances in `TreeBuilder` now accumulate lineage distance from each traversed `Clone.Distance` value instead of counting ancestor hops (`+1`).
 - This affects both collapsed parent trees (`BuildCTree`) and LCA trees (`BuildLCAT`) so branch lengths reflect stored clone distances.
+- The `clone_tree.new` Newick output is now always bifurcating; multifurcations are resolved in order of clone appearance.
+- `clones.csv` now includes a `FirstGen` column (third column) recording the generation in which each clone first appeared.
 - Regression fixture targets in `tests/targets` were refreshed to match current simulation outputs after the tree-distance update.
 
 ### Added
 - Regression tests in `tests/Computation/TreeBuilderTests.cs` for distance accumulation in both parent-tree and LCA-tree construction.
+
+### Removed
+- `-B` / `--bifrucating` CLI option and the separate `bin_tree.dot` / `bin_tree.new` output files; the Newick output is now always bifurcating.
 
 ## [1.1.0] - 2026-04-22
 

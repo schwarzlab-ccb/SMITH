@@ -144,17 +144,6 @@ public static class TreeBuilder
         return root;
     }
 
-    public static TreeNode CloneTree(TreeNode tree)
-    {
-        var copy = new TreeNode(tree.Id, tree.Size, tree.Label);
-        foreach (var (child, distance) in tree.Children)
-        {
-            copy.Children.Add((CloneTree(child), distance));
-        }
-
-        return copy;
-    }
-
     private static int AppearanceOrder(Dictionary<int, int> firstGen, int cloneId)
         => firstGen.TryGetValue(cloneId, out int value) ? value : int.MaxValue;
 

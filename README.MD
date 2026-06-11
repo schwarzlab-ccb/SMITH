@@ -181,17 +181,8 @@ Node labels are written as `[cloneid]-[population_size]`.
 #### `clone_tree.new`
 
 Same as `clone_tree.dot`, but in the [Newick format](https://en.wikipedia.org/wiki/Newick_format)
-with node labels written as `[cloneid]-[population_size]`.
-
-#### `bin_tree.dot`
-
-Binary (bifurcating) version of the clone tree in DOT format. Generated when bifurcating output is enabled.
-Node labels are written as `[cloneid]-[population_size]`.
-
-#### `bin_tree.new`
-
-Binary (bifurcating) version of the clone tree in Newick format. Generated when bifurcating output is enabled.
-Node labels are written as `[cloneid]-[population_size]`.
+with node labels written as `[cloneid]-[population_size]`. The tree is always written as a
+binary (bifurcating) tree, with multifurcations resolved in order of clone appearance.
 
 #### `sim_params.json` 
 

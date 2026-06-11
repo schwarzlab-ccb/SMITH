@@ -8,23 +8,18 @@ public static class SimulationResultOutput
 {
     public static void WriteFinishedOutputs(FileIO files, ResultSummary result, ListTree lcaTreeList, List<Clone> sample,
         Dictionary<int, long> ccCount, long aliveCount, Simulator simulator, SimParams simParams, List<PopState> popStates,
-        int repeatId, int tryNo, bool bifrucating)
+        int repeatId, int tryNo)
     {
         var parentMap = lcaTreeList.Edges.ToDictionary(e => e.TargetId, e => (e.SourceId, e.Distance));
         files.WriteClones(sample, ccCount, aliveCount, parentMap);
 
         var tree = TreeBuilder.ListToTree(lcaTreeList);
         files.WriteDotTree(lcaTreeList);
-        files.WriteNewickTree(tree);
 
-        if (bifrucating)
-        {
-            var firstGen = TreeBuilder.CountFirstGent(sample);
-            var binTree = TreeBuilder.CloneTree(tree);
-            TreeBuilder.ConvertToBifrucatingNodes(firstGen, binTree);
-            files.WriteBinDotTree(binTree);
-            files.WriteBinNewickTree(binTree);
-        }
+        // The Newick output is always bifurcating.
+        var firstGen = TreeBuilder.CountFirstGent(sample);
+        TreeBuilder.ConvertToBifrucatingNodes(firstGen, tree);
+        files.WriteNewickTree(tree);
 
         var (mullerPops, mullerTree) = State.GetMullerData(simulator, simParams, popStates);
         if (mullerPops.Any())
