@@ -35,6 +35,27 @@ plot_folder() {
     else
         echo "File $folder/clone_tree.dot does not exist. Skipping clone tree plot."
     fi
+
+    if [[ -f "$folder/clone_tree.new" ]]; then
+        echo "Plotting Newick Tree"
+        python3 - "$folder/clone_tree.new" "$folder/phylogenetic_tree.png" <<'PY'
+import sys
+import matplotlib
+import matplotlib.pyplot as plt
+from Bio import Phylo
+
+src, dst = sys.argv[1], sys.argv[2]
+tree = Phylo.read(src, "newick")
+fig, ax = plt.subplots(figsize=(12, max(6, tree.count_terminals() * 0.22)))
+Phylo.draw(tree, axes=ax, do_show=False, label_func=lambda c: c.name if c.is_terminal() else "")
+ax.set_title("Phylogenetic Tree (Newick)")
+ax.set_xlabel("clone ID-cell count")
+fig.tight_layout()
+fig.savefig(dst)
+PY
+    else
+        echo "File $folder/clone_tree.new does not exist. Skipping Newick tree plot."
+    fi
 }
 
 if [[ -f "$out/populations.csv" && -f "$out/parent_tree.csv" ]]; then

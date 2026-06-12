@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.2.1] - 2026-06-12
+
+### Fixed
+- Branch lengths in `clone_tree.new` are now preserved when multifurcations are resolved into a bifurcating tree. Previously, every child of a node with three or more children was written with a hardcoded distance of `1`, so those branch lengths no longer matched the `Distance` column in `clones.csv`. Each child now keeps its original distance, while the inserted chain (self) nodes remain at distance `0`.
+
+### Added
+- `plot.sh` now renders `clone_tree.new` as a phylogenetic tree image (`phylogenetic_tree.png`) using Biopython's `Bio.Phylo`, labelling only the tips with their `cloneid-population_size`.
+
 ## [1.2.0] - 2026-06-11
 
 ### Changed

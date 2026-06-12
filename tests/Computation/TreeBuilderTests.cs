@@ -69,19 +69,19 @@ public class TreeBuilderTests
 
         Assert.Equal(2, root.Children.Count);
         Assert.Equal(2, root.Children[0].child.Id);
-        Assert.Equal(1, root.Children[0].distance);
+        Assert.Equal(3, root.Children[0].distance);
         Assert.Equal(0, root.Children[1].distance);
 
         var self1 = root.Children[1].child;
         Assert.Equal(2, self1.Children.Count);
         Assert.Equal(3, self1.Children[0].child.Id);
-        Assert.Equal(1, self1.Children[0].distance);
+        Assert.Equal(9, self1.Children[0].distance);
         Assert.Equal(0, self1.Children[1].distance);
 
         var self2 = self1.Children[1].child;
         Assert.Single(self2.Children);
         Assert.Equal(1, self2.Children[0].child.Id);
-        Assert.Equal(1, self2.Children[0].distance);
+        Assert.Equal(7, self2.Children[0].distance);
     }
 }
 

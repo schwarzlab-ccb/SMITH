@@ -169,20 +169,21 @@ public static class TreeBuilder
 
             if (orderedChildren.Count > 2)
             {
-                // Convert multifurcation into a chain: (child:1, self:0) in appearance order.
+                // Convert multifurcation into a chain of zero-length self-nodes in appearance order,
+                // preserving each child's original distance.
                 TreeNode chainNode = tree;
                 for (int i = 0; i < orderedChildren.Count; i++)
                 {
-                    var child = orderedChildren[i].child;
+                    var (child, distance) = orderedChildren[i];
                     bool isLast = i == orderedChildren.Count - 1;
                     if (isLast)
                     {
-                        chainNode.Children = new List<(TreeNode child, int distance)> { (child, 1) };
+                        chainNode.Children = new List<(TreeNode child, int distance)> { (child, distance) };
                         break;
                     }
 
                     var selfNode = new TreeNode(nextFreeId++, 0, tree.Label);
-                    chainNode.Children = new List<(TreeNode child, int distance)> { (child, 1), (selfNode, 0) };
+                    chainNode.Children = new List<(TreeNode child, int distance)> { (child, distance), (selfNode, 0) };
                     chainNode = selfNode;
                 }
             }

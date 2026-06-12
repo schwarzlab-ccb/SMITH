@@ -182,7 +182,9 @@ Node labels are written as `[cloneid]-[population_size]`.
 
 Same as `clone_tree.dot`, but in the [Newick format](https://en.wikipedia.org/wiki/Newick_format)
 with node labels written as `[cloneid]-[population_size]`. The tree is always written as a
-binary (bifurcating) tree, with multifurcations resolved in order of clone appearance.
+binary (bifurcating) tree, with multifurcations resolved in order of clone appearance. Each
+branch length equals the corresponding clone's `Distance` in `clones.csv`; the zero-length
+chain nodes inserted to keep the tree bifurcating carry the parent's label.
 
 #### `sim_params.json` 
 
@@ -205,6 +207,9 @@ Fish plots generated using the [PyFish package](https://bitbucket.org/schwarzlab
 An evolutionary tree describing the individual sampled clones and their total population (labelled nodes), together with their evolutionary distance from the parent (labelled edges).
 
 ![](./doc/img/clone_tree.png)
+
+#### `phylogenetic_tree.png`
+The `clone_tree.new` Newick tree rendered with Biopython's `Bio.Phylo`. Tips are labelled with `cloneid-population_size` and the horizontal axis shows the cumulative branch length (evolutionary distance) from the root.
 
 ## Figures for Streck et al. 2023
 The main and supplementary figures for the 2023 publication (Streck, Kaufmann, and Schwarz) are created using the notebooks in the `article_figures` directory.
