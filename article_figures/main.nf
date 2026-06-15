@@ -26,61 +26,72 @@ def collectConfigRecords(List<String> cfgDirPaths) {
     return records
 }
 
+def collectGridSearchRecords(List<Double> confValues, int nReplicates) {
+    def records = []
+
+    confValues.each { g ->
+        confValues.each { l ->
+            (1..nReplicates).each { r ->
+                def runStub = String.format("%.3f_%.3f_%03d", g as double, l as double, r as int)
+                def seed = "grid_${runStub}".hashCode() & 0x7FFFFFFF
+                records << [g, l, r, seed]
+            }
+        }
+    }
+
+    return records
+}
+
 process RUN_SIMULATION {
+    tag { run_stub }
+
     input:
-    val(config_records)
+    tuple val(run_stub), path(cfg)
 
     script:
-    def commands = config_records.collect { runStub, cfgPath ->
-        def cfgName = new File(cfgPath).name
-        """
-    out_dir=\"${resultsDir}/parameter_range_${runStub}\"
-    echo \"[start] ${cfgName}\"
-    if [[ -f \"${'$'}out_dir/populations.csv\" && -f \"${'$'}out_dir/parent_tree.csv\" ]]; then
-        echo \"[skip] ${cfgName} (existing outputs found)\"
-    else
-        mkdir -p \"${'$'}out_dir\"
-        echo \"[run ] ${cfgName}\"
-        \"${repoRoot}/bin/Release/net10.0/publish/SMITH\" -C \"${cfgPath}\" -O \"${'$'}out_dir\" -N
-    fi
-        """.stripIndent().trim()
-    }.join('\n\n')
     """
     set -euo pipefail
 
-    ${commands}
+    out_dir="${resultsDir}/parameter_range_${run_stub}"
+    echo "[start] ${cfg.getName()}"
+    if [[ -f "\$out_dir/populations.csv" && -f "\$out_dir/parent_tree.csv" ]]; then
+        echo "[skip] ${cfg.getName()} (existing outputs found)"
+        exit 0
+    fi
+
+    mkdir -p "\$out_dir"
+    echo "[run ] ${cfg.getName()}"
+    "${repoRoot}/bin/Release/net10.0/publish/SMITH" -C "${cfg}" -O "\$out_dir" -N
     """
 }
 
 process RUN_GRID_SIMULATION {
+    tag { String.format("%.3f_%.3f_%03d", conf_global as double, conf_local as double, rep_idx as int) }
+
     input:
-    val(combinations)
+    tuple val(conf_global), val(conf_local), val(rep_idx), val(seed)
 
     script:
-    def commands = combinations.collect { confGlobal, confLocal, repIdx, seed ->
-        def runStub = String.format("%.3f_%.3f_%03d", confGlobal as double, confLocal as double, repIdx as int)
-        def outDir = "${resultsDir}/grid_search_${runStub}"
-        """
-    out_dir=\"${outDir}\"
-    echo \"[start] grid g=${confGlobal} l=${confLocal} r=${repIdx}\"
-    if [[ -f \"${'$'}out_dir/populations.csv\" ]]; then
-        echo \"[skip] (existing outputs found)\"
-    else
-        mkdir -p \"${'$'}out_dir\"
-        jq --argjson seed ${seed} \\
-           --argjson confGlobal ${confGlobal} \\
-           --argjson confLocal ${confLocal} \\
-           '. + {\"Seed\": ${'$'}seed, \"ConfGlobal\": ${'$'}confGlobal, \"ConfLocal\": ${'$'}confLocal}' \\
-           \"${articleFiguresDir}/article_config.json\" > \"${'$'}out_dir/config.json\"
-        echo \"[run ] grid g=${confGlobal} l=${confLocal} r=${repIdx}\"
-        \"${repoRoot}/bin/Release/net10.0/publish/SMITH\" -C \"${'$'}out_dir/config.json\" -O \"${'$'}out_dir\" -N
-    fi
-        """.stripIndent().trim()
-    }.join('\n\n')
+    def runStub = String.format("%.3f_%.3f_%03d", conf_global as double, conf_local as double, rep_idx as int)
+    def outDir = "${resultsDir}/grid_search_${runStub}"
     """
     set -euo pipefail
 
-    ${commands}
+    out_dir="${outDir}"
+    echo "[start] grid g=${conf_global} l=${conf_local} r=${rep_idx}"
+    if [[ -f "\$out_dir/populations.csv" ]]; then
+        echo "[skip] (existing outputs found)"
+        exit 0
+    fi
+
+    mkdir -p "\$out_dir"
+    jq --argjson seed ${seed} \
+       --argjson confGlobal ${conf_global} \
+       --argjson confLocal ${conf_local} \
+       '. + {"Seed": \$seed, "ConfGlobal": \$confGlobal, "ConfLocal": \$confLocal}' \
+       "${articleFiguresDir}/article_config.json" > "\$out_dir/config.json"
+    echo "[run ] grid g=${conf_global} l=${conf_local} r=${rep_idx}"
+    "${repoRoot}/bin/Release/net10.0/publish/SMITH" -C "\$out_dir/config.json" -O "\$out_dir" -N
     """
 }
 
@@ -94,10 +105,12 @@ workflow REPRESENTATIVE_RUNS {
         throw new IllegalStateException('No config files found.')
     }
 
-    log.info "Queueing ${configRecords.size()} simulation runs in one batch job."
+    log.info "Queueing ${configRecords.size()} representative simulation runs."
 
     RUN_SIMULATION(
-        Channel.value(configRecords)
+        Channel
+            .fromList(configRecords)
+            .map { runStub, cfgPath -> tuple(runStub, file(cfgPath)) }
     )
 }
 
@@ -106,21 +119,12 @@ workflow PARAMETER_GRID_SEARCH {
     def confValues = [0.0, 0.125, 0.25, 0.5, 1.0, 2.0]
     def nReplicates = 100
 
-    def combinations = []
-    confValues.each { g ->
-        confValues.each { l ->
-            (1..nReplicates).each { r ->
-                def runStub = String.format("%.3f_%.3f_%03d", g as double, l as double, r as int)
-                def seed = "grid_${runStub}".hashCode() & 0x7FFFFFFF
-                combinations << [g, l, r, seed]
-            }
-        }
-    }
+    def combinations = collectGridSearchRecords(confValues, nReplicates)
 
-    log.info "Queueing ${combinations.size()} grid search tasks in one batch job."
+    log.info "Queueing ${combinations.size()} grid search tasks."
 
     RUN_GRID_SIMULATION(
-        Channel.value(combinations)
+        Channel.fromList(combinations)
     )
 }
 

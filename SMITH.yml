@@ -12,3 +12,6 @@ dependencies:
   - seaborn
   - graphviz
   - matplotlib>=3.5
+  - tqdm
+  - notebook
+  - scikit-learn
