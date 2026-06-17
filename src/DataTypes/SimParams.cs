@@ -72,10 +72,6 @@ public struct SimParams
         {
             return "CutOff must be in [0, 1]";
         }
-        if (MaxPop >= int.MaxValue)
-        {
-            return $"Max population size (MaxPop) must be less than {int.MaxValue}";
-        }
         return "";
     }
 }

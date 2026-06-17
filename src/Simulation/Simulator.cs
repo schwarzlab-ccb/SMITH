@@ -92,10 +92,10 @@ public class Simulator
 
         List<Clone> newClones = [];
         var popState = CellSampling.PopState(Clones);
-        
+
         double globalFree = CalcFree(popState.Alive + popState.Necro, SimParams.ConfGlobal);
         GlobalFrac = CalcFraction(popState.Alive, globalFree);
-        
+
         foreach (var subClone in Clones.Where(sc => sc.AliveCount > 0))
         {
             AliveSC++;
@@ -105,27 +105,17 @@ public class Simulator
 
             // Kill cells
             double deathFit = GetDeath(subClone.Fitness, SimParams.FitnessEffect);
-            int newDead = ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, deathFit * SimParams.Turnover);
-            int disappeared = ExtremeBinDist.Sample(Rnd, newDead, cloneFrac);
-            int newNecrotic = newDead - disappeared;
+            long newDead = SampleBinomial(Rnd, subClone.AliveCount, deathFit * SimParams.Turnover);
+            long disappeared = SampleBinomial(Rnd, newDead, cloneFrac);
+            long newNecrotic = newDead - disappeared;
 
             // Create new cells
             double birthFit = GetBirth(subClone.Fitness, SimParams.FitnessEffect);
             double birthProb = Math.Clamp(birthFit * SimParams.Turnover, 0.0, 1.0);
-            int newCellsCount;
-            if (subClone.AliveCount > 1_000_000_000)
-            {
-                double frac = 1_000_000_000.0 / subClone.AliveCount;
-                newCellsCount = (int)(ExtremeBinDist.Sample(Rnd, (int) (frac * subClone.AliveCount), birthProb * cloneFrac) / frac);
-            }
-            else
-            {
-                newCellsCount = ExtremeBinDist.Sample(Rnd, (int)subClone.AliveCount, birthProb * cloneFrac);
-            }
-                
+            long newCellsCount = SampleBinomial(Rnd, subClone.AliveCount, birthProb * cloneFrac);
 
             // Mutate some of the cells
-            int newMutantCount = ExtremeBinDist.Sample(Rnd, newCellsCount, SimParams.MutationProb * SimParams.DriverProb);
+            int newMutantCount = (int)SampleBinomial(Rnd, newCellsCount, SimParams.MutationProb * SimParams.DriverProb);
 
             int driverMutantCount = 0;
             for (int mutationI = 0; mutationI < newMutantCount; mutationI++)
@@ -139,11 +129,20 @@ public class Simulator
             }
 
             subClone.NewGen(
-                (uint)(subClone.AliveCount + newCellsCount - driverMutantCount - newDead),
-                (uint)(subClone.NecroCount + newNecrotic),
-                (uint)disappeared);
+                subClone.AliveCount + newCellsCount - driverMutantCount - newDead,
+                subClone.NecroCount + newNecrotic,
+                disappeared);
         }
 
         Clones.AddRange(newClones);
+    }
+
+    private static long SampleBinomial(Random rnd, long n, double p)
+    {
+        if (n <= 0) return 0;
+        if (n <= 1_000_000_000L)
+            return ExtremeBinDist.Sample(rnd, (int)n, p);
+        double frac = 1_000_000_000.0 / n;
+        return (long)(ExtremeBinDist.Sample(rnd, 1_000_000_000, p) / frac);
     }
 }

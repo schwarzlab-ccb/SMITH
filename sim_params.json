@@ -3,7 +3,7 @@
   "StartMut": 1,
   "StartPop": 1,
   "Reps": 1,
-  "MaxPop": 1024000,
+  "MaxPop": 10240000000,
   "MaxSteps": -1,
   "MaxClones": -1,
   "MinPop": 1000,

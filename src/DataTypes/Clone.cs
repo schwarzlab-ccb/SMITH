@@ -47,7 +47,7 @@ public class Clone(
     public long AliveAtGen(int gen)
         => gen >= FirstGen && gen < LastGen ? Cells[gen - FirstGen].Alive : 0;
 
-    public void NewGen(uint genAlive, uint genDead, uint genDis)
+    public void NewGen(long genAlive, long genDead, long genDis)
     {
         Cells.Add((genAlive, genDead));
         LostCount += genDis;
