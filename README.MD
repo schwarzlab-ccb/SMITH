@@ -1,4 +1,4 @@
-![Build & Test](https://github.com/ICCB-Cologne/SMITH/actions/workflows/dotnet-test.yml/badge.svg)
+![Build & Test](https://github.com/schwarzlab-ccb/SMITH/actions/workflows/dotnet-test.yml/badge.svg)
 
 # SMITH: Stochastic Model of Intra-Tumor Heterogeneity
 
@@ -45,7 +45,7 @@ conda install -c conda-forge biopython matplotlib numpy pandas seaborn pillow
 
 The default execution is:
 ```
-git clone git@github.com:ICCB-Cologne/SMITH.git
+git clone git@github.com:schwarzlab-ccb/SMITH.git
 cd SMITH
 dotnet run
 ./plot.sh
