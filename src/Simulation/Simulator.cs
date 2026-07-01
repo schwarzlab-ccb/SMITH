@@ -81,8 +81,9 @@ public class Simulator
     private static double CalcFraction(long aliveCount, double freeCount) => 
         aliveCount > freeCount && aliveCount > 0 ? Math.Clamp(freeCount / aliveCount, 0.0, 1.0) : 1.0;
     
-    private uint CalcPassengers(double mean) 
-     =>  (uint) Math.Max(0, Math.Round((double) Extreme.Statistics.Distributions.GeometricDistribution.Sample(Rnd, mean)));
+    private uint CalcPassengers(double mean)
+     // Extreme's GeometricDistribution counts trials until the first success (support >= 1, mean 1/p),
+     =>  (uint) Math.Max(0, Math.Round((double) Extreme.Statistics.Distributions.GeometricDistribution.Sample(Rnd, mean)) - 1);
     
     public void Step()
     {
