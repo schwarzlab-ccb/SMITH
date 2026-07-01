@@ -45,8 +45,8 @@ conda install -c conda-forge biopython matplotlib numpy pandas seaborn pillow
 
 The default execution is:
 ```
-git clone git@bitbucket.org:schwarzlab/smith.git
-cd smith
+git clone git@github.com:ICCB-Cologne/SMITH.git
+cd SMITH
 dotnet run
 ./plot.sh
 ```
@@ -190,7 +190,7 @@ chain nodes inserted to keep the tree bifurcating carry the parent's label.
 
 Stores configuration parameters used for this simulation, including the random seed. If this file is provided on input, the exact same simulation will be executed.
 
-#### `clones.tsv`  
+#### `clones.csv`  
 
 Information about the individual subclones at the end of the simulation.
 

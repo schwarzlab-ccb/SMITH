@@ -48,8 +48,8 @@ src, dst = sys.argv[1], sys.argv[2]
 tree = Phylo.read(src, "newick")
 fig, ax = plt.subplots(figsize=(12, max(6, tree.count_terminals() * 0.22)))
 Phylo.draw(tree, axes=ax, do_show=False, label_func=lambda c: c.name if c.is_terminal() else "")
-ax.set_title("Phylogenetic Tree (Newick)")
-ax.set_xlabel("clone ID-cell count")
+ax.set_title("Phylogenetic Tree (tip labels: cloneID-cell count)")
+ax.set_xlabel("distance")
 fig.tight_layout()
 fig.savefig(dst)
 PY
