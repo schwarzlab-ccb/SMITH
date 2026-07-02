@@ -66,7 +66,6 @@ public class FileIO
             double frac = ccf[clone.CloneId] / (double) alive;
             // If no edge to parent is present, the clone is the root and parents itself.
             var parent = parentMap.TryGetValue(clone.CloneId, out var value) ? value : (clone.CloneId, 0);
-            int distance = -1;
             outputFile.WriteLine($"{clone.CloneId},{parent.Item1},{clone.FirstGen},{clone.Distance},{clone.AliveCount}," +
                                  $"{clone.NecroCount},{clone.LostCount},{clone.DriverCount},{clone.PassengersCount}," +
                                  $"{clone.Fitness},{frac:f4}");
@@ -185,6 +184,9 @@ public class FileIO
         {
             string serializedJSON = File.ReadAllText(fileFullPath);
             var options = new JsonSerializerOptions { IncludeFields = true };
+            options.Converters.Add(new FlexibleInt64Converter());
+            options.Converters.Add(new FlexibleInt32Converter());
+            options.Converters.Add(new FlexibleUInt32Converter());
             var simParams = JsonSerializer.Deserialize<SimParams>(serializedJSON, options);
             if (simParams.Seed < 0)
             {
