@@ -486,3 +486,6 @@ $RECYCLE.BIN/
 
 # SLURM job logs
 /logs/
+
+# SLURM array runner (local, not versioned)
+run_smith_array.sbatch

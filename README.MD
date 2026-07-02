@@ -63,6 +63,40 @@ Use `dotnet run -- [options]` to specify any of the following:
   -N              (Default: false) Use newline in logs (useful for batch execution)
 ```
 
+### Cancer-type configs
+
+The `configs/` folder holds ready-made parameter sets for the cancer types modelled in
+[Streck et al. 2023](https://academic.oup.com/bioinformatics/article/39/3/btad102/7056642). Each
+type has a bulk (`*_bulk.json`) and a single-cell (`*_SC.json`) variant; the two variants differ in
+sampling-related parameters, while the cancer types differ from one another **only** in the global
+and local confinement fit in the paper:
+
+| Config | Cancer type (data) | `ConfGlobal` | `ConfLocal` |
+|---|---|---|---|
+| `AML_*`    | AML (single-cell DNA)         | 0   | 0     |
+| `RCC_*`    | Kidney / renal cell carcinoma (multi-region WES) | 0.5 | 0 |
+| `MESO_*`   | Mesothelioma (multi-region WES) | 0.5 | 0   |
+| `BRCA_*`   | Breast (single-cell RNA)      | 0.5 | 0.125 |
+| `LUAD_*`   | Lung adenocarcinoma (multi-region WES) | 0.5 | 0.125 |
+| `UVM_*`    | Uveal melanoma (single-cell RNA) | 2 | 0.125 |
+
+Run a single config, e.g.:
+```
+dotnet run -- -C ./configs/UVM_bulk.json -O ./out/UVM_bulk
+./plot.sh ./out/UVM_bulk
+```
+
+### Batch execution (SLURM)
+
+`run_smith.sbatch` runs a single config as a SLURM job; `run_smith_array.sbatch` is a job array that
+runs every config under `configs/` (one array task each, output to `out/<config-name>/`). Both
+activate the `smith` conda env and call the pre-built Release binary, writing logs to the (gitignored)
+`logs/` folder. Submit with:
+```
+sbatch run_smith_array.sbatch      # keep --array=0-(N-1) in sync with the number of configs
+```
+`run_smith_array.sbatch` and `logs/` are gitignored (local run artifacts).
+
 ## Parameters
 
 The following parameter values can be set in the configuration file:
