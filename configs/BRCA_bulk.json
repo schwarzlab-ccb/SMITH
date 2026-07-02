@@ -1,5 +1,5 @@
 {
-  "Seed": 42,
+  "Seed": 3,
   "StartMut": 1,
   "StartPop": 1,
   "Reps": 1,
@@ -9,8 +9,8 @@
   "MinPop": 1000,
   "MaxTries": -1,
   "Turnover": 0.01,
-  "MutationProb": 0.001,
-  "DriverProb": 0.025,
+  "MutationProb": 0.0025,
+  "DriverProb": 0.1,
   "FitnessMean": 0.1,
   "ConfGlobal": 0.5,
   "ConfLocal": 0.125,
