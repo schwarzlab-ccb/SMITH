@@ -167,9 +167,10 @@ workflow PARAMETER_GRID_SEARCH {
 }
 
 workflow {
-    if (runMode == 'grid') {
-        PARAMETER_GRID_SEARCH()
-    } else {
+    if (runMode in ['all', 'fish', 'trajectories']) {
         REPRESENTATIVE_RUNS()
+    }
+    if (runMode in ['all', 'grid']) {
+        PARAMETER_GRID_SEARCH()
     }
 }

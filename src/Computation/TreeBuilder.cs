@@ -123,24 +123,6 @@ public static class TreeBuilder
         return new ListTree { RootId = 0, Nodes = nodes, Edges = edges.Where(e => e.TargetId != 0).ToList() };
     }
 
-    private static void WalkTheTree(ListTree listTree, TreeNode currentNode)
-    {
-        var children = listTree.Edges.Where(e => e.SourceId == currentNode.Id).ToList();
-        foreach (var child in children)
-        {
-            var childNode = new TreeNode(child.TargetId, listTree.Nodes.Find(node => node.Id == child.TargetId).Size);
-            currentNode.Children.Add((childNode, child.Distance));
-            WalkTheTree(listTree, childNode);
-        }
-    }
-    
-    public static TreeNode ListToTree(ListTree listTree)
-    {
-        var root = new TreeNode(listTree.RootId, listTree.Nodes.Find(n => n.Id == listTree.RootId).Size);
-        WalkTheTree(listTree, root);
-        return root;
-    }
-
     private sealed record TimedNode(TreeNode Node, int Generation);
 
     private sealed record BranchEvent(int Generation, List<Clone> Children);
