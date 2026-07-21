@@ -12,11 +12,17 @@ public static class Utility
         {
             return new List<long>();
         }
+        if (simParams.MinPop == 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(simParams), "MinPop must be positive when checkpoints are enabled.");
+        }
 
         var checkpoints = new List<long> { simParams.MinPop };
         while (checkpoints.Last() < simParams.MaxPop)
         {
-            checkpoints.Add(checkpoints.Last() * 2L);
+            long last = checkpoints.Last();
+            checkpoints.Add(last > simParams.MaxPop / 2 ? simParams.MaxPop : last * 2L);
         }
 
         return checkpoints;

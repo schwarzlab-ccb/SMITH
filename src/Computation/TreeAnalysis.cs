@@ -55,7 +55,7 @@ public static class TreeAnalysis
 
     public static float ComputeTreeBalance(int leafCount, ListTree listTree, Dictionary<int, long> CCF)
     {
-        if (leafCount == 1)
+        if (leafCount <= 1)
         {
             return 0;
         }
@@ -84,21 +84,30 @@ public static class TreeAnalysis
             treeBalance += Sdash_i * Sdash_i / S_i * W_i;
         }
 
-        return treeBalance / Sdash_i_sum;
+        return Sdash_i_sum > 0 ? treeBalance / Sdash_i_sum : 0;
     }
 
 
     public static double ComputeClonalDiversity(List<Clone> subClones)
     {
         long totalPop = subClones.Select(clone => clone.AliveCount).Sum();
-        double clonalDiversity = 1 / subClones.Select(clone => Math.Pow((float)clone.AliveCount / totalPop, 2)).Sum();
-        return clonalDiversity;
+        if (totalPop <= 0)
+        {
+            return 0;
+        }
+
+        double concentration = subClones
+            .Select(clone => Math.Pow((double)clone.AliveCount / totalPop, 2))
+            .Sum();
+        return concentration > 0 ? 1 / concentration : 0;
     }
 
     public static double ComputeMeanDriversPerCell(List<Clone> subClones)
     {
-        return subClones.Select(clone => (double)clone.AliveCount * clone.DriverCount).Sum()
-               / subClones.Select(clone => (double)clone.AliveCount).Sum();
+        double totalPop = subClones.Select(clone => (double)clone.AliveCount).Sum();
+        return totalPop > 0
+            ? subClones.Select(clone => (double)clone.AliveCount * clone.DriverCount).Sum() / totalPop
+            : 0;
     }
 
     private static Dictionary<int, List<int>> TreeToBranches(ListTree pt)

@@ -67,6 +67,10 @@ public struct SimParams
         {
             return "CutOff must be in [0, 1]";
         }
+        if (Checkpoints && MinPop == 0)
+        {
+            return "MinPop must be positive when checkpoints are enabled";
+        }
         return "";
     }
 }

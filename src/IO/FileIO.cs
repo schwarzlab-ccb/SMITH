@@ -63,7 +63,7 @@ public class FileIO
         outputFile.WriteLine("ID,ParentID,FirstGen,Distance,Alive,Necrotic,Lost,Drivers,Fitness,CCF");
         foreach (var clone in clones)
         {
-            double frac = ccf[clone.CloneId] / (double) alive;
+            double frac = alive > 0 ? ccf[clone.CloneId] / (double)alive : 0;
             // If no edge to parent is present, the clone is the root and parents itself.
             var parent = parentMap.TryGetValue(clone.CloneId, out var value) ? value : (clone.CloneId, 0);
             outputFile.WriteLine($"{clone.CloneId},{parent.Item1},{clone.FirstGen},{clone.Distance},{clone.AliveCount}," +

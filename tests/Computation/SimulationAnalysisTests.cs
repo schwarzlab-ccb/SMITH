@@ -1,4 +1,5 @@
 ﻿using SMITH.Computation;
+using SMITH.DataTypes;
 using SMITH.Simulation;
 using SMITH.Tests.TestSupport;
 using Xunit;
@@ -46,5 +47,28 @@ public class SimulationAnalysisTests
         Assert.Equal(lcaTree.Nodes.Count, ccf.Count);
         Assert.All(lcaTree.Nodes, node => Assert.True(ccf.ContainsKey(node.Id), $"Missing CCF entry for node {node.Id}"));
     }
-}
 
+    [Fact]
+    public void AnalyzeCheckpoint_WithNoCloneAboveCutoff_ReturnsFiniteZeroMetrics()
+    {
+        var simParams = TestHelper.LoadFixtureParams();
+        simParams.CutOff = 0.6;
+
+        var simulator = new Simulator(simParams, new Random(simParams.Seed));
+        simulator.Clones.Clear();
+        simulator.Clones.Add(new Clone(0, -1, 0, 1, 0, 0, 50));
+        simulator.Clones.Add(new Clone(1, 0, 0, 1, 1, 1, 50));
+        var popState = CellSampling.PopState(simulator.Clones);
+
+        var (summary, lcaTree, sample, ccf) = SimulationAnalysis.AnalyzeCheckpoint(
+            0, 0, 0, simulator, simParams, popState, TimeSpan.Zero);
+
+        Assert.Equal(0, summary.SubcloneSelect);
+        Assert.Equal(0, summary.ClonalDiversity);
+        Assert.Equal(0, summary.MeanDriversPerCell);
+        Assert.Equal(0, summary.TreeBalance);
+        Assert.Empty(lcaTree.Nodes);
+        Assert.Empty(sample);
+        Assert.Empty(ccf);
+    }
+}

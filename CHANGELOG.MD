@@ -13,6 +13,8 @@ All notable changes to this project are documented in this file.
   newly appearing subclone lineage(s). Multifurcations are limited to same-step appearances.
 - `MaxClones` is now enforced while a generation is created, mutation counts retain 64-bit range,
   and binomial sampling above one billion trials uses independent chunks without inflating variance.
+- Empty clone selections and zero-alive outputs now produce finite zero-valued metrics, and
+  checkpoint generation rejects a zero `MinPop` while avoiding overflow at large population limits.
 
 ## [1.2.1] - 2026-06-12
 
