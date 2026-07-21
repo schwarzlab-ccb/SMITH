@@ -11,6 +11,8 @@ All notable changes to this project are documented in this file.
 - `clone_tree.new` now uses simulation steps as branch lengths. Each branching node records the
   parent clone's population at that step and branches into the parent's self-continuation plus the
   newly appearing subclone lineage(s). Multifurcations are limited to same-step appearances.
+- `MaxClones` is now enforced while a generation is created, mutation counts retain 64-bit range,
+  and binomial sampling above one billion trials uses independent chunks without inflating variance.
 
 ## [1.2.1] - 2026-06-12
 

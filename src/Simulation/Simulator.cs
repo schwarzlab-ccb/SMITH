@@ -110,10 +110,16 @@ public class Simulator
             long newCellsCount = SampleBinomial(Rnd, subClone.AliveCount, birthProb * cloneFrac);
 
             // Mutate some of the cells
-            int newMutantCount = (int)SampleBinomial(Rnd, newCellsCount, SimParams.MutationProb);
+            long newMutantCount = SampleBinomial(Rnd, newCellsCount, SimParams.MutationProb);
+            if (SimParams.MaxClones > 0)
+            {
+                long remainingCloneCapacity = Math.Max(
+                    0L, (long)SimParams.MaxClones - Clones.Count - newClones.Count);
+                newMutantCount = Math.Min(newMutantCount, remainingCloneCapacity);
+            }
 
-            int driverMutantCount = 0;
-            for (int mutationI = 0; mutationI < newMutantCount; mutationI++)
+            long driverMutantCount = 0;
+            for (long mutationI = 0; mutationI < newMutantCount; mutationI++)
             {
                 double divChange = FitnessFunction.SampleFitness(SimParams, Rnd);
                 double newDivision = AccFitness(subClone.Fitness, divChange, SimParams.FitnessAcc);
@@ -135,9 +141,16 @@ public class Simulator
     private static long SampleBinomial(Random rnd, long n, double p)
     {
         if (n <= 0) return 0;
-        if (n <= 1_000_000_000L)
-            return ExtremeBinDist.Sample(rnd, (int)n, p);
-        double frac = 1_000_000_000.0 / n;
-        return (long)(ExtremeBinDist.Sample(rnd, 1_000_000_000, p) / frac);
+
+        const int maxChunkSize = 1_000_000_000;
+        long sample = 0;
+        while (n > 0)
+        {
+            int chunkSize = (int)Math.Min(n, maxChunkSize);
+            sample += ExtremeBinDist.Sample(rnd, chunkSize, p);
+            n -= chunkSize;
+        }
+
+        return sample;
     }
 }
