@@ -17,9 +17,11 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 - `MaxClones` is now enforced while a generation is created, mutation counts retain 64-bit range,
-  and binomial sampling above one billion trials uses independent chunks without inflating variance.
+  and binomial sampling above one billion trials uses independent chunks without inflating variance;
+  populations too large to sample exactly fall back to a Poisson/normal approximation.
 - Empty clone selections and zero-alive outputs now produce finite zero-valued metrics, and
   checkpoint generation rejects a zero `MinPop` while avoiding overflow at large population limits.
+- `SanityCheck` now reports the correct field name when `FishFrac` is out of range.
 
 ### Removed
 - Passenger mutation sampling, the `DriverProb` configuration parameter, the passenger clone state,

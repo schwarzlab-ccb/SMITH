@@ -65,7 +65,7 @@ public struct SimParams
         }
         if (FishFrac is < 0 or > 1)
         {
-            return "CutOff must be in [0, 1]";
+            return "FishFrac must be in [0, 1]";
         }
         if (Checkpoints && MinPop == 0)
         {

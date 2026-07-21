@@ -34,6 +34,25 @@ public class SimulatorTests
         Assert.Equal(population, CellSampling.PopState(simulator.Clones).Alive);
     }
 
+    [Fact]
+    public void Step_ApproximatesSamplesBeyondExactSamplingLimit()
+    {
+        // Above the exact-sampling chunk limit, SampleBinomial switches to the
+        // approximation; with all probabilities at 1 that path stays deterministic.
+        const long population = 200_000_000_000;
+        var simParams = DeterministicMutationParams(startPop: 1, maxClones: 2);
+        var simulator = new Simulator(simParams, new Random(simParams.Seed));
+        simulator.Clones.Clear();
+        simulator.Clones.Add(new Clone(0, -1, 0, 1, 0, 1, population));
+
+        simulator.Step();
+
+        Assert.Equal(2, simulator.Clones.Count);
+        Assert.Equal(population - 1, simulator.Clones[0].AliveCount);
+        Assert.Equal(1, simulator.Clones[1].AliveCount);
+        Assert.Equal(population, CellSampling.PopState(simulator.Clones).Alive);
+    }
+
     private static SimParams DeterministicMutationParams(uint startPop, int maxClones)
         => new()
         {

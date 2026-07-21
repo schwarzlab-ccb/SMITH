@@ -143,14 +143,56 @@ public class Simulator
         if (n <= 0) return 0;
 
         const int maxChunkSize = 1_000_000_000;
-        long sample = 0;
-        while (n > 0)
+        // ExtremeBinDist takes an int trial count, so n is drawn in maxChunkSize chunks.
+        // Past this many chunks the number of draws becomes a bottleneck, so populations
+        // that large fall back to an approximation instead of exact sampling.
+        const long maxExactSampleSize = 100L * maxChunkSize;
+        if (n > maxExactSampleSize)
         {
-            int chunkSize = (int)Math.Min(n, maxChunkSize);
+            return ApproximateBinomial(rnd, n, p);
+        }
+
+        long sample = 0;
+        long remaining = n;
+        while (remaining > 0)
+        {
+            int chunkSize = (int)Math.Min(remaining, maxChunkSize);
             sample += ExtremeBinDist.Sample(rnd, chunkSize, p);
-            n -= chunkSize;
+            remaining -= chunkSize;
         }
 
         return sample;
+    }
+
+    // Only reached for populations too large for practical exact sampling. Tiny p
+    // (rare-event, small mean) uses the Poisson limit; otherwise a normal approximation
+    // with matched binomial moments. This branch is never on an RNG path exercised by the
+    // regression fixtures, whose populations stay well below maxExactSampleSize.
+    private static long ApproximateBinomial(Random rnd, long n, double p)
+    {
+        if (p <= 0) return 0;
+        if (p >= 1) return n;
+
+        double mean = (double)n * p;
+        if (mean < 30.0)
+        {
+            // Knuth's Poisson sampler; fast while the mean stays small.
+            double threshold = Math.Exp(-mean);
+            long k = 0;
+            double product = 1.0;
+            do
+            {
+                k++;
+                product *= rnd.NextDouble();
+            } while (product > threshold);
+            return Math.Min(k - 1, n);
+        }
+
+        // Box-Muller normal draw with the binomial mean and variance.
+        double stdDev = Math.Sqrt(mean * (1 - p));
+        double u1 = 1.0 - rnd.NextDouble();
+        double u2 = rnd.NextDouble();
+        double z = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Cos(2.0 * Math.PI * u2);
+        return (long)Math.Clamp(Math.Round(mean + stdDev * z), 0.0, (double)n);
     }
 }

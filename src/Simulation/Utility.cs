@@ -15,7 +15,7 @@ public static class Utility
         if (simParams.MinPop == 0)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(simParams), "MinPop must be positive when checkpoints are enabled.");
+                nameof(simParams.MinPop), "MinPop must be positive when checkpoints are enabled.");
         }
 
         var checkpoints = new List<long> { simParams.MinPop };
