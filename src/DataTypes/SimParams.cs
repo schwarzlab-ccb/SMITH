@@ -20,8 +20,7 @@ public struct SimParams
     
     // Model
     public double Turnover;
-    public double MutationProb;
-    public double DriverProb; // Likelihood that a mutation is a driver mutation
+    public double MutationProb; // Probability of a driver mutation per new cell
     public double FitnessMean;
     public double ConfGlobal;
     public double ConfLocal; 
@@ -47,10 +46,6 @@ public struct SimParams
         if (MutationProb is < 0 or > 1)
         {
             return "Mutation probability must be in [0, 1]";
-        }
-        if (DriverProb is < 0 or > 1)
-        {
-            return "Driver probability must be in [0, 1]";
         }
         if (FitnessMean < 0)
         {

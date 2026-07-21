@@ -112,8 +112,7 @@ For the fitness types a numerical value can be also used, e.g. `"FitnessAcc": 1`
 
 ### Model
 * `Turnover: [0.0-1.0]`  The fraction of cells dividing per step (should be considerably smaller than 1).
-* `MutationProb: [0.0-1.0]` The probability of a mutation per cell division.
-* `DriverProb: [0.0-1.0]` For any mutation, the probability that it is a driver.
+* `MutationProb: [0.0-1.0]` The probability of a driver mutation per new cell.
 * `FitnessMean: unsigned double` The mean fitness increase per mutation.
 * `ConfGlobal: unsigned double` The global confinement of the population - the higher the confinement the stronger the competition between clones.
 * `ConfLocal: unsigned double` The local confinement of the population - the higher the confinement the stronger the restriction of the population of each clone.
@@ -214,11 +213,14 @@ Node labels are written as `[cloneid]-[population_size]`.
 
 #### `clone_tree.new`
 
-Same as `clone_tree.dot`, but in the [Newick format](https://en.wikipedia.org/wiki/Newick_format)
-with node labels written as `[cloneid]-[population_size]`. The tree is always written as a
-binary (bifurcating) tree, with multifurcations resolved in order of clone appearance. Each
-branch length equals the corresponding clone's `Distance` in `clones.csv`; the zero-length
-chain nodes inserted to keep the tree bifurcating carry the parent's label.
+A logical-time clone tree in [Newick format](https://en.wikipedia.org/wiki/Newick_format).
+Branch lengths are simulation steps, so the horizontal coordinate is the absolute appearance
+step. At each branching step, the parent clone has one child for its own continuing lineage and
+one child for each subclone appearing at that step. Its node label is
+`[cloneid]-[population_size]`, using the parent's cell count at that step. Events at different
+steps therefore remain bifurcating; a multifurcation is emitted only when multiple subclones
+appear from the same parent in the same step. Terminal labels use the population size at the end
+of the simulation.
 
 #### `sim_params.json` 
 
@@ -243,7 +245,9 @@ An evolutionary tree describing the individual sampled clones and their total po
 ![](./doc/img/clone_tree.png)
 
 #### `phylogenetic_tree.png`
-The `clone_tree.new` Newick tree rendered with Biopython's `Bio.Phylo`. Tips are labelled with `cloneid-population_size` and the horizontal axis shows the cumulative branch length (evolutionary distance) from the root.
+The `clone_tree.new` logical-time tree rendered with Biopython's `Bio.Phylo`. Branching and
+terminal nodes are labelled with `cloneid-population_size`, and the horizontal axis shows the
+simulation step.
 
 ## Figures for Streck et al. 2023
 The main and supplementary figures for the 2023 publication (Streck, Kaufmann, and Schwarz) are created using the notebooks in the `article_figures` directory.

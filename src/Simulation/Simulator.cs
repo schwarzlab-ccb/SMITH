@@ -26,8 +26,7 @@ public class Simulator
             double sample = FitnessFunction.SampleFitness(simParams, rnd);
             initFit = AccFitness(initFit, sample, SimParams.FitnessAcc);
         }
-        uint passengerMutantCount = CalcPassengers(SimParams.DriverProb / SimParams.StartMut );
-        var primeval = new Clone(0, -1, 0, initFit, SimParams.StartMut, passengerMutantCount, passengerMutantCount + SimParams.StartMut, SimParams.StartPop);
+        var primeval = new Clone(0, -1, 0, initFit, SimParams.StartMut, SimParams.StartMut, SimParams.StartPop);
         Clones = [primeval];
     }
 
@@ -81,10 +80,6 @@ public class Simulator
     private static double CalcFraction(long aliveCount, double freeCount) => 
         aliveCount > freeCount && aliveCount > 0 ? Math.Clamp(freeCount / aliveCount, 0.0, 1.0) : 1.0;
     
-    private uint CalcPassengers(double mean)
-     // Extreme's GeometricDistribution counts trials until the first success (support >= 1, mean 1/p),
-     =>  (uint) Math.Max(0, Math.Round((double) Extreme.Statistics.Distributions.GeometricDistribution.Sample(Rnd, mean)) - 1);
-    
     public void Step()
     {
         AliveSC = 0;
@@ -115,15 +110,15 @@ public class Simulator
             long newCellsCount = SampleBinomial(Rnd, subClone.AliveCount, birthProb * cloneFrac);
 
             // Mutate some of the cells
-            int newMutantCount = (int)SampleBinomial(Rnd, newCellsCount, SimParams.MutationProb * SimParams.DriverProb);
+            int newMutantCount = (int)SampleBinomial(Rnd, newCellsCount, SimParams.MutationProb);
 
             int driverMutantCount = 0;
             for (int mutationI = 0; mutationI < newMutantCount; mutationI++)
             {
                 double divChange = FitnessFunction.SampleFitness(SimParams, Rnd);
                 double newDivision = AccFitness(subClone.Fitness, divChange, SimParams.FitnessAcc);
-                uint passengerMutantCount = CalcPassengers(SimParams.DriverProb);
-                var childClone = subClone.CreateChild(GetNewId(), StepNo, newDivision, subClone.DriverCount + 1u, subClone.PassengersCount + passengerMutantCount, passengerMutantCount + 1);
+                var childClone = subClone.CreateChild(
+                    GetNewId(), StepNo, newDivision, subClone.DriverCount + 1u, 1);
                 newClones.Add(childClone);
                 driverMutantCount++;
             }

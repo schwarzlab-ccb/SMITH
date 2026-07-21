@@ -60,14 +60,14 @@ public class FileIO
     {
         string outPath = Path.Combine(Path.GetFullPath(RootFolder), SUBCLONES_FILENAME);
         using var outputFile = new StreamWriter(outPath);
-        outputFile.WriteLine("ID,ParentID,FirstGen,Distance,Alive,Necrotic,Lost,Drivers,Passengers,Fitness,CCF");
+        outputFile.WriteLine("ID,ParentID,FirstGen,Distance,Alive,Necrotic,Lost,Drivers,Fitness,CCF");
         foreach (var clone in clones)
         {
             double frac = ccf[clone.CloneId] / (double) alive;
             // If no edge to parent is present, the clone is the root and parents itself.
             var parent = parentMap.TryGetValue(clone.CloneId, out var value) ? value : (clone.CloneId, 0);
             outputFile.WriteLine($"{clone.CloneId},{parent.Item1},{clone.FirstGen},{clone.Distance},{clone.AliveCount}," +
-                                 $"{clone.NecroCount},{clone.LostCount},{clone.DriverCount},{clone.PassengersCount}," +
+                                 $"{clone.NecroCount},{clone.LostCount},{clone.DriverCount}," +
                                  $"{clone.Fitness},{frac:f4}");
         }
     }
@@ -113,17 +113,13 @@ public class FileIO
         writer.Write(FormatNodeLabel(node.Id, node.Size));
     }
     
-    private void WriteNewickTree(TreeNode treeNode, string fileName)
+    public void WriteNewickTree(TreeNode treeNode, int rootDistance)
     {
-        string outPath = Path.Combine(Path.GetFullPath(RootFolder), fileName);
+        string outPath = Path.Combine(Path.GetFullPath(RootFolder), NEWICK_TREE_FILENAME);
         using var writer = new StreamWriter(outPath);
         WriteNode(treeNode, writer);
-        // Newick format requires a final semicolon
-        writer.Write(";");
+        writer.Write($":{rootDistance};");
     }
-
-    public void WriteNewickTree(TreeNode treeNode)
-        => WriteNewickTree(treeNode, NEWICK_TREE_FILENAME);
 
     public void WriteMullerDataFrames(List<Clone> subClones, ListTree tree)
     {

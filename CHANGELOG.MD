@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [Unreleased]
+
+### Changed
+- Passenger mutation sampling, configuration, clone state, and CSV output were removed.
+  `MutationProb` now directly specifies the driver-mutation probability; bundled configs preserve
+  their previous effective driver-event rates.
+- `clone_tree.new` now uses simulation steps as branch lengths. Each branching node records the
+  parent clone's population at that step and branches into the parent's self-continuation plus the
+  newly appearing subclone lineage(s). Multifurcations are limited to same-step appearances.
+
 ## [1.2.1] - 2026-06-12
 
 ### Fixed

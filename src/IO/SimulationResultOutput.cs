@@ -13,13 +13,11 @@ public static class SimulationResultOutput
         var parentMap = lcaTreeList.Edges.ToDictionary(e => e.TargetId, e => (e.SourceId, e.Distance));
         files.WriteClones(sample, ccCount, aliveCount, parentMap);
 
-        var tree = TreeBuilder.ListToTree(lcaTreeList);
         files.WriteDotTree(lcaTreeList);
 
-        // The Newick output is always bifurcating.
-        var firstGen = TreeBuilder.CountFirstGent(sample);
-        TreeBuilder.ConvertToBifrucatingNodes(firstGen, tree);
-        files.WriteNewickTree(tree);
+        var (tree, rootDistance) = TreeBuilder.BuildTimeTree(
+            simulator.Clones, lcaTreeList, simulator.StepNo);
+        files.WriteNewickTree(tree, rootDistance);
 
         var (mullerPops, mullerTree) = State.GetMullerData(simulator, simParams, popStates);
         if (mullerPops.Any())
