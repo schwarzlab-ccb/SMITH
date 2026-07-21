@@ -277,10 +277,17 @@ Both workflows skip tasks whose output directory already contains the expected o
 
 ```bash
 nextflow run article_figures \
-  --only grid \                        # which workflow to run
-  --results_dir /path/to/out/results \ # where to write simulation output (default: out/results)
-  --max_forks 8                        # cap on parallel tasks (default: nCPU)
+  --only grid \
+  --results_dir /path/to/out/results \
+  --max_forks 8 \
+  --conda_env /path/to/SMITH.yml
 ```
+
+`results_dir` defaults to `out/results`, `max_forks` defaults to the available CPU count, and
+`conda_env` defaults to the repository's `SMITH.yml`.
+
+The institutional SLURM defaults can be overridden with
+`--slurm_options '<sbatch options>'` when using the `slurm` profile.
 
 ### Recreate article figures from repo root (bash)
 

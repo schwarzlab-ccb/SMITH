@@ -15,6 +15,8 @@ All notable changes to this project are documented in this file.
   and binomial sampling above one billion trials uses independent chunks without inflating variance.
 - Empty clone selections and zero-alive outputs now produce finite zero-valued metrics, and
   checkpoint generation rejects a zero `MinPop` while avoiding overflow at large population limits.
+- The Nextflow workflow now honors `--only` and `--max_forks`, uses the repository conda
+  environment and Release executable, and detects completed fish and non-fish runs reliably.
 
 ## [1.2.1] - 2026-06-12
 
