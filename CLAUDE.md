@@ -40,10 +40,10 @@ dotnet test --filter FullyQualifiedName~TreeBuilderTests   # run a single test c
   same file is written back into the output folder as `sim_params.json`, so any run is exactly
   reproducible by feeding that file back in with `-C`. `SimParams.SanityCheck()` gates startup.
 - **The step loop.** `Simulator.Step()` advances one generation: for each live clone it samples
-  deaths, births, and new mutations via `Extreme.Numerics` binomial/geometric draws off the shared
+  deaths, births, and driver mutations via `Extreme.Numerics` binomial draws off the shared
   `Random`. **The RNG stream is order- and count-sensitive** — changing how many samples are drawn,
-  or their order, changes every downstream result and every regression fixture. A driver mutation
-  spawns a child `Clone`; passengers are counted but do not fork clones.
+  or their order, changes every downstream result and every regression fixture. Every mutation
+  spawns a child `Clone`.
 - **Retries.** If the population dies out before `MinPop`, the repeat restarts with the next seed
   draw (`TryNo` in the output). `Reps` controls how many independent simulations run.
 - **Checkpoints & output.** `State.GetCompState` decides Running/Finished; at `Finished` (and at
@@ -52,25 +52,22 @@ dotnet test --filter FullyQualifiedName~TreeBuilderTests   # run a single test c
 
 ## Clones, trees, and distances (the part that spans multiple files)
 
-- `Clone.Distance` is the number of **new mutation events** on the branch from its parent (drivers +
-  passengers gained). `Simulator` sets it as `passengerMutantCount + 1` (the `+1` is the driver).
-- Passenger counts come from `CalcPassengers`, which draws from `Extreme`'s `GeometricDistribution`.
-  That distribution counts *trials until the first success* (support ≥ 1, mean `1/p`), so it includes
-  the driver trial itself — the sample is decremented by 1 to yield passenger mutations only. Getting
-  this off-by-one wrong doubles every event distance in the output tree.
+- `MutationProb` is the probability that a new cell founds a driver-mutant child clone.
+- `Clone.Distance` is one driver event from its immediate parent; collapsed DOT/LCA edges sum this
+  value across omitted clones.
 - `TreeBuilder` turns the flat clone list into trees. `BuildLCAT` (used for output) keeps sampled
   clones plus the lowest-common-ancestor internal nodes and sums `Distance` along collapsed edges.
-  `ConvertToBifrucatingNodes` then forces a binary tree, resolving multifurcations into a chain of
-  zero-length self-nodes ordered by clone appearance (`FirstGen`); those filler nodes carry the
-  parent's label. The Newick output is therefore always bifurcating.
+  `BuildTimeTree` converts that topology into a logical-time Newick tree. Each appearance event
+  branches into the new subclone lineage(s) and a self-continuation of the parent. Only subclones
+  appearing from the same parent at the same step create a multifurcation.
 
 ## Output files
 
 Written to the output folder (see README.MD for full column docs): `clones.csv` (per-clone state),
-`clone_tree.dot`/`clone_tree.new` (evolutionary tree in DOT/Newick, node labels `cloneid-popsize`,
-branch length = `Distance`), `parent_tree.csv` + `populations.csv` (PyFish fish-plot inputs, only
-when `CalcFish`), and `summary.csv` (per-checkpoint statistics; its `Time` column is wall-clock and
-therefore non-deterministic).
+`clone_tree.dot` (driver-distance tree), `clone_tree.new` (logical-time tree with node labels
+`cloneid-popsize` and branch lengths in simulation steps), `parent_tree.csv` + `populations.csv`
+(PyFish fish-plot inputs, only when `CalcFish`), and `summary.csv` (per-checkpoint statistics; its
+`Time` column is wall-clock and therefore non-deterministic).
 
 ## Tests
 

@@ -3,6 +3,13 @@ nextflow.enable.dsl=2
 def repoRoot = projectDir.parent.toString()
 def articleFiguresDir = projectDir.toString()
 def resultsDir = (params.containsKey('results_dir') ? params.results_dir : "${projectDir.parent}/out/results").toString()
+def runMode = (params.containsKey('only') ? params.only : 'all').toString()
+def validRunModes = ['all', 'fish', 'trajectories', 'grid']
+
+if (!validRunModes.contains(runMode)) {
+    throw new IllegalArgumentException(
+        "Invalid --only value '${runMode}'. Expected one of: ${validRunModes.join(', ')}")
+}
 
 def collectConfigRecords(List<String> cfgDirPaths) {
     def seen = new LinkedHashSet<String>()
@@ -53,15 +60,31 @@ process RUN_SIMULATION {
     set -euo pipefail
 
     out_dir="${resultsDir}/parameter_range_${run_stub}"
+    calc_fish=\$(jq -r '.CalcFish // false' "${cfg}")
     echo "[start] ${cfg.getName()}"
-    if [[ -f "\$out_dir/populations.csv" && -f "\$out_dir/parent_tree.csv" ]]; then
+    if [[ -s "\$out_dir/summary.csv" \
+          && -s "\$out_dir/sim_params.json" \
+          && -s "\$out_dir/clone_tree.new" \
+          && -s "\$out_dir/clones.csv" \
+          && ( "\$calc_fish" != "true" \
+               || ( -s "\$out_dir/populations.csv" && -s "\$out_dir/parent_tree.csv" ) ) ]]; then
         echo "[skip] ${cfg.getName()} (existing outputs found)"
         exit 0
     fi
 
     mkdir -p "\$out_dir"
     echo "[run ] ${cfg.getName()}"
-    "${repoRoot}/bin/Release/net10.0/publish/SMITH" -C "${cfg}" -O "\$out_dir" -N
+    "${repoRoot}/bin/Release/net10.0/SMITH" -C "${cfg}" -O "\$out_dir" -N
+
+    if [[ ! -s "\$out_dir/summary.csv" \
+          || ! -s "\$out_dir/sim_params.json" \
+          || ! -s "\$out_dir/clone_tree.new" \
+          || ! -s "\$out_dir/clones.csv" \
+          || ( "\$calc_fish" == "true" \
+               && ( ! -s "\$out_dir/populations.csv" || ! -s "\$out_dir/parent_tree.csv" ) ) ]]; then
+        echo "[error] ${cfg.getName()} completed without all expected outputs" >&2
+        exit 1
+    fi
     """
 }
 
@@ -79,7 +102,10 @@ process RUN_GRID_SIMULATION {
 
     out_dir="${outDir}"
     echo "[start] grid g=${conf_global} l=${conf_local} r=${rep_idx}"
-    if [[ -f "\$out_dir/populations.csv" ]]; then
+    if [[ -s "\$out_dir/summary.csv" \
+          && -s "\$out_dir/sim_params.json" \
+          && -s "\$out_dir/clone_tree.new" \
+          && -s "\$out_dir/clones.csv" ]]; then
         echo "[skip] (existing outputs found)"
         exit 0
     fi
@@ -89,17 +115,29 @@ process RUN_GRID_SIMULATION {
        --argjson confGlobal ${conf_global} \
        --argjson confLocal ${conf_local} \
        '. + {"Seed": \$seed, "ConfGlobal": \$confGlobal, "ConfLocal": \$confLocal}' \
-       "${articleFiguresDir}/article_config.json" > "\$out_dir/config.json"
+       "${articleFiguresDir}/article_config.json" > grid_config.json
     echo "[run ] grid g=${conf_global} l=${conf_local} r=${rep_idx}"
-    "${repoRoot}/bin/Release/net10.0/publish/SMITH" -C "\$out_dir/config.json" -O "\$out_dir" -N
+    "${repoRoot}/bin/Release/net10.0/SMITH" -C grid_config.json -O "\$out_dir" -N
+
+    if [[ ! -s "\$out_dir/summary.csv" \
+          || ! -s "\$out_dir/sim_params.json" \
+          || ! -s "\$out_dir/clone_tree.new" \
+          || ! -s "\$out_dir/clones.csv" ]]; then
+        echo "[error] grid g=${conf_global} l=${conf_local} r=${rep_idx} completed without all expected outputs" >&2
+        exit 1
+    fi
     """
 }
 
 workflow REPRESENTATIVE_RUNS {
-    def configRecords = collectConfigRecords([
-        "${articleFiguresDir}/data/fish_plot_configs",
-        "${articleFiguresDir}/data/trajectories_configs"
-    ])
+    def configDirs = []
+    if (runMode in ['all', 'fish']) {
+        configDirs << "${articleFiguresDir}/data/fish_plot_configs"
+    }
+    if (runMode in ['all', 'trajectories']) {
+        configDirs << "${articleFiguresDir}/data/trajectories_configs"
+    }
+    def configRecords = collectConfigRecords(configDirs)
 
     if (configRecords.isEmpty()) {
         throw new IllegalStateException('No config files found.')
@@ -129,6 +167,10 @@ workflow PARAMETER_GRID_SEARCH {
 }
 
 workflow {
-    REPRESENTATIVE_RUNS()
-    PARAMETER_GRID_SEARCH()
+    if (runMode in ['all', 'fish', 'trajectories']) {
+        REPRESENTATIVE_RUNS()
+    }
+    if (runMode in ['all', 'grid']) {
+        PARAMETER_GRID_SEARCH()
+    }
 }

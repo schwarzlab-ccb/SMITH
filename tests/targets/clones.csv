@@ -1,4 +1,4 @@
-ID,ParentID,FirstGen,Distance,Alive,Necrotic,Lost,Drivers,Passengers,Fitness,CCF
-0,0,0,1,220244,0,1105299,1,0,1.2,0.9702
-2,0,3272,1,760106,0,1732205,2,0,1.44,0.7405
-4,0,3927,1,15439,0,34437,2,0,1.44,0.0150
+ID,ParentID,FirstGen,Distance,Alive,Necrotic,Lost,Drivers,Fitness,CCF
+0,0,0,1,220244,0,1105299,1,1.2,0.9702
+2,0,3272,1,760106,0,1732205,2,1.44,0.7405
+4,0,3927,1,15439,0,34437,2,1.44,0.0150

@@ -10,7 +10,6 @@
   "MaxTries": 10000,
   "Turnover": 0.01,
   "MutationProb": 1E-05,
-  "DriverProb": 1,
   "FitnessMean": 0.1,
   "ConfGlobal": 0.5,
   "ConfLocal": 0.0625,

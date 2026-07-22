@@ -5,6 +5,8 @@ channels:
   - defaults
 dependencies:
   - dotnet>=10,<11
+  - nextflow
+  - jq
   - python>=3.8
   - pandas>=1.4.0
   - numpy

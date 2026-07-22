@@ -11,9 +11,6 @@ public static class TreeBuilder
 
     private static Dictionary<int, int> CreateDistanceMap(IEnumerable<Clone> subClones)
         => subClones.ToDictionary(sc => sc.CloneId, sc => Convert.ToInt32(sc.Distance));
-    
-    public static Dictionary<int, int> CountFirstGent(IEnumerable<Clone> subClones)
-        => subClones.ToDictionary(sc => sc.CloneId, sc => sc.FirstGen);
 
     private static ListEdge FindEdgeToParent(Dictionary<int, int> parentMap, Dictionary<int, int> distanceMap,
         List<Clone> selection, int id)
@@ -126,89 +123,142 @@ public static class TreeBuilder
         return new ListTree { RootId = 0, Nodes = nodes, Edges = edges.Where(e => e.TargetId != 0).ToList() };
     }
 
-    private static void WalkTheTree(ListTree listTree, TreeNode currentNode)
-    {
-        var children = listTree.Edges.Where(e => e.SourceId == currentNode.Id).ToList();
-        foreach (var child in children)
-        {
-            var childNode = new TreeNode(child.TargetId, listTree.Nodes.Find(node => node.Id == child.TargetId).Size);
-            currentNode.Children.Add((childNode, child.Distance));
-            WalkTheTree(listTree, childNode);
-        }
-    }
-    
-    public static TreeNode ListToTree(ListTree listTree)
-    {
-        var root = new TreeNode(listTree.RootId, listTree.Nodes.Find(n => n.Id == listTree.RootId).Size);
-        WalkTheTree(listTree, root);
-        return root;
-    }
+    private sealed record TimedNode(TreeNode Node, int Generation);
 
-    private static int AppearanceOrder(Dictionary<int, int> firstGen, int cloneId)
-        => firstGen.TryGetValue(cloneId, out int value) ? value : int.MaxValue;
+    private sealed record BranchEvent(int Generation, List<Clone> Children);
 
-    private static int FindMaxNodeId(TreeNode tree)
+    /// <summary>
+    /// Builds a Newick-ready clone tree whose branch lengths are simulation steps.
+    /// At every child-appearance step, the parent clone branches into its new
+    /// subclone lineage(s) and a continuation of itself.
+    /// </summary>
+    public static (TreeNode Tree, int RootDistance) BuildTimeTree(
+        IEnumerable<Clone> allClones, ListTree cloneTree, int finalGeneration)
     {
-        int maxId = tree.Id;
-        foreach (var (child, _) in tree.Children)
+        var clones = allClones.ToDictionary(clone => clone.CloneId);
+        if (!clones.TryGetValue(cloneTree.RootId, out var rootClone))
         {
-            maxId = Math.Max(maxId, FindMaxNodeId(child));
+            throw new ArgumentException(
+                $"Tree root {cloneTree.RootId} has no corresponding clone.");
         }
 
-        return maxId;
+        if (finalGeneration < rootClone.FirstGen)
+        {
+            throw new ArgumentOutOfRangeException(nameof(finalGeneration));
+        }
+
+        var childrenByParent = cloneTree.Edges
+            .GroupBy(edge => edge.SourceId)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Select(edge => edge.TargetId).ToList());
+
+        var root = BuildTimeLineage(
+            rootClone, clones, childrenByParent, finalGeneration);
+        return (root.Node, root.Generation - rootClone.FirstGen);
     }
 
-    private static int ConvertToBifrucatingNodes(Dictionary<int, int> firstGen, TreeNode tree, int nextFreeId)
+    private static TimedNode BuildTimeLineage(
+        Clone clone,
+        Dictionary<int, Clone> clones,
+        Dictionary<int, List<int>> childrenByParent,
+        int finalGeneration)
     {
-        if (tree.Children.Count > 1)
-        {
-            var orderedChildren = tree.Children
-                .OrderBy(c => AppearanceOrder(firstGen, c.child.Id))
-                .ThenBy(c => c.child.Id)
-                .ToList();
-
-            if (orderedChildren.Count > 2)
+        var events = childrenByParent.GetValueOrDefault(clone.CloneId, [])
+            .Select(childId =>
             {
-                // Convert multifurcation into a chain of zero-length self-nodes in appearance order,
-                // preserving each child's original distance.
-                TreeNode chainNode = tree;
-                for (int i = 0; i < orderedChildren.Count; i++)
+                if (!clones.TryGetValue(childId, out var child))
                 {
-                    var (child, distance) = orderedChildren[i];
-                    bool isLast = i == orderedChildren.Count - 1;
-                    if (isLast)
-                    {
-                        chainNode.Children = new List<(TreeNode child, int distance)> { (child, distance) };
-                        break;
-                    }
-
-                    var selfNode = new TreeNode(nextFreeId++, 0, tree.Label);
-                    chainNode.Children = new List<(TreeNode child, int distance)> { (child, distance), (selfNode, 0) };
-                    chainNode = selfNode;
+                    throw new ArgumentException(
+                        $"Tree node {childId} has no corresponding clone.");
                 }
-            }
-            else
-            {
-                tree.Children = orderedChildren;
-            }
-        }
 
-        foreach (var (child, _) in tree.Children)
+                var branchEntry = FindBranchEntryClone(
+                    clones, clone.CloneId, childId);
+                return (Child: child, Generation: branchEntry.FirstGen);
+            })
+            .GroupBy(branch => branch.Generation)
+            .OrderBy(group => group.Key)
+            .Select(group => new BranchEvent(
+                group.Key,
+                group.Select(branch => branch.Child)
+                    .OrderBy(child => child.CloneId)
+                    .ToList()))
+            .ToList();
+
+        return BuildTimeContinuation(
+            clone, events, 0, clones, childrenByParent, finalGeneration);
+    }
+
+    private static TimedNode BuildTimeContinuation(
+        Clone clone,
+        List<BranchEvent> events,
+        int eventIndex,
+        Dictionary<int, Clone> clones,
+        Dictionary<int, List<int>> childrenByParent,
+        int finalGeneration)
+    {
+        if (eventIndex == events.Count)
         {
-            nextFreeId = ConvertToBifrucatingNodes(firstGen, child, nextFreeId);
+            return new TimedNode(
+                new TreeNode(clone.CloneId, clone.AliveAtGen(finalGeneration)),
+                finalGeneration);
         }
 
-        return nextFreeId;
+        var branchEvent = events[eventIndex];
+        if (branchEvent.Generation < clone.FirstGen
+            || branchEvent.Generation > finalGeneration)
+        {
+            throw new InvalidOperationException(
+                $"Clone {clone.CloneId} has a branch outside its simulation lifetime.");
+        }
+
+        var eventNode = new TreeNode(
+            clone.CloneId, clone.AliveAtGen(branchEvent.Generation));
+        foreach (var child in branchEvent.Children)
+        {
+            var childRoot = BuildTimeLineage(
+                child, clones, childrenByParent, finalGeneration);
+            int distance = childRoot.Generation - branchEvent.Generation;
+            if (distance < 0)
+            {
+                throw new InvalidOperationException(
+                    $"Clone {child.CloneId} precedes its parent branch.");
+            }
+
+            eventNode.Children.Add((childRoot.Node, distance));
+        }
+
+        var continuation = BuildTimeContinuation(
+            clone,
+            events,
+            eventIndex + 1,
+            clones,
+            childrenByParent,
+            finalGeneration);
+        eventNode.Children.Add((
+            continuation.Node,
+            continuation.Generation - branchEvent.Generation));
+
+        return new TimedNode(eventNode, branchEvent.Generation);
     }
 
-    public static void ConvertToBifrucatingNodes(Dictionary<int, int> firstGen, TreeNode tree)
+    private static Clone FindBranchEntryClone(
+        Dictionary<int, Clone> clones, int parentId, int targetId)
     {
-        int nextFreeId = FindMaxNodeId(tree) + 1;
-        ConvertToBifrucatingNodes(firstGen, tree, nextFreeId);
-    }
+        var current = clones[targetId];
+        var visited = new HashSet<int>();
+        while (current.ParentId != parentId)
+        {
+            if (!visited.Add(current.CloneId)
+                || current.ParentId == -1
+                || !clones.TryGetValue(current.ParentId, out current))
+            {
+                throw new ArgumentException(
+                    $"Tree node {targetId} is not a descendant of clone {parentId}.");
+            }
+        }
 
-    public static int ConvertToBinaryNodes(Dictionary<int, int> firstGen, TreeNode tree, int minFreeId)
-    {
-        return ConvertToBifrucatingNodes(firstGen, tree, minFreeId);
+        return current;
     }
 }

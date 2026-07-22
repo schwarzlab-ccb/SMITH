@@ -26,8 +26,7 @@ public class Simulator
             double sample = FitnessFunction.SampleFitness(simParams, rnd);
             initFit = AccFitness(initFit, sample, SimParams.FitnessAcc);
         }
-        uint passengerMutantCount = CalcPassengers(SimParams.DriverProb / SimParams.StartMut );
-        var primeval = new Clone(0, -1, 0, initFit, SimParams.StartMut, passengerMutantCount, passengerMutantCount + SimParams.StartMut, SimParams.StartPop);
+        var primeval = new Clone(0, -1, 0, initFit, SimParams.StartMut, SimParams.StartMut, SimParams.StartPop);
         Clones = [primeval];
     }
 
@@ -81,10 +80,6 @@ public class Simulator
     private static double CalcFraction(long aliveCount, double freeCount) => 
         aliveCount > freeCount && aliveCount > 0 ? Math.Clamp(freeCount / aliveCount, 0.0, 1.0) : 1.0;
     
-    private uint CalcPassengers(double mean)
-     // Extreme's GeometricDistribution counts trials until the first success (support >= 1, mean 1/p),
-     =>  (uint) Math.Max(0, Math.Round((double) Extreme.Statistics.Distributions.GeometricDistribution.Sample(Rnd, mean)) - 1);
-    
     public void Step()
     {
         AliveSC = 0;
@@ -115,15 +110,21 @@ public class Simulator
             long newCellsCount = SampleBinomial(Rnd, subClone.AliveCount, birthProb * cloneFrac);
 
             // Mutate some of the cells
-            int newMutantCount = (int)SampleBinomial(Rnd, newCellsCount, SimParams.MutationProb * SimParams.DriverProb);
+            long newMutantCount = SampleBinomial(Rnd, newCellsCount, SimParams.MutationProb);
+            if (SimParams.MaxClones > 0)
+            {
+                long remainingCloneCapacity = Math.Max(
+                    0L, (long)SimParams.MaxClones - Clones.Count - newClones.Count);
+                newMutantCount = Math.Min(newMutantCount, remainingCloneCapacity);
+            }
 
-            int driverMutantCount = 0;
-            for (int mutationI = 0; mutationI < newMutantCount; mutationI++)
+            long driverMutantCount = 0;
+            for (long mutationI = 0; mutationI < newMutantCount; mutationI++)
             {
                 double divChange = FitnessFunction.SampleFitness(SimParams, Rnd);
                 double newDivision = AccFitness(subClone.Fitness, divChange, SimParams.FitnessAcc);
-                uint passengerMutantCount = CalcPassengers(SimParams.DriverProb);
-                var childClone = subClone.CreateChild(GetNewId(), StepNo, newDivision, subClone.DriverCount + 1u, subClone.PassengersCount + passengerMutantCount, passengerMutantCount + 1);
+                var childClone = subClone.CreateChild(
+                    GetNewId(), StepNo, newDivision, subClone.DriverCount + 1u, 1);
                 newClones.Add(childClone);
                 driverMutantCount++;
             }
@@ -140,9 +141,58 @@ public class Simulator
     private static long SampleBinomial(Random rnd, long n, double p)
     {
         if (n <= 0) return 0;
-        if (n <= 1_000_000_000L)
-            return ExtremeBinDist.Sample(rnd, (int)n, p);
-        double frac = 1_000_000_000.0 / n;
-        return (long)(ExtremeBinDist.Sample(rnd, 1_000_000_000, p) / frac);
+
+        const int maxChunkSize = 1_000_000_000;
+        // ExtremeBinDist takes an int trial count, so n is drawn in maxChunkSize chunks.
+        // Past this many chunks the number of draws becomes a bottleneck, so populations
+        // that large fall back to an approximation instead of exact sampling.
+        const long maxExactSampleSize = 100L * maxChunkSize;
+        if (n > maxExactSampleSize)
+        {
+            return ApproximateBinomial(rnd, n, p);
+        }
+
+        long sample = 0;
+        long remaining = n;
+        while (remaining > 0)
+        {
+            int chunkSize = (int)Math.Min(remaining, maxChunkSize);
+            sample += ExtremeBinDist.Sample(rnd, chunkSize, p);
+            remaining -= chunkSize;
+        }
+
+        return sample;
+    }
+
+    // Only reached for populations too large for practical exact sampling. Tiny p
+    // (rare-event, small mean) uses the Poisson limit; otherwise a normal approximation
+    // with matched binomial moments. This branch is never on an RNG path exercised by the
+    // regression fixtures, whose populations stay well below maxExactSampleSize.
+    private static long ApproximateBinomial(Random rnd, long n, double p)
+    {
+        if (p <= 0) return 0;
+        if (p >= 1) return n;
+
+        double mean = (double)n * p;
+        if (mean < 30.0)
+        {
+            // Knuth's Poisson sampler; fast while the mean stays small.
+            double threshold = Math.Exp(-mean);
+            long k = 0;
+            double product = 1.0;
+            do
+            {
+                k++;
+                product *= rnd.NextDouble();
+            } while (product > threshold);
+            return Math.Min(k - 1, n);
+        }
+
+        // Box-Muller normal draw with the binomial mean and variance.
+        double stdDev = Math.Sqrt(mean * (1 - p));
+        double u1 = 1.0 - rnd.NextDouble();
+        double u2 = rnd.NextDouble();
+        double z = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Cos(2.0 * Math.PI * u2);
+        return (long)Math.Clamp(Math.Round(mean + stdDev * z), 0.0, (double)n);
     }
 }

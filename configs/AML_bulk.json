@@ -9,8 +9,7 @@
   "MinPop": 1000,
   "MaxTries": -1,
   "Turnover": 0.01,
-  "MutationProb": 0.001,
-  "DriverProb": 0.025,
+  "MutationProb": 0.000025,
   "FitnessMean": 0.1,
   "ConfGlobal": 0,
   "ConfLocal": 0,
@@ -18,7 +17,7 @@
   "FitnessDist": "Exponential",
   "FitnessEffect": "Birth",
   "Checkpoints": true,
-  "CutOff": 0.005,
+  "CutOff": 0.001,
   "CloneSample": -1,
   "CalcFish": true,
   "FishFrac": 0.01

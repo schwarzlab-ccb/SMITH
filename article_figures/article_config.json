@@ -9,7 +9,6 @@
   "MaxTries": 10000,
   "Turnover": 0.01,
   "MutationProb": 2e-05,
-  "DriverProb": 1,
   "FitnessMean": 0.1,
   "FitnessAcc": "Add",
   "FitnessDist": "Exponential",

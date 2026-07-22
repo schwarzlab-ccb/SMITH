@@ -2,6 +2,39 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.3.0] - 2026-07-21
+
+### Changed
+- `MutationProb` now directly specifies the driver-mutation probability per new cell. Bundled
+  configs were updated to preserve their previous effective driver-event rates (previously
+  `MutationProb × DriverProb`); the `_bulk` configs also lower `CutOff` to `0.001`.
+- `clone_tree.new` now uses simulation steps as branch lengths. Each branching node records the
+  parent clone's population at that step and branches into the parent's self-continuation plus the
+  newly appearing subclone lineage(s). Multifurcations are limited to same-step appearances.
+- The Nextflow workflow now honors `--only` and `--max_forks`, exposes `--conda_env` and
+  `--slurm_options`, uses the repository conda environment and Release executable, and detects
+  completed fish and non-fish runs reliably.
+
+### Fixed
+- `MaxClones` is now enforced while a generation is created, mutation counts retain 64-bit range,
+  and binomial sampling above one billion trials uses independent chunks without inflating variance;
+  populations too large to sample exactly fall back to a Poisson/normal approximation.
+- Empty clone selections and zero-alive outputs now produce finite zero-valued metrics, and
+  checkpoint generation rejects a zero `MinPop` while avoiding overflow at large population limits.
+- `SanityCheck` now reports the correct field name when `FishFrac` is out of range.
+
+### Removed
+- Passenger mutation sampling, the `DriverProb` configuration parameter, the passenger clone state,
+  and the `Passengers` column from `clones.csv`.
+
+### Migration
+- Config files that still carry a `DriverProb` field load without error but the field is ignored,
+  so the effective driver rate becomes `MutationProb` alone. Update old configs by setting
+  `MutationProb := MutationProb × DriverProb` and deleting `DriverProb`.
+- The `clone_tree.new` Newick format changed: branch lengths are now simulation steps (not driver
+  distances) and the file ends with a root-stem length (`…)label:rootDistance;`). Downstream
+  parsers that assumed the previous format must be updated.
+
 ## [1.2.1] - 2026-06-12
 
 ### Fixed
